@@ -3570,7 +3570,8 @@ sub findpkg($$)
   my($name, $version) = emptytoundef(@_);
 
   return () unless defined($name);
-  return ($name, $version) if isversion($name, $version);
+  return ($name, $version)
+      if defined($version) ? isversion($name, $version) : isname($name);
   return () unless ignorecase;
 
   ($name, $version) = (lc($name), defined($version) ? lc($version) : undef);
@@ -5174,7 +5175,6 @@ hostname of the B<toast> distribution site, C<toastball.net>.
 
 Known bugs:
 
-  - if packages foo and Foo exist, "foo" and "Foo" both refer to Foo
   - autofind mishandles http redirects (e.g. http://toastball.net/toast)
   - gtk+ doesn't seem to build properly when it is already armed
   - opera and sleepycat db refuse to build when already armed
