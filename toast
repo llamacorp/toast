@@ -2708,7 +2708,7 @@ sub configure($$)
   my($mfpl) = path($dir, "Makefile.PL");
   return $dir if -r($mfpl) && cdrun($dir, "perl", $mfpl);
 
-  # Write a custom Makefile for glibc with linuxthreads and/or kernel headers.
+  # Write a custom Makefile for glibc with add-ons and/or kernel headers.
   my($glibcdir, $hdrdir, @addons);
   my($glibcok) = whiledir
   {
@@ -2747,7 +2747,7 @@ sub configure($$)
     my($emdir) = shellescape($makedir);
     my($ehdir) = defined($hdrdir) ? (shellescape($hdrdir)) : ();
     my($mftext) = "# $genby\n\nall:\n\t\$(MAKE) -C $emdir\n\n" .
-        "install:\n\t\$(MAKE) -C $emdir\n";
+        "install:\n\t\$(MAKE) -C $emdir install\n";
     my($inclist) = "include/linux include/asm/. include/asm-generic";
     $mftext .= "\t\(cd $ehdir && tar c $inclist) | (cd \$(DESTDIR) && tar x)\n"
         if $ehdir;
@@ -6081,6 +6081,7 @@ hostname of the B<toast> distribution site, C<toastball.net>.
 
 Known bugs:
 
+  - make oldconfig isn't running for linux/2.6.x
   - toast add misguesses device-mapper name/version from URL
   - autofind hangs in httphead() when going through tinyproxy?
   - autofind mishandles http redirects (e.g. http://toastball.net/toast)
