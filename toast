@@ -139,12 +139,25 @@ sub checkedeval($)
 
 BEGIN
 {
+  my($uid, $euid) = ($<, $>);
+
+  sub superuser()
+  {
+    $uid == 0 || $euid == 0;
+  }
+}
+
+##############################################################################
+
+BEGIN
+{
   my(%optdefault) =
   (
-    "storedir" => "/toast",
-    "armdir" => "/usr/local",
+    "storedir" =>
+        (superuser || !$ENV{HOME}) ? "/toast" : "$ENV{HOME}/.toast",
+    "armdir" => superuser ? "/usr/local" : "armed",
     "username" => "toast",
-    "postarmprog" => "/sbin/ldconfig",
+    "postarmprog" => superuser ? "/sbin/ldconfig" : "",
     "verbose" => true,
     "autoclean" => true,
     "autopurge" => false,
@@ -235,6 +248,12 @@ BEGIN
     else
     {
       error("option $name is undefined") unless defined($val);
+      if($name =~ /dir$/ && $val !~ m|^/|)
+      {
+        error("relative path not allowed for storedir: $val")
+            if $name eq "storedir";
+        $val = path(&storedir, $val);
+      }
     }
     $optcurrent{$name} = $val;
   }
@@ -864,16 +883,6 @@ sub mkcmdline(@)
 }
 
 ##############################################################################
-
-BEGIN
-{
-  my($uid, $euid) = ($<, $>);
-
-  sub superuser()
-  {
-    $uid == 0 || $euid == 0;
-  }
-}
 
 sub getuidgid()
 {
@@ -3669,9 +3678,10 @@ single package.
 =item B<--storedir=>I<STOREDIR>
 
 Defines the root of the directory tree B<toast> uses to store and build
-all packages.  I<STOREDIR> should be given as an absolute path.  B<toast
-add> and commands that explicitly invoke it will create I<STOREDIR>
-if it doesn't already exist.  Default: C</toast>.
+all packages.  I<STOREDIR> must be given as an absolute path or a fatal
+error will result.  B<toast add> and commands that explicitly invoke it
+will create I<STOREDIR> if it doesn't already exist.  Default: C</toast>
+if invoked by root, C<I<$HOME>/.toast> otherwise.
 
 =item B<--armdir=>I<ARMDIR>
 
@@ -3679,11 +3689,14 @@ Defines the directory under which B<toast arm> creates symlinks to
 compiled package files in I<STOREDIR>.  B<toast build> also tries to use
 this value as a prefix when compiling most packages.  With few exceptions,
 I<ARMDIR> should point to the same directory when arming a given package
-that was used when building that package.  I<ARMDIR> should be given as
-an absolute path, and should probably not contain, be contained by, or
-be the same as I<STOREDIR>, though these restrictions are not enforced.
-It's usually a good idea for I<ARMDIR> to be C</usr> or C</usr/local>
-if feasible, since some packages are broken.  Default: C</usr/local>.
+that was used when building that package.  If I<ARMDIR> is not given as
+an absolute path, it is taken to be relative to I<STOREDIR>.  I<ARMDIR>
+and should probably not contain I<STOREDIR>, and should probably not be
+contained by I<STOREDIR> either unless I<ARMDIR> is C<armed>, though these
+restrictions are not enforced.  It's usually a good idea for I<ARMDIR>
+to be C</usr> or C</usr/local> if feasible, since some broken packages
+may not work if installed in a different location.  Default: C</usr/local>
+if invoked by root, C<armed> otherwise.
 
 =item B<--username=>I<USER>
 
@@ -3700,7 +3713,8 @@ it immediately after arming or disarming one or more packages.  I<PROG>
 can contain multiple words and/or shell metacharacters and will be parsed
 and executed according to Perl's usual conventions, so it can actually
 refer to more than one program.  If I<PROG> returns non-zero (failure),
-the command will also fail.  Default: C</sbin/ldconfig>.
+the command will also fail.  Default: C</sbin/ldconfig> if invoked by
+root, empty string otherwise.
 
 =item S<B<--verbose> | B<--noverbose>>
 
