@@ -3127,7 +3127,7 @@ sub configure($$)
       return true;
     }
     my($cfg) = path($abs, "configure");
-    if(-x($cfg))
+    if(-r($cfg))
     {
       return true if whilefile { /^\s*(\#|exit|$)/ } $cfg;
       return false if $glibcdir;
@@ -3159,10 +3159,14 @@ sub configure($$)
         if $ehdir;
     writefile(path($dir, "Makefile"), $mftext);
 
-    my(@confcmd) = ("../configure", "--prefix=$prefix");
-    push(@confcmd, "--enable-add-ons") if @addons;
-    push(@confcmd, "--with-headers=$hdrdir/include") if $hdrdir;
-    cdrun($makedir, @confcmd);
+    my(%confopts) = ("--prefix=$prefix" => 1);
+    $confopts{"--with-headers=$hdrdir/include"} = 1 if $hdrdir;
+    my($cfg) = path($glibcdir, "configure");
+    patch
+    {
+      $confopts{$1} = 1 if /(--(enable-add-ons|with-tls))\b/;
+    } $cfg if reconfigure;
+    cdrun($makedir, qw(sh ../configure), sort(keys(%confopts)));
 
     return $dir;
   }
