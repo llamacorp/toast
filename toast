@@ -2349,7 +2349,7 @@ sub stddirs()
 
 sub stdlinks()
 {
-  ("usr" => ".", "local" => ".", "share/man" => "../man");
+  ("usr" => ".", "local" => ".", "X11R6" => ".", "share/man" => "../man");
 }
 
 sub rootlinks()
@@ -2888,7 +2888,6 @@ sub ensuredisarmed($;$$)
 sub remove(@)
 {
   my($name, $version, $build, @urls) = @_;
-  @urls && error;
   $name || error;
   ensuredisarmed($name, $version, $build);
   rmall(pkgpath($name, $version, $build));
@@ -2897,7 +2896,6 @@ sub remove(@)
 sub demolish(@)
 {
   my($name, $version, $build, @urls) = @_;
-  @urls && error;
   whilebuild { remove(@_) } @_;
 }
 
