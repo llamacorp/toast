@@ -1306,7 +1306,7 @@ sub isarmed(@)
 
 ##############################################################################
 
-sub lookslikepkgurl($;$$)
+sub lookslikepkgurl($;$;$)
 {
   my($url, $name, $version) = @_;
   return false unless $url =~ m!^(http|ftp)://!;
@@ -1315,9 +1315,9 @@ sub lookslikepkgurl($;$$)
   return false unless $noquery =~ m!\.\w+$!;
   return false if $noquery =~ m!\.html?$!i;
   return true unless defined($name);
-  error unless defined($version);
   my($basename) = basename($noquery);
   return false unless $basename =~ /\Q$name\E/i;
+  return true unless defined($version);
   return false unless $basename =~ /\Q$version\E/i;
   return true;
 }
@@ -1337,7 +1337,6 @@ sub findnewpkg($$)
   {
     $notfound = /^Error: project not found/i ? 1 : 0 unless defined($notfound);
     $fmurl{$1} = $2 while m!<url_(\w+)>([^<]+)</!g;
-    $version = $1 if !defined($version) && m!<latest_version>([^<]+)</!;
   }
   close(XML) || error;
 
@@ -1346,25 +1345,43 @@ sub findnewpkg($$)
   my($redirurl);
   $redirurl ||= $fmurl{$_} for qw(bz2 tgz zip rpm);
   $redirurl || error("no suitable URL for package $name on $sitename");
-  defined($version) || error("no version for package $name on $sitename");
 
   my($redirhead) = httphead($redirurl);
   $redirhead =~ /^Location: ([^\r\n]+)/m ||
       error("unexpected response from $redirurl");
   my($url) = $1;
 
-  return ($name, $version, $url) if lookslikepkgurl($url);
+  if(lookslikepkgurl($url))
+  {
+    (undef, $version) = guessnv($url) unless defined($version);
+    return ($name, $version, $url);
+  }
 
   my(@urls) = grep(lookslikepkgurl($_, $name, $version), linksfromurl($url));
+  my(@exts) = (qw[.tar.bz2 .tar.gz .tgz .zip .rpm]);
+  my($extpat) = '(' . join('|', map(quotemeta($_), @exts)) . ')$';
+  @urls = grep(/$extpat/, @urls);
+
+  if(!defined($version))
+  {
+    my(@versions) = map { my(undef, $v) = guessnv($_); $v } @urls;
+    @versions = grep(defined($_), @versions);
+    if(@versions)
+    {
+      @versions = reverse sort cmpab @versions;
+      $version = $versions[0];
+      @urls = grep { my(undef, $v) = guessnv($_); $v eq $version } @urls;
+    }
+  }
 
   my($ext);
-  for $ext (qw[.tar.bz2 .tar.gz .tgz .zip .rpm])
+  for $ext (@exts)
   {
     my(@matches) = grep(stripquery($_) =~ /\Q$ext\E$/i, @urls);
     return ($name, $version, $matches[0]) if @matches;
   }
 
-  error("can't find URLs for $name version $version at $url");
+  error("can't find URLs for " . pkgname($name, $version) . " at $url");
 }
 
 sub pkgurls($$)
