@@ -770,6 +770,7 @@ sub openhttpurl(*$)
 {
   local(*HANDLE) = shift;
   my($url) = @_;
+  return true if openprog(*HANDLE, "GET", $url);
   openhttp(*HANDLE, $url);
   local($_);
   $_ = <HANDLE>;
@@ -4860,12 +4861,12 @@ possible, rather than using B<toast> to replace it or go behind its back.
 =head2 Requirements
 
 B<toast> itself is known to work with Perl 5.005_03 through 5.8.x under
-Linux, FreeBSD and Cygwin, without relying on the presence or absence
-of any Perl modules or other tools.  Perl is available for download at
-C<http://www.cpan.org/src/stable.tar.gz>.  Although it isn't required,
-B<toast get> works better if you have GNU wget; use C<toast arm wget>
-to download and install it if necessary.  Additional requirements for
-B<toast build> vary according to the package being built.
+Linux, FreeBSD, Solaris, and Cygwin, without relying on the presence
+or absence of any Perl modules or other tools.  Perl is available for
+download at C<http://www.cpan.org/src/stable.tar.gz>.  Although it isn't
+required, B<toast get> works better if you have GNU wget; you can use
+C<toast arm wget> to download and install it if necessary.  Additional
+requirements for B<toast build> vary according to the package being built.
 
 =head2 Setup
 
@@ -4940,12 +4941,13 @@ existing package.  After this command completes successfully, other
 commands will be able to operate on the package without downloading
 any additional files from the network.  If a given package is already
 C<stored>, the existing downloaded files are silently preserved; use
-B<toast purge> to force them to be downloaded afresh.  B<toast get>
-has rudimentary built-in support for C<file> and C<http> URLs.
-If GNU B<wget> is installed, B<toast get> will use it to fetch
-C<http>, C<https>, and C<ftp> URLs.  If B<ssh> is available,
-B<toast get> can use it to fetch (non-standard) URLs of the form
-C<ssh:/[username@]hostname/absolute/path/to/file>.
+B<toast purge> to force them to be downloaded afresh.  B<toast get> has
+rudimentary built-in support for C<file> and C<http> URLs.  If GNU B<wget>
+is installed, B<toast get> will use it to fetch C<http>, C<https>, and
+C<ftp> URLs; otherwise, if LWP is installed, B<toast get> will use the
+B<GET> utility to fetch C<http> URLs, rather than using built-in HTTP.
+If B<ssh> is available, B<toast get> can use it to fetch (non-standard)
+URLs of the form C<ssh:/[username@]hostname/absolute/path/to/file>.
 
 =item S<B<toast build> [ I<PACKAGE> ...]>
 
