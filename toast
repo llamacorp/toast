@@ -747,10 +747,13 @@ sub openprog(*$@)
   my($prog, @args) = @_;
   announce($prog, @args);
   @args = shellescape(@args);
-  if(!open(HANDLE, "$prog @args |"))
   {
-    explain("failed to exec $prog: $!");
-    return false;
+    local($^W) = false; # suppress misguided exec failure warning
+    if(!open(HANDLE, "$prog @args |"))
+    {
+      explain("failed to exec $prog: $!");
+      return false;
+    }
   }
   binmode(HANDLE) || error("binmode: $!"); # perl 5.8.0 utf8 bug
 }
@@ -1312,10 +1315,11 @@ sub showprebuildinfo($$$)
   optrun(findperl, "-V");
   optrun("printenv");
   my(@urls) = pkgurls($name, $version);
+  explain("no urls") unless @urls;
   explain("url: $_") for @urls;
-  my($verdir) = pkgpath($name, $version);
-  my($archivedir) = path($verdir, archivedir);
-  optrun("md5sum", absls($archivedir));
+  my(@archives) = absls(path(pkgpath($name, $version), archivedir));
+  explain("no archives") unless @archives;
+  optrun("md5sum", @archives) if @archives;
   true;
 }
 
@@ -4037,9 +4041,9 @@ sub env(@)
   my($defaultman) = "/usr/man:/usr/share/man:/usr/local/man:/usr/X11R6/man";
   if(!exists($ENV{MANPATH})) # don't bother unless we're going to use it...
   {
-    my($out) = `man -w`;
-    chomp($out);
-    $defaultman = $out if $out =~ m!^/! && $out !~ /\n/;
+    my($out) = `man -w 2>/dev/null`;
+    chomp($out) if defined($out);
+    $defaultman = $out if defined($out) && $out =~ m!^/! && $out !~ /\n/;
   }
 
   printenvcmd("PATH", "sbin:bin");
@@ -4330,7 +4334,7 @@ sub parse(@)
       }
       elsif(defined($oversion) && !defined($version))
       {
-        $nourls = false if -e;
+        ($nourls, $name, $oname) = false if -r && !-d;
       }
       else
       {
@@ -6055,10 +6059,6 @@ Known bugs:
       wxpython
   - autofind chooses Linux binaries over source for doxygen
   - build fails for: jikes, sirc, netcat, lcab, gv, bittorrent
-  - "toast add foo/bar-1.2.tar.gz" guesses "foo version bar-1.2.tar.gz"
-  - openprog() still emits redundant exec() warnings
-  - toast build hangs in md5sum if a package has no archives or urls
-  - in some environments, toast env spews warnings if MANPATH is unset
 
 Wish list:
 
