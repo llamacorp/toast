@@ -259,6 +259,7 @@ BEGIN
     "altarmdirs" => "",
     "username" => "toast",
     "fallbackuid" => 23,
+    "nice" => 10,
     "postarmprog" => superuser ? "/sbin/ldconfig" : "",
     "editprog" => "",
     "defaultcmd" => "help",
@@ -704,9 +705,11 @@ sub optrmall(@) { rmall(grep(-e || -l, @_)) }
 
 ##############################################################################
 
-sub nice($)
+sub benice()
 {
-  eval { setpriority(0, 0, min(getpriority(0, 0) + $_[0], 20)) };
+  my($inc) = nice;
+  return $inc eq "0" unless $inc =~ /^-?[1-9][0-9]*$/;
+  eval { setpriority(0, 0, min(getpriority(0, 0) + $inc, 20)) };
 }
 
 sub safeexec(@)
@@ -3731,7 +3734,7 @@ sub rebuild(@)
 
     open(STDERR, ">&STDOUT") || error("dup stdout: $!");
     verbosify;
-    nice(10);
+    benice;
     dropprivs;
     showprebuildinfo($name, $version, $build);
     yes;
@@ -6298,6 +6301,20 @@ user, it normally runs as the user given by the B<username> option.
 However, if no such user exists, B<toast> will search for an unused
 UID to use instead, starting at I<UID>.  Use 0 to disable this feature.
 Default: C<23>.
+
+=item B<--nice=>I<N>
+
+If I<N> is a nonzero integer, the build subprocess spawned by B<toast
+build> will silently attempt to adjust its sheduling priority ("niceness")
+by the given delta.  In keeping with wacky Unix tradition, positive I<N>
+causes the build process to run at a lower priority, while negative I<N>
+denotes a higher priority.  Negative I<N> works only when B<toast> is
+invoked as root.  Usually I<N> ought to be between 20 and -20, but other
+values might be useful if B<toast> is invoked on a strange platform or at
+an unusual initial priority.  Note that B<toast> will not fail or even
+warn if I<N> is non-numeric, or too small, or if the priority cannot
+be adjusted for any other reason, except that if I<N> is too large,
+it will be silently demoted to the largest useful value.  Default: 10.
 
 =item B<--postarmprog=>I<PROG>
 
