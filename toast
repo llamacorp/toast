@@ -914,25 +914,26 @@ sub collapse(@)
 
 sub sanitize($)
 {
-  local($_) = @_;
-  s/\:/_/g;
-  s/^[\W_]+//;
-  s/[\W_]+$//;
-  $_ eq "" ? undef : $_;
+  my($word) = @_;
+  $word =~ s/\:/_/g;
+  $word =~ s/^[\W_]+//;
+  $word =~ s/[^a-z0-9\+]+$//i; # allow e.g. gtk+
+  $word =~ s/[\.-]?(source|src)$//i; # e.g. mozilla, libjpeg, minicom, XFree86
+  $word eq "" ? undef : $word;
 }
 
 sub guessnv(@)
 {
-  my(@sources) = @_;
-  local($_) = stripext(basename(stripquery(collapse(@sources))));
-  /^([\w]+[\w\-]*[a-z]+)[-_]v?(\d[\w\.\+\-]+)$/i || # Cryptix_src_3-1-1.zip
-  /([^-]+)-(.*\d.+)/ ||                             # iputils-ss020124.tar.gz
-  /^(\D+[^a-z])v(\d.*)$/ ||                         # TinyMAZEv2.4a.tar.gz
-  /^(\D+)(\d.*)$/ ||                                # fceu019linux.tar.gz
-  /^(.*)()$/;                                       # Xmerge.tar.gz
+  my(@urls) = @_;
+  my($base) = collapse(map(stripext(basename(stripquery($_))), @urls));
+  $base =~ /^([\w]+[\w\-]*[a-z]+)[-_]v?(\d[\w\.\+\-]+)$/i  # Cryptix_src_3-1-1
+      || $base =~ /([^-]+)-(.*\d.+)/                       # iputils-ss020124
+      || $base =~ /^(\D+[^a-z])v(\d.*)$/                   # TinyMAZEv2.4a
+      || $base =~ /^(\D+)(\d.*)$/                          # fceu019linux
+      || $base =~ /^(.*)()$/;                              # Xmerge
   my($name, $version) = ($1, $2);
-  $name =~ s/\./_/g;
-  (sanitize($name), sanitize($version));
+  $name =~ s/\./_/g; # helps parse() distinguish filenames from pkg names
+  return (sanitize($name), sanitize($version));
 }
 
 ##############################################################################
@@ -4610,7 +4611,6 @@ the hostname of the toast distribution site, toastball.net.
 
 Known bugs:
 
-  - "toast add [ ftp://bar/bar.tar.gz bar.patch ]" guesses "f/unknown"
   - autofind mishandles http redirects (e.g. http://toastball.net/toast)
   - "toast --noautoarm build foo" disarms and demolishes old foo builds
   - __END__ causes trouble when piping toast to perl for bootstrapping
@@ -4633,7 +4633,6 @@ Wish list:
   - "toast status" should give information about stacking order
   - directories in armdir should be read-only (mode 0555) by default
   - add "toast check": verify storedir and armdir integrity (and fix?)
-  - improve name-guessing: gtk+, mozilla-source, jpegsrc, X/430src (?)
   - toast get could be more robust w/r/t failures and concurrency
   - configure packages to use alternate /etc, /var, etc. when possible
   - share rewriting code between command wrappers and shared library
