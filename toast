@@ -2182,7 +2182,7 @@ sub findnewpkg($$)
         error("unexpected response from $redirurl");
     $url = $1;
     # wget can't always get FTP directory listing correctly w/o trailing slash
-    $url .= "/" unless basename(stripquery($url)) =~ /\.|\/$/; # e.g. atop
+    $url .= "/" if $url =~ m!^ftp:.*/[^/\.]+$!; # e.g. atop
     $url = cleanurl($url);
   }
 
