@@ -2193,24 +2193,22 @@ sub configure($$)
   # into the directory with the non-broken configure script and run that.
   my($newdir);
   my(@addons);
-  if
-  (
-    whiledir
+  my($addonsok) = whiledir
+  {
+    push(@addons, $_);
+    my($abs) = path($dir, $_);
+    return false if !-d($abs) || -l($abs);
+    my($cfg) = path($abs, "configure");
+    if(-x($cfg))
     {
-      push(@addons, $_);
-      my($abs) = path($dir, $_);
-      return false if !-d($abs) || -l($abs);
-      my($cfg) = path($abs, "configure");
-      if(-x($cfg))
-      {
-        return true if whilefile { /^\s*(\#|exit|$)/ } $cfg;
-        return false if $newdir;
-        $newdir = $abs;
-        pop(@addons);
-      }
-      true;
-    } $dir
-  )
+      return true if whilefile { /^\s*(\#|exit|$)/ } $cfg;
+      return false if $newdir;
+      $newdir = $abs;
+      pop(@addons);
+    }
+    true;
+  } $dir;
+  if($addonsok && @addons && $newdir)
   {
     mv(path($dir, $_), path($newdir, $_)) foreach @addons;
     return &configure($newdir, $prefix);
@@ -2357,9 +2355,18 @@ sub mkrootdir($$)
 sub compilebin($$)
 {
   my($srcdir, $rootdir) = @_;
+  my($one);
   my($ok);
-  abswhiledir(sub { $ok ||= m!/(usr|bin|etc|lib|sbin)$!; -d }, $srcdir) &&
-      $ok && mv($srcdir, $rootdir);
+  abswhiledir
+  (
+    sub
+    {
+      $one = $one ? 0 : $_ unless defined($one);
+      $ok ||= m!/(usr|bin|etc|lib|sbin)$!;
+      -d
+    },
+    $srcdir
+  ) && ($ok ? mv($srcdir, $rootdir) : ($one && &compilebin($one, $rootdir)));
 }
 
 sub compilehelp($$$)
