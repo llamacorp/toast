@@ -233,7 +233,8 @@ BEGIN
     "postarmprog" => superuser ? "/sbin/ldconfig" : "",
     "editprog" => "",
     "defaultcmd" => "help",
-    "httpproxy" => $ENV{http_proxy} || "",
+    "httpproxy" => exists($ENV{http_proxy}) ? $ENV{http_proxy} : "",
+    "ftpproxy" => exists($ENV{ftp_proxy}) ? $ENV{ftp_proxy} : "",
     "quiet" => false,
     "autofind" => true,
     "autochange" => true,
@@ -753,30 +754,41 @@ sub urlunescape($)
   $_;
 }
 
-sub openhttp(*$;$)
+sub tcpconnect(*$$;$)
 {
   local(*HANDLE) = shift;
-  my($url, $method) = @_;
-  $method ||= "GET";
-  $url =~ m!^http://([\w\.]+)(:(\d+))?(/[\!-\~]*)?$! || error("bad url: $url");
-  explain("fetching $url");
-  my($host, $port, $path) = ($1, $3 || 80, $4 || '/');
-  my($hdrhost) = $port == 80 ? $host : "$host:$port";
-  if(httpproxy)
-  {
-    $path = "http://$host:$port$path";
-    httpproxy =~ m!^(http://)?([\w\.]+)(:(\d+))?([^:]+)(:(\d+))?/?$!
-        || error("bad httpproxy: " . httpproxy);
-    ($host, $port) = ($2, $4 || 8080);
-  }
-  my($ip) = gethostbyname($host) || error("gethostbyname $host: $!");
-  my($uagent) = "$myname/$myversion ($^O; $myurl)";
-  my($request) = "$method $path HTTP/1.0\r\nHost: $hdrhost\r\n".
-      "User-Agent: $uagent\r\nAccept: */*\r\n\r\n";
+  my($host, $port, $ip) = @_;
+  $ip = gethostbyname($host) || error("gethostbyname $host: $!")
+      unless defined($ip);
   socket(HANDLE, 2, 1, 0) || error("$!");
+  binmode(HANDLE) || error("binmode: $!"); # perl 5.8.0 utf8 bug
   connect(HANDLE, pack("Sna4x8", 2, $port, $ip)) ||
       error("connect $host:$port: $!");
   unbuffer(HANDLE);
+  return $ip;
+}
+
+sub openhttp(*$;$;$)
+{
+  local(*HANDLE) = shift;
+  my($url, $method, $proxy) = @_;
+  $method ||= "GET";
+  $proxy = httpproxy unless defined($proxy);
+  explain("fetching $url");
+  $url =~ m!^(\w+)://([\w\.]+)(:(\d+))?(/[\!-\~]*)?$! || error("bad url: $url");
+  my($proto, $host, $port, $path) = ($1, $2, $4 || 80, $5 || '/');
+  my($hdrhost) = $port == 80 ? $host : "$host:$port";
+  if($proxy)
+  {
+    $path = "$proto://$host:$port$path";
+    $proxy =~ m!^(\w+://)?([\w\.]+)(:(\d+))?([^:]+)(:(\d+))?/?$!
+        || error("bad proxy URL: $proxy");
+    ($host, $port) = ($2, $4 || 8080);
+  }
+  my($uagent) = "$myname/$myversion ($^O; $myurl)";
+  my($request) = "$method $path HTTP/1.0\r\nHost: $hdrhost\r\n".
+      "User-Agent: $uagent\r\nAccept: */*\r\n\r\n";
+  tcpconnect(*HANDLE, $host, $port);
   print HANDLE $request || error("write to $host:$port: $!");
 }
 
@@ -790,18 +802,84 @@ sub httphead($)
   return $result;
 }
 
-sub openhttpurl(*$)
+sub openhttpurl(*$;$)
 {
   local(*HANDLE) = shift;
-  my($url) = @_;
-  return true if openprog(*HANDLE, "GET", $url);
-  openhttp(*HANDLE, $url);
+  my($url, $proxy) = @_;
+  openhttp(*HANDLE, $url, undef, $proxy);
   local($_);
   $_ = <HANDLE>;
   s/\r?\n?$//;
   m|^HTTP/[\w\.]+ 200 | || error("$url: $_");
   while(<HANDLE>) { last if /^\r?\n?$/ }
   return true;
+}
+
+sub ftpcmd(*$;$)
+{
+  local(*CTRL, $_) = shift;
+  my($cmd, $expected) = @_;
+  print CTRL "$cmd\r\n" || error("error sending ftp command: $!") if $cmd;
+  while(<CTRL>)
+  {
+    s/[\r\n]+$//;
+    if(/^(\d{3}) /)
+    {
+      my($response) = $1;
+      error("ftp server: $_") if defined($expected) && $response != $expected;
+      return $_;
+    }
+  }
+  error("lost ftp control connection") unless $cmd =~ /QUIT/;
+}
+
+sub openftpurl(*$)
+{
+  local(*HANDLE) = shift;
+  my($url) = @_;
+  return openhttpurl(*HANDLE, $url, ftpproxy) if ftpproxy;
+
+  explain("fetching $url");
+  $url =~ m!^(\w+)://([\w\.]+)(:(\d+))?(/[\!-\~]*)?$! || error("bad url: $url");
+  my($proto, $host, $port, $path) = ($1, $2, $4 || 21, $5 || '/');
+  error("don't know how to fetch FTP directory listings") if $path =~ m!/$!;
+
+  local(*CTRL, *DATA);
+  my($ip) = tcpconnect(*CTRL, $host, $port);
+  ftpcmd(*CTRL, undef, 220);
+  ftpcmd(*CTRL, "USER anonymous", 230);
+  ftpcmd(*CTRL, "TYPE I");
+  my($size) = ftpcmd(*CTRL, "SIZE $path", 213);
+  $size =~ /^\d+\s+(\d+)/ or die("bad SIZE response: $size");
+  $size = $1;
+  my($pasv) = ftpcmd(*CTRL, "PASV", 227);
+  $pasv =~ /(\d+)\s*,\s*(\d+)\s*\)/ || error("bad PASV response: $pasv");
+  my($dataport) = $1*256 + $2;
+  tcpconnect(*DATA, $host, $dataport, $ip);
+  my($retr) = ftpcmd(*CTRL, "RETR $path");
+  $retr =~ /^(\d+) / && $1 <= 150 || error("ftp RETR error: $retr");
+  my($pid) = open(HANDLE, "-|");
+  error("fork: $!") unless defined($pid);
+  if($pid)
+  {
+    close(CTRL) || error("close ftp control: $!");
+    close(DATA) || error("close ftp data: $!");
+    return true;
+  }
+
+  binmode(STDOUT) || error("binmode stdout: $!"); # perl 5.8.0 utf8 bug
+  my($buf) = 0;
+  while(sysread(DATA, $buf = "", min(8192, $size), 0))
+  {
+    print($buf) || error("write stdout: $!");
+    $size -= length($buf);
+  }
+  error("lost ftp data connection") if $size;
+  close(DATA) || error("close ftp data: $!");
+  ftpcmd(*CTRL, undef, 226);
+  ftpcmd(*CTRL, "QUIT");
+  exit(0);
+  error;
 }
 
 sub openfileurl(*$)
@@ -829,13 +907,6 @@ sub opensshurl(*$)
   openprog(*HANDLE, "ssh", $userhost, "cat", $path);
 }
 
-sub openwgeturl(*$)
-{
-  local(*HANDLE) = shift;
-  my($url) = @_;
-  openprog(*HANDLE, "wget", "-O-", $url);
-}
-
 sub openurl(*$)
 {
   local(*HANDLE) = shift;
@@ -844,10 +915,14 @@ sub openurl(*$)
   my($proto) = lc($1);
 
   local($ENV{http_proxy}) = httpproxy if httpproxy;
+  local($ENV{ftp_proxy}) = ftpproxy if ftpproxy;
+
   $proto eq "file" && openfileurl(*HANDLE, $url) ||
   $proto eq "ssh" && opensshurl (*HANDLE, $url) ||
-  openwgeturl(*HANDLE, $url) ||
+  openprog(*HANDLE, "wget", "-O-", $url) ||
+  openprog(*HANDLE, "GET", $url) ||
   $proto eq "http" && openhttpurl(*HANDLE, $url) ||
+  $proto eq "ftp" && openftpurl(*HANDLE, $url) ||
   error("unable to download: $url");
 }
 
@@ -3259,6 +3334,7 @@ sub disarm(@)
       }
     );
     error if @dirmodes;
+    true;
   } @_;
 
   postarm;
@@ -4971,13 +5047,14 @@ existing package.  After this command completes successfully, other
 commands will be able to operate on the package without downloading
 any additional files from the network.  If a given package is already
 C<stored>, the existing downloaded files are silently preserved; use
-B<toast purge> to force them to be downloaded afresh.  B<toast get> has
-rudimentary built-in support for C<file> and C<http> URLs.  If GNU B<wget>
+B<toast purge> to force them to be downloaded afresh.  If GNU B<wget>
 is installed, B<toast get> will use it to fetch C<http>, C<https>, and
 C<ftp> URLs; otherwise, if LWP is installed, B<toast get> will use the
-B<GET> utility to fetch C<http> URLs, rather than using built-in HTTP.
+B<GET> utility to fetch those types of URLs; otherwise B<toast get>
+will try to fetch C<http> and C<ftp> URLs itself using rudimentary
+built-in routines.  B<toast get> always handles C<file> URLs itself.
 If B<ssh> is available, B<toast get> can use it to fetch (non-standard)
-URLs of the form C<ssh:/[username@]hostname/absolute/path/to/file>.
+URLs of the form C<ssh://[username@]hostname/absolute/path/to/file>.
 
 =item S<B<toast build> [ I<PACKAGE> ...]>
 
@@ -5302,12 +5379,20 @@ If I<URL> is non-empty, B<toast get> will use the given URL as the
 proxy server for C<http> and C<https> URLs.  When using B<wget> or
 B<GET>, the given URL will be exported in the C<http_proxy> environment
 variable without further checking if non-empty.  When using built-in
-HTTP, the proxy URL should be of the form C<I<hostname>:I<port>>
-or C<http://I<hostname>:I<port>/>.  Note that using an empty URL will
-not cause C<http_proxy> to be removed from the environment of B<wget>
-or B<GET>.  The proxy string is not exported during B<toast build>.
-Default: the current value of the C<http_proxy> environment variable,
-or the empty string if that variable is not set.
+HTTP, the proxy URL should be of the form C<I<hostname>:I<port>> or
+C<http://I<hostname>:I<port>/>; other forms may also work.  Note that
+using an empty URL will not cause C<http_proxy> to be removed from the
+environment of B<wget> or B<GET>.  The proxy string is not exported
+during B<toast build>.  Default: the current value of the C<http_proxy>
+environment variable, or the empty string if that variable is not set.
+
+=item B<--ftpproxy=>I<URL>
+
+The B<ftpproxy> option is just like the B<httpproxy> option, but applies
+to C<ftp> URLs.  Note that this really refers to an FTP-to-HTTP gateway,
+rather than a true FTP proxy server.  Default: the current value of the
+B<ftp_proxy> environment variable, or the empty string if that variable
+is not set.
 
 =item S<B<--quiet> | B<--noquiet>>
 
@@ -5636,7 +5721,6 @@ Wish list:
   - find a way to rebuild indices for apropos by default
   - fold archives by URL and/or hash?
   - zsh completions!
-  - built-in FTP?
 
 Questions left unanswered by this documentation:
 
