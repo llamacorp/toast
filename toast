@@ -1975,6 +1975,7 @@ sub configure($$)
     if(-x($confprog))
     {
       my(@confcmd) = ("./$cfg", "--prefix=$prefix");
+      my($self) = false;
       my($builddir) = false;
       my($bogus) = false;
       my($notboth) = false; # mozilla
@@ -1982,6 +1983,7 @@ sub configure($$)
 
       patch
       {
+        $self ||= /this is toast 89a72ef9c34e1fd4927afa36c9be8b15/;
         $builddir ||= /error: you must configure in a separate build/; # glibc
         $bogus ||= /There is no .+configure.+ script .+Instead/i; # libpng
         s/(^\s*)read\s+(acceptance)(\s*$)/$1$2=yes$3/; # qt license
@@ -1997,26 +1999,29 @@ sub configure($$)
         }
       } $confprog;
 
-      next if $bogus;
+      if(!$self)
+      {
+        next if $bogus;
 
-      if($notboth)
-      {
-        delete($confopts{"--enable-static"});
-        delete($confopts{"--enable-shared"});
-      }
-      push(@confcmd, sort(grep($confopts{$_}, keys(%confopts))));
+        if($notboth)
+        {
+          delete($confopts{"--enable-static"});
+          delete($confopts{"--enable-shared"});
+        }
+        push(@confcmd, sort(grep($confopts{$_}, keys(%confopts))));
 
-      if($builddir)
-      {
-        $confcmd[0] = "../$cfg";
-        $dir = path($dir, "$myname-build.d");
-        md($dir);
-      }
-      elsif($cfg eq "configure.gnu")
-      {
-        # force perl to install files it thinks are already installed
-        optpatch { s/^use File::Compare;$/sub compare(\$\$){1}; #$genby/ }
-            path($dir, "installperl");
+        if($builddir)
+        {
+          $confcmd[0] = "../$cfg";
+          $dir = path($dir, "$myname-build.d");
+          md($dir);
+        }
+        elsif($cfg eq "configure.gnu")
+        {
+          # force perl to install files it thinks are already installed
+          optpatch { s/^use File::Compare;$/sub compare(\$\$){1}; #$genby/ }
+              path($dir, "installperl");
+        }
       }
 
       cdrun($dir, @confcmd);
@@ -3425,13 +3430,13 @@ tarball = $(myname)-$(myversion).tar.gz
 all: $(prog) $(manpage)
 
 $(prog): $(mysource)
-  $(CP) $< $@
+  $(CP) $(prog) $(mysource)
 
 $(manpage): $(prog)
-  $(POD2MAN) $< $@
+  $(POD2MAN) $(prog) $(manpage)
 
 $(tarball): $(prog)
-  ./$< tarself < $< > $@
+  ./$(prog) tarself < $(prog) > $(tarball)
 
 install: $(prog) $(manpage)
   $(MKINSTALLDIRS) $(bindir) $(man1dir)
