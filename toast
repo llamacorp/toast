@@ -2275,6 +2275,7 @@ sub configure($$)
       my($builddir) = false;
       my($bogus) = false;
       my($twowordprefix) = false;
+      my($noprefix) = false;
       my(%confopts);
 
       patch
@@ -2297,12 +2298,14 @@ sub configure($$)
           $confopts{$1} = 1 if /"configure (-\S+)"; by default a static/;#zlib
         }
       } $confprog;
+      $noprefix ||= -x(path($dir, "installnetpbm")); # netpbm 10.19
 
       my(@confcmd) = ("./$cfg", "--prefix=$prefix");
       if(!$self)
       {
         next if $bogus;
         @confcmd = ("./$cfg", "--prefix", $prefix) if $twowordprefix;
+        @confcmd = ("./$cfg") if $noprefix;
         push(@confcmd, sort(grep($confopts{$_}, keys(%confopts))));
         if($builddir)
         {
