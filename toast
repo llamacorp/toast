@@ -3942,9 +3942,9 @@ $(tarball): $(prog)
   ./$(prog) tarself < $(prog) > $(tarball) || rm $(tarball)
 
 install: $(prog) $(manpage)
-  $(MKINSTALLDIRS) $(bindir) $(man1dir)
-  $(CP) $(prog) $(bindir)
-  $(CP) $(manpage) $(man1dir)
+  $(MKINSTALLDIRS) $(DESTDIR)$(bindir) $(DESTDIR)$(man1dir)
+  $(CP) $(prog) $(DESTDIR)$(bindir)
+  $(CP) $(manpage) $(DESTDIR)$(man1dir)
 
 dist: $(tarball)
 ]);
