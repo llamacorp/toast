@@ -1597,7 +1597,7 @@ sub get(@)
 sub exprecedence($)
 {
   local($_) = @_;
-  /\.patch\b/i;
+  /\.(patch|diff)\b/i;
 }
 
 sub excmp($$)
