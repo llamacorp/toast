@@ -3455,6 +3455,7 @@ sub requireurls(@)
     @urls || error("filename or URL expected for " .
         pkgname($name, $version, $build));
   }
+  @_;
 }
 
 sub uselatestversion(@)
