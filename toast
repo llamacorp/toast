@@ -1384,7 +1384,7 @@ sub findnewpkg($$)
   error("no listing for package $name on $sitename") if $notfound;
 
   my($redirurl);
-  $redirurl ||= $fmurl{$_} for qw(bz2 tgz zip rpm);
+  $redirurl ||= $fmurl{$_} for qw(bz2 tgz zip rpm homepage);
   $redirurl || error("no suitable URL for package $name on $sitename");
 
   my($redirhead) = httphead($redirurl);
@@ -1408,6 +1408,9 @@ sub findnewpkg($$)
     for $ext qw[.tar.bz2 .tar.gz .tgz .zip .rpm]
     {
       my(@matches) = grep(stripquery($_) =~ /\Q$ext\E$/i, @urls);
+
+      my(@namematches) = grep { my($n) = guessnv($_); $n eq $name } @matches;
+      @matches = @namematches if @namematches;
 
       my($matchver) = $version;
       if(!defined($matchver))
@@ -1526,7 +1529,7 @@ sub add(@)
 
   setpkgurls($name, $version, @urls);
 
-  ($name, $version);
+  ($name, $version, @urls);
 }
 
 ##############################################################################
@@ -1627,9 +1630,9 @@ sub autorenamepkg($$@)
 sub get(@)
 {
   my($name, $version, $build, @urls) = @_;
-  my($autorename) = !defined($version) && autorename;
+  my($autorename) = @urls && !defined($version) && autorename;
 
-  ($name, $version) = add(@_) if @urls || !isadded($name, $version);
+  ($name, $version, @urls) = add(@_) if @urls || !isadded($name, $version);
 
   $build && error;
   defined($name) || error;
@@ -1659,7 +1662,7 @@ sub get(@)
   ($name, $version) = autorenamepkg($name, $version, $changed ? @urls : ())
       if $autorename;
 
-  ($name, $version);
+  ($name, $version, @urls);
 }
 
 ##############################################################################
@@ -2195,6 +2198,7 @@ sub configure($$)
         $builddir ||= /error: you must configure in a separate build/; # glibc
         $builddir||=m!\. \$srcdir/build-tools/scripts/configure-top !;#arch/tla
         $bogus ||= /There is no .+configure.+ script .+Instead/i; # libpng
+        $bogus ||= /configure is no longer used - just type /i; # cdrtools
         s/(^\s*)read\s+(acceptance)(\s*$)/$1$2=yes$3/; # qt license
         if(reconfigure)
         {
@@ -2411,7 +2415,7 @@ sub install($$)
 {
   my($makedir, $rootdir) = @_;
   my($mf) = makefile($makedir) || error("no Makefile found");
-  my(@trace, $man, $subdir, $netpbm, $usedestdir);
+  my(@trace, $man, $subdir, $netpbm, $usedestdir, $cdrtools);
   @trace = qw[strace -s 256 -f -F -o make.install.strace] if debugrewrite;
   @trace = qw[ktrace -i -f make.install.ktrace] if @trace && $^O =~ /bsd/i;
   local($ENV{ROOT}) = $rootdir; # lilo
@@ -2425,6 +2429,7 @@ sub install($$)
     $subdir = $1 if /  to install the X version: "cd (\w+);/; # xdaliclock
     $netpbm ||= /^\t\@echo "  make package pkgdir=DIR"$/;
     $usedestdir ||= /\bDESTDIR\b/; # atop needs this, but see libtiff above
+    $cdrtools ||= / Due to a bug in SunPRO make we need special rules /;
     true
   } $mf;
   $netpbm &&= -x(path($makedir, "installnetpbm")) && path($makedir, "pkg");
@@ -2433,6 +2438,7 @@ sub install($$)
   @targets = ("package", "pkgdir=$netpbm") if $netpbm;
   @targets = "upgrade" if -r(path($makedir, "postfix-install")); # postfix
   push(@targets, "DESTDIR=$rootdir") if $usedestdir;
+  push(@targets, "INS_BASE=$rootdir") if $cdrtools;
   cdrun($makedir, @trace, "make", @targets);
   run(@trace, qw[cp -R], glob("$netpbm/*/"), $rootdir) if $netpbm;
   error("trace complete; aborting") if debugrewrite;
@@ -2836,7 +2842,6 @@ sub arm(@)
 sub disarm(@)
 {
   my($name, $version, $build, @urls) = @_;
-  @urls && error;
 
   lock(armdir);
 
