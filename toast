@@ -1707,7 +1707,7 @@ sub makedir($)
 
 sub quote($)
 {
-  local($_) = @_;
+  local($_) = undeftoempty(@_);
   s/\\/\\\\/g;
   s/'/\\'/g;
   "'$_'";
@@ -1724,8 +1724,9 @@ sub cquote($)
 sub helpstub($$)
 {
   my($helperdir, $cmd) = @_;
+  my($path) = quote($ENV{PATH});
   writescript(path($helperdir, $cmd),
-      "#!/bin/sh\nPATH=$ENV{PATH}\nexec $cmd \"\$\@\"\n");
+      "#!/bin/sh\nPATH=$path\nexec $cmd \"\$\@\"\n");
 }
 
 sub helpnop($$)
@@ -1738,8 +1739,8 @@ sub helpnop($$)
 sub helpnorewrite($$)
 {
   my($helperdir, $cmd) = @_;
-  my($path) = undeftoempty($ENV{PATH});
-  my($preload) = undeftoempty($ENV{LD_PRELOAD});
+  my($path) = quote($ENV{PATH});
+  my($preload) = quote($ENV{LD_PRELOAD});
   writescript(path($helperdir, "$cmd.helper"), qq[#!/bin/sh
 PATH=$path
 LD_PRELOAD=$preload
@@ -5173,7 +5174,6 @@ hostname of the B<toast> distribution site, C<toastball.net>.
 
 Known bugs:
 
-  - toast build generates broken helper scripts if PATH contains spaces
   - if packages foo and Foo exist, "foo" and "Foo" both refer to Foo
   - autofind mishandles http redirects (e.g. http://toastball.net/toast)
   - gtk+ doesn't seem to build properly when it is already armed
