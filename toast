@@ -3831,7 +3831,6 @@ sub printenvcmd($$;$)
 
   if(defined($current))
   {
-    $export = "";
     my(%have);
     $have{$_} = 1 for split(/:/, $current);
     @dirs = grep(!$have{$_}, @dirs);
@@ -5817,9 +5816,10 @@ Known bugs:
   - opera and sleepycat db refuse to build when already armed
   - gimp will load plugins from other armed versions despite .off suffix
   - "toast upgrade gcc" doesn't work (ftp site has a subdir per version)
-  - autofind fails for: sleepycat db, gcc, latex, gv, GNU arch (?), ogle
+  - autofind fails for: sleepycat db, gcc, latex, gv, GNU arch (?), ogle,
+      wxpython
   - autofind chooses Linux binaries over source for doxygen
-  - build fails for: jikes, sirc, netcat, lcab, gv
+  - build fails for: jikes, sirc, netcat, lcab, gv, bittorrent
   - "toast --autoremove --crossversion upgrade toast" breaks everything
   - if x/1/1 is armed and x/1/2 is built, "toast arm x" does nothing
   - if x/1/1 is armed, "toast --noautodisarm rebuild x" arms then fails
