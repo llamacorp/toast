@@ -407,9 +407,12 @@ sub whiledir(&$)
   my($sub, $dir) = @_;
   local(*DIR, $_);
   opendir(DIR, $dir) || error("opendir $dir: $!");
-  readdir(DIR) eq "." || error;
-  readdir(DIR) eq ".." || error;
-  while(defined($_ = readdir(DIR)) && &$sub($_)) { }
+  while(defined($_ = readdir(DIR)))
+  {
+    next if $_ eq ".";
+    next if $_ eq "..";
+    last unless &$sub($_);
+  }
   closedir(DIR);
   !defined($_);
 }
