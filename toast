@@ -1911,6 +1911,9 @@ sub smartgeturl($$)
     {
       seek(FILE, 0, 0) || error("rewind $file: $!");
       my(@links) = reverse(sort cmpab linksfromstream(*FILE, $url));
+      my(@goodlinks) = grep(/\.tar\./, @links);
+      @goodlinks = grep(!/\.(s?html?|php)$/i, @links) unless @goodlinks;
+      @links = @goodlinks if @goodlinks;
       for (@links)
       {
         $redir = $_ if !$redir && basename(stripquery($_)) eq $basename
@@ -2595,9 +2598,16 @@ sub configure($$)
     }
   }
 
+  for(qw[build_unix build.unix]) # e.g. Sleepycat DB and nvi, respectively
+  {
+    my($bubuilddir) = path($dir, $_);
+    my($buconfprog) = path($dir, "dist", "configure");
+    return $bubuilddir if -d($bubuilddir) && -x($buconfprog) &&
+        cdrun($bubuilddir, "../dist/configure", "--prefix=$prefix");
+  }
+
   # configure script might be hidden in a "source" subdirectory (e.g. samba)
-  # or a "dist" subdirectory (e.g. nvi)
-  for(qw[source src dist])
+  for(qw[source src])
   {
     my($subdir) = path($dir, $_);
     my($confprog) = path($subdir, "configure");
@@ -2685,12 +2695,6 @@ install:
     },
     sub { true }
   );
-
-  # Sleepycat DB appears to demand the following in Unix-like environments:
-  my($dbbuilddir) = path($dir, "build_unix");
-  my($dbconfprog) = path($dir, "dist", "configure");
-  return $dbbuilddir if -d($dbbuilddir) && -x($dbconfprog) &&
-      cdrun($dbbuilddir, "../dist/configure", "--prefix=$prefix");
 
   # Maybe there's just an install script of some kind that we need to run.
   # Create an appropriate Makefile.
@@ -5891,7 +5895,6 @@ hostname of the B<toast> distribution site, C<toastball.net>.
 
 Known bugs:
 
-  - Berkeley/Sleepycat DB is broken again
   - autofind hangs in httphead() when going through tinyproxy?
   - autofind mishandles http redirects (e.g. http://toastball.net/toast)
   - gtk+ doesn't seem to build properly when it is already armed
