@@ -718,11 +718,24 @@ sub cdrun($@)
   optcdrun($dir, @prog) || error("@prog returned $?");
 }
 
+sub shellescape(@)
+{
+  my(@words) = @_;
+  for(@words)
+  {
+    error unless defined($_);
+    next unless m![^0-9a-z\+,\./:\@_-]!;
+    /'/ ? s!([^0-9a-z\+,\./:\@_-])!\\$1!g : ($_ = "'$_'");
+  }
+  return @words;
+}
+
 sub openprog(*$@)
 {
   local(*HANDLE) = shift;
   my($prog, @args) = @_;
   announce($prog, @args);
+  @args = shellescape(@args);
   if(!open(HANDLE, "$prog @args |"))
   {
     explain("failed to exec $prog: $!");
@@ -874,6 +887,7 @@ sub linksfromstring($$)
     $link = $proto . $link if $link =~ m!^//!;
     $link = $host . $link if $link =~ m!^/!;
     $link = $parent . $link unless $link =~ m!^(\w+)://!;
+    $link =~ s/\&amp;/\&/g;
     push(@links, cleanurl($link));
   }
   return @links;
@@ -1539,7 +1553,7 @@ sub lookslikepkgurl($;$;$)
   return false if $url =~ m/\#/;
   my($noquery) = stripquery($url);
   return false unless $noquery =~ m!\.\w+$!;
-  return false if $noquery =~ m!\.html?$!i;
+  return false if $noquery =~ m!\.(html?|php)$!i;
   return true unless defined($name);
   my($basename) = basename($noquery);
   return false unless $basename =~ /\Q$name\E/i;
@@ -1592,6 +1606,7 @@ sub findnewpkg($$)
     if(lookslikepkgurl($url))
     {
       (undef, $version) = guessnv($url) unless defined($version);
+error("url = $url");
       return ($name, $version, $url);
     }
 
@@ -5585,7 +5600,6 @@ hostname of the B<toast> distribution site, C<toastball.net>.
 
 Known bugs:
 
-  - openprog() quoting and HTML unescaping bugs: "toast arm tinyproxy"
   - autofind hangs in httphead() when going through tinyproxy?
   - autofind mishandles http redirects (e.g. http://toastball.net/toast)
   - gtk+ doesn't seem to build properly when it is already armed
