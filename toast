@@ -3,7 +3,7 @@
 ##############################################################################
 #                                                                            #
 # This entire file is toast, a program for installing and managing software. #
-# Copyright (C) 2003-2003 Jacques Frechet.                                   #
+# Copyright (C) 2003-2004 Jacques Frechet.                                   #
 # Note that this file contains Version 2 of the GNU General Public License,  #
 # which includes its own copyright notice.                                   #
 #                                                                            #
@@ -255,6 +255,7 @@ BEGIN
     "showurls" => true,
     "infodir" => true,
     "protect" => true,
+    "relative" => false,
     "debugrewrite" => false,
   );
 
@@ -499,6 +500,12 @@ sub optln($$)
 {
   my($source, $target) = @_;
   ln($source, $target) unless -e($target) || -l($target);
+}
+
+sub relln($$)
+{
+  my($src, $target) = @_;
+  ln($src =~ m|^/| ? findrelpath(dirname($target), $src) : $src, $target);
 }
 
 ##############################################################################
@@ -1029,6 +1036,61 @@ sub abspath($)
   $path =~ s!^./!!;
   $path =~ s!/./!/!g;
   return path(pwd, $path);
+}
+
+sub findrelpath($$)
+{
+  my($from, $to) = @_;
+  
+  # allow last component of $to to be missing or not a directory
+  my(@append);
+  if(!-d($to)) 
+  {
+    push(@append, basename($to));
+    $to = dirname($to);
+  }
+
+  # walk from $to all the way to /, leaving a trail of bread crumbs
+  my($dir, $lastdi, @names, %ditonameidx) = ($to, "");
+  for(1..1024)
+  {
+    my($d, $i) = safestat($dir);
+    my($di) = "$d $i";
+    $ditonameidx{$di} = $#names unless exists($ditonameidx{$di});
+    last if $dir eq "/";
+    $dir = path($dir, "..");
+    last if whiledir # figure out how to get down one level from here
+    {
+      my($pd, $pi) = safestat(path($dir, $_));
+      return true unless "$pd $pi" eq $di;
+      push(@names, $_);
+      return false;
+    } $dir;
+    last if $di eq $lastdi;
+    $lastdi = $di;
+  }
+
+  # walk up from $from towards / looking for bread crumbs
+  ($dir, $lastdi) = ($from, "");
+  my(@result);
+  for(1..1024)
+  {
+    my($d, $i) = safestat($dir);
+    my($di) = "$d $i";
+    last if $di eq $lastdi;
+    $lastdi = $di;
+    if(exists($ditonameidx{$di}))
+    {
+      my($nameidx) = $ditonameidx{$di};
+      push(@result, reverse(@names[0..$nameidx]));
+      push(@result, @append);
+      return scalar(@result) == 0 ? "." : path(@result);
+    }
+    $dir = path($dir, "..");
+    push(@result, "..");
+  }
+
+  error("no relative path from $from to $to");
 }
 
 ##############################################################################
@@ -3298,7 +3360,11 @@ sub arm(@)
       optmd($dir);
       safechmod(0777, $dir);
     },
-    sub { ln($_, displace(optpath(armdir, $_[0]))) },
+    sub
+    {
+      my($target) = displace(optpath(armdir, $_[0]));
+      relative ? relln($_, $target) : ln($_, $target);
+    },
     sub { safechmod($mode, optpath(armdir, $_[0])) }
   );
 
@@ -3353,8 +3419,7 @@ sub disarm(@)
         my($armfile) = path(armdir, $rel); # BUG: $rel is sometimes undefined?
         while(-e($armfile) || -l($armfile))
         {
-          my($target) = readlink($armfile);
-          return replace($armfile) if defined($target) && $target eq $_;
+          return replace($armfile) if optsamefile($armfile, $_);
           $armfile = addoff($armfile);
         }
         return true;
@@ -5712,10 +5777,26 @@ file, if present, instead of rebuilding it.  Default: enabled.
 =item S<B<--protect> | B<--noprotect>>
 
 If B<protect> is enabled, B<toast arm> will attempt to ensure that
-armdir and its subdirectories are read-only, changing existing modes if
-necessary.  If B<protect> is disabled, B<toast arm> will make B<armdir>
+B<armdir> and its subdirectories are read-only, changing existing modes
+if necessary.  If B<protect> is disabled, B<toast arm> will make B<armdir>
 and its subdirectories read-write, assuming the current umask allows it.
 This option never affects the permissions of files or symbolic links.
+Default: enabled.
+
+=item S<B<--relative>> | B<--norelative>>
+
+If B<relative> is enabled, symbolic links created by B<toast arm>
+will use canonical relative paths computed from the actual layout of
+the filesystem when the command runs.  If B<relative> is disabled,
+the target of each symbolic link will start with the absolute path to
+B<storedir>, exactly as given on the command line (or configuration file
+or whatnot), even if the resulting path is not canonical.  A "canonical
+path" means a path that follows the "real" filesystem layout without going
+through any links.  Both methods should work just fine except in unusual
+situations, so feel free to use whichever setting you think looks nicer.
+This option only affects newly-created links, never existing links, even
+when an existing link is moved to change the stacking order of a package.
+Default: disabled.
 
 =item S<B<--debugrewrite> | B<--nodebugrewrite>>
 
@@ -5810,6 +5891,7 @@ hostname of the B<toast> distribution site, C<toastball.net>.
 
 Known bugs:
 
+  - Berkeley/Sleepycat DB is broken again
   - autofind hangs in httphead() when going through tinyproxy?
   - autofind mishandles http redirects (e.g. http://toastball.net/toast)
   - gtk+ doesn't seem to build properly when it is already armed
