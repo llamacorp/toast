@@ -1370,15 +1370,29 @@ BEGIN
 
 sub findperl()
 {
+  my($result);
   if($^X !~ m!/!) # 5.8.2 doesn't need all this, but 5.6.1 seems to
   {
     for(split(/:/, $ENV{"PATH"}))
     {
       my($path) = path($_, $^X);
-      return $path if -x($path);
+      if(-x($path))
+      {
+        $result = $path;
+        last;
+      }
     }
   }
-  return abspath($^X);
+  $result = abspath($^X) unless defined($result);
+  return $result if -x($result);
+
+  # maybe it moved as a result of arm/disarm or something...?
+  for(split(/:/, $ENV{"PATH"}), "/usr/bin", "/usr/local/bin", "/bin")
+  {
+    my($path) = path($_, "perl");
+    return $path if -x($path);
+  }
+  return "/usr/bin/perl";
 }
 
 ##############################################################################
