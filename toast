@@ -5364,7 +5364,7 @@ sub tar(;$$)
   my($type) = $isdir ? 5 : $islink ? 2 : 0;
   ($target, $contents) = ($contents, "") if $islink;
   my($size) = length($contents);
-  my($pad) = "\x00" x ($size ? 512 - ($size % 512) : 0);
+  my($pad) = "\x00" x ((512 - ($size % 512)) % 512);
   $type = " $type";
   $_ = sprintf("%07o", $_) for($mode, $uid, $gid);
   $_ = sprintf("%011o", $_) for($size, $mtime);
