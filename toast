@@ -4819,20 +4819,24 @@ be C<unknown>).  Default: enabled.
 
 =item S<B<--autoclean> | B<--noautoclean>>
 
-When B<autoclean> is enabled, B<toast build> performs an implicit B<toast
-clean> on every newly created non-broken build.  Default: enabled.
+When B<autoclean> is enabled, commands that create a new build for a
+package (such as B<toast rebuild>) implicitly remove any pre-existing
+broken builds from that package before creating the new build; also,
+whenever a new build succeeds, it is implicitly cleaned as if by B<toast
+clean>.  Note that newly created broken builds will not be immediately
+cleaned or removed, even if this option is enabled, so as to make it
+easier to diagnose build problems.  Default: enabled.
 
 =item S<B<--autopurge> | B<--noautopurge>>
 
-When B<autopurge> is enabled, B<toast build> performs an implicit
-B<toast purge> on every package with a newly created non-broken build.
-Default: disabled.
+When B<autopurge> is enabled, an implicit B<toast purge> will be performed
+on a package as soon as it is successfully built.  Default: disabled.
 
 =item S<B<--autoarm> | B<--noautoarm>>
 
-When B<autoarm> is enabled, B<toast build> performs an implicit B<toast
-arm> on every newly created non-broken build whose package already
-contains another armed build.  Default: enabled.
+When B<autoarm> is enabled, B<toast upgrade> and B<toast rebuild> perform
+an implicit B<toast arm> on every newly created non-broken build whose
+package already contains another armed build.  Default: enabled.
 
 =item S<B<--autodisarm> | B<--noautodisarm>>
 
@@ -4844,16 +4848,19 @@ as its arguments if B<crossversion> is enabled.  Default: enabled.
 
 =item S<B<--autodemolish> | B<--noautodemolish>>
 
-When B<autodemolish> is enabled, B<toast build> performs an implicit
-B<toast demolish> on every other build belonging to the same package
-as a newly-created, non-broken build.  Default: disabled.
+When B<autodemolish> is enabled, B<toast rebuild> performs an implicit
+B<toast demolish> on every other build belonging to the same package as
+a newly-created, non-broken build.  If B<crossversion> is also enabled,
+other packages with the same name will also be demolished.  Default:
+disabled.
 
 =item S<B<--autoremove> | B<--noautoremove>>
 
 When both B<autoremove> and B<crossversion> are enabled, B<toast build>
 performs an implicit B<toast remove> on every other package with the
 same name as the package containing a newly-created, non-broken build.
-Default: disabled.
+If B<crossversion> is disabled, this option has no effect.  Default:
+disabled.
 
 =item S<B<--crossversion> | B<--nocrossversion>>
 
