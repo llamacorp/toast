@@ -3662,8 +3662,8 @@ sub rebuild(@)
   $build && error;
 
   ($name, $version) = get(@_) if !isstored($name, $version);
-  $name || error;
-  $version || error;
+  defined($name) || error;
+  defined($version) || error;
 
   clean($name, $version) if autoclean;
 
