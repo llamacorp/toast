@@ -4128,6 +4128,7 @@ sub disarm(@)
 
     rebuildinfodir($armdir) if $changed;
     rebuildxmlcatalog($armdir) if $changed;
+    $anychanged ||= $changed;
     run(postarmprog) if ++$i == scalar(@armdirs) && $anychanged && postarmprog;
     unlock($armdir);
   }
