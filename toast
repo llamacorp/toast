@@ -3066,23 +3066,26 @@ sub configure($$)
     }
 
     my(@confcmd) = ("./$cfg", "--prefix=$prefix");
-    next if $self || $bogus;
-    @confcmd = ("./$cfg", "--prefix", $prefix) if $twowordprefix;
-    @confcmd = ("./$cfg") if $noprefix;
-    push(@confcmd, sort(grep($confopts{$_}, keys(%confopts))));
-    unshift(@confcmd, "sh") unless -x($confprog);
-    if($builddir)
+    if(!$self)
     {
-      $confcmd[0] = "../$cfg";
-      $dir = path($dir, "$myname-build.d");
-      md($dir);
-    }
-    elsif($cfg eq "configure.gnu")
-    {
-      # force perl to install files it thinks are already installed
-      # (5.8.2 and later support DESTDIR and should no longer need this)
-      optpatch { s/^use File::Compare;$/sub compare(\$\$){1}; #$genby/ }
-          path($dir, "installperl");
+      next if $bogus;
+      @confcmd = ("./$cfg", "--prefix", $prefix) if $twowordprefix;
+      @confcmd = ("./$cfg") if $noprefix;
+      push(@confcmd, sort(grep($confopts{$_}, keys(%confopts))));
+      unshift(@confcmd, "sh") unless -x($confprog);
+      if($builddir)
+      {
+        $confcmd[0] = "../$cfg";
+        $dir = path($dir, "$myname-build.d");
+        md($dir);
+      }
+      elsif($cfg eq "configure.gnu")
+      {
+        # force perl to install files it thinks are already installed
+        # (5.8.2 and later support DESTDIR and should no longer need this)
+        optpatch { s/^use File::Compare;$/sub compare(\$\$){1}; #$genby/ }
+            path($dir, "installperl");
+      }
     }
 
     my($amhelper) = path($dir, "install-sh");
