@@ -2503,7 +2503,7 @@ sub make($)
   my($xf86) = false; # blatant special case for XFree86
   my($ocaml) = false; # ditto ocaml
   my($please) = ""; # blatant special case for xdaliclock
-  my($figlet);
+  my($figlet, $busybox); # further eponymous special cases
 
   explain("examining $mf...");
   patch
@@ -2518,6 +2518,7 @@ sub make($)
     $abort ||= /^all:[^\#]*\binstall\b/; # all implies install (e.g. man-pages)
     s/^DEFAULTFONTDIR = fonts$/# $&/ if $figlet;
     $figlet ||= m!^DEFAULTFONTDIR = /usr.*/figlet$!;
+    $busybox ||= m!^all: menuconfig$!;
   } $mf;
 
   return false if $abort;
@@ -2525,6 +2526,7 @@ sub make($)
   my(@targets);
   @targets = $^O if $systype;
   @targets = qw[oldconfig dep bzImage] if $lk;
+  @targets = qw[oldconfig dep all] if $busybox;
   @targets = "World" if $xf86;
   @targets = qw[world opt] if $ocaml;
   @targets = $please if $please;
@@ -2563,6 +2565,7 @@ sub install($$)
   @targets = "upgrade" if -r(path($makedir, "postfix-install")); # postfix
   push(@targets, "DESTDIR=$rootdir") if $usedestdir;
   push(@targets, "install_root=$rootdir") if $usedestdir; # glibc
+  push(@targets, "PREFIX=$rootdir") if $usedestdir; # busybox
   push(@targets, "INS_BASE=$rootdir") if $cdrtools;
   cdrun($makedir, @trace, "make", @targets);
   run(@trace, "sh", "-c", "cp -R '$netpbm'/*/ '$rootdir'") if $netpbm;
@@ -2658,7 +2661,7 @@ sub fixrootsubdir($)
 
 sub fixrootlink($)
 {
-  # XFree86 gets (understandably) confused by stdlinks and makes broken links
+  # stdlinks fool XFree86 and busybox into creating broken symlinks; fix them!
   my($link) = @_;
   my($dest) = readlink($link);
   defined($dest) || error("not a link: $link");
@@ -5296,7 +5299,7 @@ Known bugs:
   - gimp will load plugins from other armed versions despite .off suffix
   - "toast upgrade gcc" doesn't work (ftp site has a subdir per version)
   - autofind fails for: sleepycat db, gcc, latex, gv, GNU arch (?), ogle
-  - build fails for: jikes, sirc, netcat, lcab, busybox (ow!), gv
+  - build fails for: jikes, sirc, netcat, lcab, gv
   - "toast --autoremove --crossversion upgrade toast" breaks everything
   - if x/1/1 is armed and x/1/2 is built, "toast arm x" does nothing
   - various unquoted arguments to 2-arg open()
