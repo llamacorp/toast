@@ -3171,6 +3171,9 @@ sub rename(@)
   optmd($versiondir) unless $ddir eq $versiondir;
   mv($sdir, $ddir);
 
+  my($oldnamedir) = pkgpath($sname);
+  rmdir($oldnamedir) && announce("rmdir", $oldnamedir);
+
   return !defined($dversion) ? ($dname) :
       !defined($dbuild) ? ($dname, $dversion) :
       ($dname, $dversion, $dbuild);
@@ -4618,7 +4621,6 @@ Known bugs:
   - sleepycat db utterly fails to build when already armed
   - toast arm/disarm can leave info.dir in the wrong state
   - gimp will load plugins from other armed versions despite .off suffix
-  - "toast rename a/b c/d" doesn't remove a if b was the only version
   - "toast upgrade gcc" doesn't work (ftp site has a subdir per version)
   - can't extract nss-tools-3.4.1-2.i686.rpm in some environments (?)
   - build overrides LD_PRELOAD instead of appending [space-separated]
@@ -4631,6 +4633,7 @@ Wish list:
   - "toast build" w/o arguments should build all unbuilt packages
   - "toast arm" should move armed packages to top of stacking order
   - "toast status" should give information about stacking order
+  - "toast rename" should rename armed packages by rewriting symlinks
   - directories in armdir should be read-only (mode 0555) by default
   - add "toast check": verify storedir and armdir integrity (and fix?)
   - toast get could be more robust w/r/t failures and concurrency
