@@ -1216,7 +1216,9 @@ sub guessnv(@)
   my(@urls) = @_;
   my($base) = collapse(map(stripext(basename(stripquery($_))), @urls));
   $base =~ /^([\w]+[\w\-]*[a-z]+)[-_]v?(\d[\w\.\+\-]+)$/i  # Cryptix_src_3-1-1
-      || $base =~ /([^-]+)-(.*\d.+)/                       # iputils-ss020124
+      || $base =~ /^([a-z][a-z_-]*[a-z])\.(\d[\d\.]+)$/i #device-mapper.1.00.07
+      || $base =~ /^(LVM2)\.(2\.\d[\d\.]+)$/               # LVM2.2.00.08
+      || $base =~ /^([^-]+)-(.*\d.+)$/                     # iputils-ss020124
       || $base =~ /^(\D+[^a-z])v(\d.*)$/                   # TinyMAZEv2.4a
       || $base =~ /^(\D+)(\d.*)$/                          # fceu019linux
       || $base =~ /^(.*)()$/;                              # Xmerge
@@ -6128,7 +6130,6 @@ hostname of the B<toast> distribution site, C<toastball.net>.
 Known bugs:
 
   - autofind produces URLs with extra slashes, e.g. "toast arm flex" (?)
-  - toast guesses device/mapper-1.00.17 for device-mapper.1.00.17.tgz
   - make oldconfig isn't running for linux/2.6.x
   - toast add misguesses device-mapper name/version from URL
   - autofind hangs in httphead() when going through tinyproxy?
