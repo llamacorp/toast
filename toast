@@ -2159,6 +2159,14 @@ sub configure($$)
     }
   }
 
+  # configure script might be hidden in a "source" subdirectory (e.g. samba)
+  for(qw[source src])
+  {
+    my($subdir) = path($dir, $_);
+    my($confprog) = path($subdir, "configure");
+    return &configure($subdir, $prefix) if -x($confprog);
+  }
+
   # if this XFree86, we have to set ProjectRoot in xc/config/cf/site.def...
   optpatch { s!(\#\s*define\s+ProjectRoot\s+)(/usr/X\S+)!$1$prefix!; }
       path($dir, qw[config cf site.def]);
