@@ -2968,9 +2968,11 @@ BEGIN
   }
 }
 
-sub postarm()
+sub rebuildinfodir()
 {
   my($dir) = path(armdir, "info");
+  return true unless -d($dir);
+
   my($dirfile) = path($dir, "dir");
 
   # remove old links left by previous version of toast:
@@ -2998,8 +3000,13 @@ sub postarm()
     } $dir;
     mv($tmpfile, $dirfile) if -e($tmpfile);
   }
+}
 
+sub postarm()
+{
+  rebuildinfodir;
   run(postarmprog) if postarmprog;
+  return true;
 }
 
 sub arm(@)
