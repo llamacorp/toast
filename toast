@@ -2545,6 +2545,10 @@ sub configure($$)
   my($imf) = path($dir, "Imakefile");
   return $dir if -r($imf) && cdrun($dir, "xmkmf");
 
+  # perl modules have a Makefile.PL script that spits out a Makefile
+  my($mfpl) = path($dir, "Makefile.PL");
+  return $dir if -r($mfpl) && cdrun($dir, "perl", $mfpl);
+
   # Terrible, terrible hack to allow glibc+linuxthreads to compile:
   # Look for a situation where we have multiple subdirectories, but no files,
   # and only one of the subdirectories contains an executable configure script
@@ -5710,7 +5714,6 @@ Wish list:
   - "toast status" should give information about stacking order
   - "toast rename" should rename armed packages by rewriting symlinks
   - "toast clean" should optionally remove old versions/builds
-  - "toast build" should be able to deal with perl modules
   - add "toast check": verify storedir and armdir integrity (and fix?)
   - toast get could be more robust w/r/t failures and concurrency
   - configure packages to use alternate /etc, /var, etc. when possible
