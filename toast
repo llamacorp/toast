@@ -3905,7 +3905,7 @@ sub rebuildxmlcatalog(@)
 
   if(xmlcatalog)
   {
-    @subcats = grep(m!/catalog[^/]*$!, absls(path(armdir, qw(etc xml))));
+    @subcats = -d($xmldir) ? grep(m!/catalog[^/]*$!, absls($xmldir)) : ();
     my($dir) = path($armdir, qw[share xml]);
     dfs
     (
