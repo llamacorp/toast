@@ -2745,8 +2745,9 @@ sub configure($$)
     my($ehdir) = defined($hdrdir) ? (shellescape($hdrdir)) : ();
     my($mftext) = "# $genby\n\nall:\n\t\$(MAKE) -C $emdir\n\n" .
         "install:\n\t\$(MAKE) -C $emdir\n";
-    $mftext .= "\t\(cd $ehdir && tar c include/linux include/asm/.) |" .
-        " (cd \$(DESTDIR) && tar x)\n" if $ehdir;
+    my($inclist) = "include/linux include/asm/. include/asm-generic";
+    $mftext .= "\t\(cd $ehdir && tar c $inclist) | (cd \$(DESTDIR) && tar x)\n"
+        if $ehdir;
     writefile(path($dir, "Makefile"), $mftext);
 
     my(@confcmd) = ("../configure", "--prefix=$prefix");
