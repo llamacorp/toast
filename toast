@@ -2145,7 +2145,8 @@ sub inithelpers($$$)
   md($helperdir);
 
   helprewrite($srcdir, $rootdir, $helperdir, $_, false)
-      foreach (qw[mkdir rmdir touch cp rm ln install chmod test ranlib], "[");
+      foreach (qw[mkdir rmdir touch cp rm ln install chmod test ranlib gzip],
+      "[");
   helprewrite($srcdir, $rootdir, $helperdir, $_, true)
       foreach (qw[mv]);
   helpnop($helperdir, $_) foreach (qw[chown ldconfig]);
@@ -2259,8 +2260,40 @@ sub configure($$)
   my($imf) = path($dir, "Imakefile");
   return $dir if -r($imf) && cdrun($dir, "xmkmf");
 
+  # Terrible, terrible hack to allow glibc+linuxthreads to compile:
+  # Look for a situation where we have multiple subdirectories, but no files,
+  # and only one of the subdirectories contains an executable configure script
+  # that actually does something.  If that happens, move the other directories
+  # into the directory with the non-broken configure script and run that.
+  # Otherwise one of the rules below will grab a Makefile from a random
+  # subdirectory and try to use it, which doesn't work.
+  my($newdir);
+  my(@addons);
+  my($addonsok) = whiledir
+  {
+    push(@addons, $_);
+    my($abs) = path($dir, $_);
+    return false if !-d($abs) || -l($abs);
+    my($cfg) = path($abs, "configure");
+    if(-x($cfg))
+    {
+      return true if whilefile { /^\s*(\#|exit|$)/ } $cfg;
+      return false if $newdir;
+      $newdir = $abs;
+      pop(@addons);
+    }
+    true;
+  } $dir;
+  if($addonsok && @addons && $newdir)
+  {
+    mv(path($dir, $_), path($newdir, $_)) foreach @addons;
+    return &configure($newdir, $prefix);
+  }
+
   # look for Unixish or OS-specific Makefile in a subdir and mv it here
   # e.g. zip -> unix/Makefile; libpng -> scripts/makefile.linux
+  # note that this rule would incorrectly grab a spurious subdirectory
+  # Makefile from glibc+linuxthreads if the above rule didn't come first
   return $dir unless dfs
   (
     $dir,
@@ -2298,34 +2331,6 @@ sub configure($$)
           "# $genby\n\nall:\n\ttrue\n\ninstall:\n\t@cmd\n");
       return $dir;
     }
-  }
-
-  # Terrible, terrible hack to allow glibc+linuxthreads to compile:
-  # Look for a situation where we have multiple subdirectories, but no files,
-  # and only one of the subdirectories contains an executable configure script
-  # that actually does something.  If that happens, move the other directories
-  # into the directory with the non-broken configure script and run that.
-  my($newdir);
-  my(@addons);
-  my($addonsok) = whiledir
-  {
-    push(@addons, $_);
-    my($abs) = path($dir, $_);
-    return false if !-d($abs) || -l($abs);
-    my($cfg) = path($abs, "configure");
-    if(-x($cfg))
-    {
-      return true if whilefile { /^\s*(\#|exit|$)/ } $cfg;
-      return false if $newdir;
-      $newdir = $abs;
-      pop(@addons);
-    }
-    true;
-  } $dir;
-  if($addonsok && @addons && $newdir)
-  {
-    mv(path($dir, $_), path($newdir, $_)) foreach @addons;
-    return &configure($newdir, $prefix);
   }
 
   # try looking in promisingly-named subdirectories
@@ -2453,7 +2458,7 @@ sub install($$)
     $man ||= /^install\.man:/;
     $subdir = $1 if /  to install the X version: "cd (\w+);/; # xdaliclock
     $netpbm ||= /^\t\@echo "  make package pkgdir=DIR"$/;
-    $usedestdir ||= /\bDESTDIR\b/; # atop needs this, but see libtiff above
+    $usedestdir ||= /\b(DESTDIR|Makefile\.in)\b/; # atop, glibc; not libtiff!
     $cdrtools ||= / Due to a bug in SunPRO make we need special rules /;
     true
   } $mf;
@@ -2463,6 +2468,7 @@ sub install($$)
   @targets = ("package", "pkgdir=$netpbm") if $netpbm;
   @targets = "upgrade" if -r(path($makedir, "postfix-install")); # postfix
   push(@targets, "DESTDIR=$rootdir") if $usedestdir;
+  push(@targets, "install_root=$rootdir") if $usedestdir; # glibc
   push(@targets, "INS_BASE=$rootdir") if $cdrtools;
   cdrun($makedir, @trace, "make", @targets);
   run(@trace, qw[cp -R], glob("$netpbm/*/"), $rootdir) if $netpbm;
@@ -5186,7 +5192,6 @@ Known bugs:
   - autofind fails for: sleepycat db, gcc, latex, gv, GNU arch (?), ogle
   - build fails for: jikes, sirc, netcat, lcab, busybox (ow!), gv
   - "toast --autoremove --crossversion upgrade toast" fails w/ NFS
-  - glibc: libdl.so and other links point into ../../destdir/lib (?)
 
 Wish list:
 
