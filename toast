@@ -3389,6 +3389,8 @@ sub install($$)
   push(@targets, "install_root=$rootdir") if $usedestdir; # glibc
   push(@targets, "PREFIX=$rootdir") if $usedestdir; # busybox
   push(@targets, "INS_BASE=$rootdir") if $cdrtools;
+  push(@targets, "RUN_QUERY_LOADER_TEST=true", "RUN_QUERY_IMMODULES_TEST=true")
+      if -d(path($makedir, "gdk-pixbuf")); # gtk+
   cdrun($makedir, @trace, "make", @targets);
   run(@trace, "sh", "-c", "cp -R '$netpbm'/*/ '$rootdir'") if $netpbm;
   error("trace complete; aborting") if debugrewrite;
