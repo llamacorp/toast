@@ -1010,7 +1010,8 @@ sub yes()
 
 ##############################################################################
 
-sub magicbufsize { 128 }
+# patch files may have leading garbage, so it can help for this to be largish:
+sub magicbufsize { 1024 }
 
 sub magicstring($)
 {
