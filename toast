@@ -3652,7 +3652,7 @@ is marked as C<stored> only if the original files have been downloaded by
 B<toast get> and haven't been deleted by C<toast purge>.  The package URLs
 may also be listed; see the B<showurls> option.  Every package has zero
 or more builds, each of which is either C<building> (if B<toast build>
-is still running), C<broken> (if it failed), C<broken> (if it succeeded),
+is still running), C<broken> (if it failed), C<built> (if it succeeded),
 or C<armed> (by B<toast arm>).  In the last two cases, the build will
 be marked C<(not clean)> if intermediate files created by B<toast build>
 have not yet been removed by C<toast clean>.
