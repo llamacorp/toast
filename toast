@@ -2182,7 +2182,7 @@ sub findnewpkg($$)
         error("unexpected response from $redirurl");
     $url = $1;
     # wget can't always get FTP directory listing correctly w/o trailing slash
-    $url .= "/" unless basename(stripquery($url)) =~ /\./; # e.g. atop
+    $url .= "/" unless basename(stripquery($url)) =~ /\.|\/$/; # e.g. atop
     $url = cleanurl($url);
   }
 
@@ -6762,6 +6762,7 @@ Known bugs:
   - build fails for: jikes, sirc, netcat, lcab, gv, bittorrent, xmlcatmgr
   - "toast edit" leaves things in an odd state if you hang up on it
   - "toast rename" is more case-sensitive than it ought to be
+  - "toast get" prevents wget from truncating output if transfer restarts
 
 Wish list:
 
