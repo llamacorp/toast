@@ -1387,7 +1387,11 @@ sub findnewpkg($$)
     {
       @versions = reverse sort cmpab @versions;
       $version = $versions[0];
-      @urls = grep { my(undef, $v) = guessnv($_); $v eq $version } @urls;
+      @urls = grep
+      {
+        my(undef, $v) = guessnv($_);
+        defined($v) && $v eq $version;
+      } @urls;
     }
   }
 
