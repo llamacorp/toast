@@ -1061,8 +1061,8 @@ sub findrelpath($$)
     $dir = path($dir, "..");
     last if whiledir # figure out how to get down one level from here
     {
-      my($pd, $pi) = safestat(path($dir, $_));
-      return true unless "$pd $pi" eq $di;
+      my($pd, $pi) = stat(path($dir, $_));
+      return true unless defined($pd) && "$pd $pi" eq $di;
       push(@names, $_);
       return false;
     } $dir;
