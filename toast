@@ -3512,7 +3512,7 @@ EOF
   $usage =~ /^\s*(\S.*\S)\s*$/ || error;
   $usage = depodify("usage:  $1\n\n");
 
-  my($item, @cmds, @opts, %head, %body);
+  my(@items, @cmds, @opts, %head, %body);
   for(1..2)
   {
     while(<SCRIPT>) { last if /^=head\d (commands|options)$/i }
@@ -3521,17 +3521,29 @@ EOF
       last if /^=(back|cut)/;
       if(/^=item .*\Q$myname\E (\w+)/)
       {
-        $head{$item = $1} .= $_;
-        push(@cmds, $item) unless $body{$item};
+        @items = ($1);
+        $head{$1} .= $_;
+        push(@cmds, $1) unless $body{$1};
       }
-      elsif(/^=item \S*-(\w+)/)
+      elsif(/^=item \S*-(\w+)(.*)/)
       {
-        $head{$item = $1} .= $_;
-        push(@opts, $item) unless $body{$item};
+        @items = ($1);
+        push(@opts, $1) unless $body{$1};
+        my($rest) = $2;
+        push(@items, $1) while $rest =~ /-(\w+)/g;
+        my($item);
+        for $item (@items)
+        {
+          $head{$item} .= $_;
+        }
       }
       else
       {
-        $body{$item} .= $_ if $item;
+        my($item);
+        for $item (@items)
+        {
+          $body{$item} .= $_;
+        }
       }
     }
   }
@@ -5303,7 +5315,7 @@ Known bugs:
   - "toast --autoremove --crossversion upgrade toast" breaks everything
   - if x/1/1 is armed and x/1/2 is built, "toast arm x" does nothing
   - various unquoted arguments to 2-arg open()
-  - "toast help verbose" works but "toast help noverbose" doesn't
+  - error message line numbers are too low by 19 or so due to perl -x
 
 Wish list:
 
