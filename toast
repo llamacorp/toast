@@ -2337,14 +2337,20 @@ sub configure($$)
   # try looking in promisingly-named subdirectories
   -d && return &configure($_, $prefix) foreach map(path($dir, $_), qw[src]);
 
-  # construct a Makefile for specific intransigent binary packages
+  # construct a Makefile for various intransigent binary packages
   my(%file2dir);
   %file2dir = () unless whiledir
   {
     my($name) = @_;
+    local($_) = path($dir, $name);
+    return false if !-f;
     return $file2dir{$name} = "/usr/lib/netscape/plugins"
         if $name =~ /flashplayer\.(xpt|so)$/; # flash player 6
-    $name =~ /readme|flashplayer-installer/;
+    return $file2dir{$name} = "/bin"
+        if $name =~ /^[a-z]+$/ && -x && -B; # upx
+    return $file2dir{$name} = "/man/man1"
+        if $name =~ /^[a-z]+\.1$/ && !-x && -T;
+    $name =~ /readme|flashplayer-installer|^[A-Z]+$|\.(doc|html)$/;
   } $dir;
   if(%file2dir)
   {
