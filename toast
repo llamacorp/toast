@@ -1255,10 +1255,16 @@ sub latestversion($;$)
   lastitem(allversions($name, $version));
 }
 
-sub latestbuild($;$$)
+sub latestbuilt($$;$)
 {
   my($name, $version, $build) = @_;
-  lastitem(allbuilds($name, $version, $build));
+  defined($name) || error;
+  defined($version) || error;
+  for $build (allbuilds($name, $version, $build))
+  {
+    return $build if isbuilt($name, $version, $build);
+  }
+  return undef;
 }
 
 ##############################################################################
@@ -2598,7 +2604,7 @@ sub purge(@)
   return true;
 }
 
-sub build(@)
+sub rebuild(@)
 {
   my($name, $version, $build, @urls) = @_;
   $build && error;
@@ -2719,6 +2725,14 @@ sub build(@)
   ($name, $version, $build);
 }
 
+sub build(@)
+{
+  my($name, $version, $build, @urls) = @_;
+  $build && error;
+  $build = latestbuilt($name, $version);
+  return $build ? ($name, $version, $build) : rebuild(@_);
+}
+
 ##############################################################################
 
 sub displace($)
@@ -2788,8 +2802,7 @@ BEGIN
 sub arm(@)
 {
   my($name, $version, $build, @urls) = @_;
-  ($name, $version, $build) = build($name, $version, undef, @urls)
-      if !defined($build) || !isbuilt($name, $version, $build);
+  ($name, $version, $build) = build(@_) unless $build;
 
   isarmed($name, $version, $build) &&
       error(pkgname($name, $version, $build) . " is already armed");
@@ -3737,28 +3750,14 @@ sub uselatestversion(@)
   @result;
 }
 
-sub uselatestbuild(@)
-{
-  my(@result);
-  for(@_)
-  {
-    my($name, $version, $build, @urls) = @$_;
-    $version = latestversion($name, $version)
-        if isname($name);
-    $build = latestbuild($name, $version, $build)
-        if isversion($name, $version);
-    push(@result, [$name, $version, $build, @urls]);
-  }
-  @result;
-}
-
 ##############################################################################
 
 sub parse_add(@) { rejectempty(parse(@_)); }
 sub parse_get(@) { rejectempty(uselatestversion(rejectbuilds(parse(@_)))); }
-sub parse_build(@) { allowempty(uselatestversion(rejectbuilds(parse(@_)))); }
+sub parse_build(@) { rejectempty(uselatestversion(rejectbuilds(parse(@_)))); }
+sub parse_rebuild(@) { rejectempty(uselatestversion(rejectbuilds(parse(@_)))); }
 sub parse_clean(@) { allowempty(rejectmissing(parse(@_))); }
-sub parse_arm(@) { rejectempty(uselatestbuild(parse(@_))); }
+sub parse_arm(@) { rejectempty(uselatestversion(parse(@_))); }
 sub parse_upgrade(@) { rejectempty(rejectmissing(uselatestversion(rejectbuilds(parse(@_))))); }
 sub parse_disarm(@) { rejectempty(rejectmissing(parse(@_))); }
 sub parse_demolish(@) { rejectempty(rejectmissing(parse(@_))); }
@@ -4460,46 +4459,59 @@ packages are also supported.
 
 =item S<B<toast add> I<PACKAGE> ...>
 
-Adds new packages to the repository by storing URLs.  Use this command
-to store package file locations without actually downloading anything.
-Each I<PACKAGE> must specify at least one URL or file unless the
-B<autofind> option is enabled.  Absolute and relative pathnames are
-automatically translated into file URLs.  If the given package has
-already been added, the command merely compares the given URLs against
-those already stored and gives an error if they don't match.
+Adds new packages to the repository by storing URLs.  Use this command to
+store package file locations without actually downloading anything.  Each
+I<PACKAGE> must specify at least one URL or file unless the B<autofind>
+option is enabled.  Absolute and relative pathnames are automatically
+translated into file URLs.  If the given package has already been added,
+the command merely compares the given URLs against those already stored
+and gives an error if they don't match; use B<toast remove> or B<toast
+change> to specify new URLs for an existing package.
 
 =item S<B<toast get> I<PACKAGE> ...>
 
 Downloads the given packages' files into the repository.  Implies B<toast
 add>.  After this command completes successfully, other commands will
 be able to operate on the package without downloading any additional
-files from the network.
+files from the network.  If a given package is already C<stored>, the
+existing downloaded files are silently preserved; use B<toast purge>
+to force them to be downloaded afresh.
 
 =item S<B<toast build> I<PACKAGE> ...>
 
-Creates a new build for one or more packages.  This may involve
-implicitly invoking B<toast add>, extracting archives, applying patch
-files, compiling a new build of the package and installing it in
-a build-specific directory tree.  Each package can have any number of
-independent builds.  Builds for a given package are automatically assigned
-sequential numbers starting from 1.  If the package is not stored, or
-if URLs are given, B<toast get> is implied.  Many options can influence
+Ensures that the given packages are built.  Packages that already
+have at least one C<built> or C<armed> build (as reported by B<toast
+status>) are skipped by this command without causing an error; use
+B<toast rebuild> to force such packages to be rebuilt.  Building may
+involve implicitly invoking B<toast get>, extracting archives, applying
+patch files, compiling a new build of the package and installing it
+in a build-specific directory tree.  Many options can influence this
+command's behavior; see the options reference for complete details.
+
+=item S<B<toast rebuild> I<PACKAGE> ...>
+
+Forces packages to be built or rebuilt.  A new build will be created
+as if by B<toast build> for every package given, even if the package
+has already been successfully built.  Each package can have any number
+of independent builds.  Builds for a given package are automatically
+assigned sequential numbers starting from 1.  Many options can influence
 this command's behavior; see the options reference for complete details.
 
 =item S<B<toast clean> [ I<BUILD> | I<PACKAGE> ...]>
 
-Deletes and intermediate files created by B<toast build>.  If no explicit
+Deletes files not required by B<toast arm> from builds.  If no explicit
 version and/or build number is given, all matching versions and/or
 builds are cleaned.  Cleaning a broken build removes the build entirely;
 otherwise only files that are not required by B<toast arm> are removed
 from the build.  These typically consist of files created directly by
 B<toast> as part of the build environment, extracted source files, and
 intermediate files created by the package itself during compilation.
-The B<toast build> command may perform this step automatically for some
-kinds of binary packages that do not involve intermediate files, as well
-as for other packages if the B<autoclean> option is enabled.  Only builds
-that are not in the C<building> state (as reported by B<toast status>) may
-be cleaned.  If no arguments are given, all eligible builds are cleaned.
+The B<toast build> and B<toast rebuild> commands may perform this step
+automatically for some kinds of binary packages that do not involve
+intermediate files, as well as for other packages if the B<autoclean>
+option is enabled.  Only builds that are not in the C<building> state
+(as reported by B<toast status>) may be cleaned.  If no arguments are
+given, all eligible builds are cleaned.
 
 =item S<B<toast arm> I<BUILD> | I<PACKAGE> ...>
 
@@ -4507,14 +4519,11 @@ Creates symbolic links to each file in a build.  This step is normally
 required before a package can be used.  The links are typically created
 under a directory such as C</usr/local>.  Existing links to other builds
 are moved out of the way if necessary, and the corresponding builds are
-still considered to be armed.  A build must be in the C<built> state (as
-reported by B<toast status>) before it can be armed.  If no explicit build
-number is supplied on the command line, this command implicitly creates
-a new build (as if by B<toast build>) if the package has no builds, or
-arms the latest C<built> build if such a build exists and was created
-later (numbered higher) than the latest C<armed> build for that package
-(if any).  If the latest build is already armed, the command fails; you
-probably meant to invoke B<toast build> with the C<autoarm> option set.
+still considered to be armed.  A build must be in the C<built> state
+(as reported by B<toast status>) before it can be armed.  If no explicit
+build number is supplied on the command line, B<toast build> is implied,
+and the latest C<built> or C<armed> build is armed.  If the build to be
+armed is already in the C<armed> state, the command fails.
 
 =item S<B<toast upgrade> I<PACKAGE> ...>
 
@@ -4547,8 +4556,8 @@ given, all matching builds are disarmed.  If one of the builds to be
 demolished is currently armed and the B<autodisarm> option is disabled,
 B<toast demolish> reports an error and no builds are deleted; otherwise,
 B<toast disarm> is implied.  Demolishing a package reverses the effects
-of B<toast build> (and, optionally, B<toast arm>), but never those of
-B<toast get> or B<toast add>.
+of B<toast build> or B<toast rebuild> (and, optionally, B<toast arm>),
+but never those of B<toast get> or B<toast add>.
 
 =item S<B<toast purge> I<PACKAGE> ...>
 
@@ -4556,7 +4565,8 @@ Deletes files downloaded by B<toast get>.  Deletes toast's local copy of
 the original archive used to build the given package or set of packages.
 Existing builds are not affected by this command, but creating a new
 build will implicitly reinvoke B<toast get>.  If the B<autopurge> option
-is enabled, B<toast build> may implicitly invoke this command.
+is enabled, B<toast build> or B<toast rebuild> may implicitly invoke
+this command.
 
 =item S<B<toast remove> I<BUILD> | I<PACKAGE> ...>
 
@@ -4574,9 +4584,7 @@ must already exist.  I<NEWNAME> uses the same syntax used to refer to
 an existing package or build, except that the destination package must
 not already exist and must contain the same number of slash characters as
 I<PACKAGE>.  Attempting to rename an armed package causes B<toast rename>
-to report an error.  Otherwise, renaming a package that contains builds
-should be OK, though it could conceivably break ill-behaved packages.
-This command can also be used to renumber builds.
+to report an error.  This command can also be used to renumber builds.
 
 =item S<B<toast change> I<PACKAGE> ...>
 
@@ -4596,10 +4604,10 @@ is marked as C<stored> only if the original files have been downloaded by
 B<toast get> and haven't been deleted by C<toast purge>.  The package URLs
 may also be listed; see the B<showurls> option.  Every package has zero
 or more builds, each of which is either C<building> (if B<toast build>
-is still running), C<broken> (if it failed), C<built> (if it succeeded),
-or C<armed> (by B<toast arm>).  In the last two cases, the build will
-be marked C<(not clean)> if intermediate files created by B<toast build>
-have not yet been removed by C<toast clean>.
+or B<toast rebuild> is still running), C<broken> (if it failed), C<built>
+(if it succeeded), or C<armed> (by B<toast arm>).  In the last two cases,
+the build will be marked C<(not clean)> if intermediate files created
+by B<toast build> have not yet been removed by C<toast clean>.
 
 =item S<B<toast help> [ I<TOPIC> ] ...>
 
@@ -5030,7 +5038,6 @@ Known bugs:
 
 Wish list:
 
-  - add "toast rebuild" command; "toast build" should just ensure built
   - "toast build" w/o arguments should build all unbuilt packages
   - "toast arm" should move armed packages to top of stacking order
   - "toast status" should give information about stacking order
