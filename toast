@@ -258,7 +258,7 @@ BEGIN
     "ignorecase" => "true",
     "showurls" => "true",
     "infodir" => "true",
-    "protect" => "true",
+    "protect" => "false",
     "relative" => "false",
     "debugrewrite" => "false",
   );
@@ -3237,7 +3237,7 @@ sub polishrootdir($$)
     $rootdir,
     sub { $count{$_} = $total; true },
     sub { fixrootfile($_); ++$total },
-    sub { $count{$_} < $total ? safechmod(0555, $_) : rd($_) }
+    sub { $count{$_} < $total ? !protect || safechmod(0555, $_) : rd($_) }
   );
   $total || error("no files found in $rootdir");
 
@@ -6088,12 +6088,15 @@ file, if present, instead of rebuilding it.  Default: enabled.
 
 =item S<B<--protect> | B<--noprotect>>
 
-If B<protect> is enabled, B<toast arm> will attempt to ensure that
-B<armdir> and its subdirectories are read-only, changing existing modes
-if necessary.  If B<protect> is disabled, B<toast arm> will make B<armdir>
+If B<protect> is enabled, B<toast build> will make some of the directories
+it creates in B<storedir> read-only, and B<toast arm> will attempt
+to ensure that B<armdir> and all of its subdirectories are read-only,
+changing existing modes if necessary.  If B<protect> is disabled, B<toast
+build> will create read-write directories in storedir (though existing
+subdirectories will be unaffected), and B<toast arm> will make B<armdir>
 and its subdirectories read-write, assuming the current umask allows it.
 This option never affects the permissions of files or symbolic links.
-Default: enabled.
+Default: disabled.
 
 =item S<B<--relative>> | B<--norelative>>
 
