@@ -3409,7 +3409,8 @@ sub install($$)
   local($ENV{PREFIX}) = $rootdir; # airhook v2
   announce("export", "$_=$ENV{$_}") for (qw[ROOT DESTDIR install_root PREFIX]);
   my(@targets) = "install";
-  my($man, $subdir, $netpbm, $usedestdir, $nodestdir, $cdrtools, $e2fsprogs);
+  my($man, $subdir, $netpbm, $usedestdir, $nodestdir, $useinstallprefix,
+      $cdrtools, $e2fsprogs);
   whilefile
   {
     $man ||= /^install\.man:/;
@@ -3417,6 +3418,7 @@ sub install($$)
     $netpbm ||= /^\t\@echo "  make package pkgdir=DIR"$/;
     $usedestdir ||= /\b(DESTDIR|Makefile\.in)\b/; # atop, glibc; not libtiff!
     $nodestdir ||= m!^\s*DESTDIR\s*=[^#]*/bin\s*$!; # figlet
+    $useinstallprefix ||= m!INSTALL_PREFIX is for package builders!; # openssl
     $cdrtools ||= / Due to a bug in SunPRO make we need special rules /;
     $e2fsprogs ||= /^\t.* e2fsck .* ; then \$\(MAKE\) install-libs ; fi/;
     true
@@ -3430,6 +3432,7 @@ sub install($$)
   push(@targets, "DESTDIR=$rootdir") if $usedestdir && !$nodestdir;
   push(@targets, "install_root=$rootdir") if $usedestdir; # glibc
   push(@targets, "PREFIX=$rootdir") if $usedestdir; # busybox
+  push(@targets, "INSTALL_PREFIX=$rootdir") if $useinstallprefix; # openssl
   push(@targets, "INS_BASE=$rootdir") if $cdrtools;
   push(@targets, "RUN_QUERY_LOADER_TEST=true", "RUN_QUERY_IMMODULES_TEST=true")
       if -d(path($makedir, "gdk-pixbuf")); # gtk+
