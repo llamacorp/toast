@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/bin/sh
 
 ##############################################################################
 #                                                                            #
@@ -13,6 +13,13 @@
 #                                                                            #
 ##############################################################################
 
+exec perl -x $0 ${1+"$@"}
+echo "Can't find perl in PATH; aborting." >&2
+exit 1
+
+##############################################################################
+
+#!perl
 use 5; # oldest version that actually works might be 5.003; not sure....
 
 # allow script to run even in the absence of strict.pm, etc.
@@ -832,7 +839,11 @@ sub linksfromurl($)
 
 sub abspath($)
 {
-  path(pwd, $_[0]);
+  my($path) = @_;
+  return $path if $path =~ m!^/!;
+  $path =~ s!^./!!;
+  $path =~ s!/./!/!g;
+  return path(pwd, $path);
 }
 
 ##############################################################################
@@ -1372,29 +1383,37 @@ sub findnewpkg($$)
   $name =~ /^[\w-]+$/ || error("invalid package name: $name");
   my($lcname) = lc($name);
 
-  local(*XML, $_);
-  my($sitename) = "freshmeat.net";
-  openurl(*XML, "http://freshmeat.net/projects-xml/$lcname/$lcname.xml");
-  my($notfound, %fmurl);
-  while(<XML>)
+  my($url);
+  if($lcname eq $myname)
   {
-    $notfound = /^Error: project not found/i ? 1 : 0 unless defined($notfound);
-    $fmurl{$1} = $2 while m!<url_(\w+)>([^<]+)</!g;
+    $url = $myurl;
   }
-  close(XML) || error;
+  else
+  {
+    local(*XML, $_);
+    my($sitename) = "freshmeat.net";
+    openurl(*XML, "http://freshmeat.net/projects-xml/$lcname/$lcname.xml");
+    my($notfound, %fmurl);
+    while(<XML>)
+    {
+      $notfound = /^Error: project not found/i ? 1 : 0 if !defined($notfound);
+      $fmurl{$1} = $2 while m!<url_(\w+)>([^<]+)</!g;
+    }
+    close(XML) || error;
 
-  error("no listing for package $name on $sitename") if $notfound;
+    error("no listing for package $name on $sitename") if $notfound;
 
-  my($redirurl);
-  $redirurl ||= $fmurl{$_} for qw(bz2 tgz zip rpm homepage);
-  $redirurl || error("no suitable URL for package $name on $sitename");
+    my($redirurl);
+    $redirurl ||= $fmurl{$_} for qw(bz2 tgz zip rpm homepage);
+    $redirurl || error("no suitable URL for package $name on $sitename");
 
-  my($redirhead) = httphead($redirurl);
-  $redirhead =~ /^Location: ([^\r\n]+)/m ||
-      error("unexpected response from $redirurl");
-  my($url) = $1;
-  # wget can't always get FTP directory listing correctly w/o trailing slash 
-  $url .= "/" unless basename(stripquery($url)) =~ /\./; # e.g. atop
+    my($redirhead) = httphead($redirurl);
+    $redirhead =~ /^Location: ([^\r\n]+)/m ||
+        error("unexpected response from $redirurl");
+    $url = $1;
+    # wget can't always get FTP directory listing correctly w/o trailing slash 
+    $url .= "/" unless basename(stripquery($url)) =~ /\./; # e.g. atop
+  }
 
   for(1..3)
   {
@@ -1683,12 +1702,6 @@ sub excmp($$)
 
 sub extract($$)
 {
-  if($0 eq "-") # e.g. "perl - arm foo < toast"
-  {
-    close(STDIN); # this step apparently matters; ignore spurious error
-    open(STDIN, "</dev/null") || error("open stdin: $!");
-  }
-
   my($indir, $outdir) = @_;
   my(@infiles) = absls($indir);
   @infiles || error("$indir is empty");
@@ -1751,8 +1764,8 @@ sub helprewrite($$$$$)
 {
   my($srcdir, $rootdir, $helperdir, $cmd, $force) = @_;
   helpstub($helperdir, $cmd);
-  my($perl) = $^X;
-  $perl = "/usr/bin/perl" unless $perl =~ m!/!;
+  my($perl) = abspath($^X);
+  error("can't find perl: $perl") unless -x($perl);
   writescript(path($helperdir, "$cmd.helper"), "#!$perl\n# $genby\n", q[
 $cmd = ], quote($cmd), q[;
 $srcdir = ], quote($srcdir), q[;
@@ -3561,19 +3574,19 @@ sub urlescapechar($)
 
 sub cleanurl($)
 {
-  local($_) = @_;
-  s/ /\+/g;
-  s/[^\!-\~]/urlescapechar($&)/ge;
-  s!^(ftp://[^/:]+):21(/|$)!$1$2!; # wget likes to emit redundant ftp port no.
-  $_;
+  my($url) = @_;
+  $url =~ s/ /\+/g;
+  $url =~ s/[^\!-\~]/urlescapechar($&)/ge;
+  $url =~ s!^(ftp://[^/:]+):21(/|$)!$1$2!; # wget emits redundant ftp port no.
+  return $url;
 }
 
 sub fileurl($)
 {
-  local($_) = @_;
-  $_ = abspath($_) unless m|^/|;
-  s/[\%]/urlescapechar($&)/ge;
-  cleanurl("file://localhost$_");
+  my($file) = @_;
+  $file = abspath($file);
+  $file =~ s/[\%]/urlescapechar($&)/ge;
+  return cleanurl("file://localhost$file");
 }
 
 sub pkgname($;$$)
@@ -4556,15 +4569,17 @@ B<toast build> vary according to the package being built.
 
 To have the latest version of B<toast> download and install itself,
 run one of the following commands.  The first requires GNU wget; the
-second relies on the GET utility that comes with the LWP Perl module.
+second relies on the GET utility that comes with the LWP Perl module;
+the third uses telnet.
 
-  sh -c 'u=ttp://toastball.net/toast;wget -O- h$u/toast|perl - arm h$u/'
-  sh -c 'u=ttp://toastball.net/toast;GET h$u/toast|perl - arm h$u/'
+  wget -O- http://toastball.net/toast/toast|perl -x - arm toast
+  GET http://toastball.net/toast/toast|perl -x - arm toast
+  echo GET /toast/toast|telnet toastball.net 80|perl -x - arm toast
 
-If you ran either of the above commands as root, B<toast> should
-now be installed in C</toast> with appropriate symlinks under
-C</usr/local>, and you should be all set.  If you ran either command
-as a non-root user, B<toast> will have installed itself and everything
+If you ran one of the above commands as root, B<toast> should now be
+installed in C</toast> with appropriate symlinks under C</usr/local>,
+and you should be all set.  If you ran one of the command as a
+non-root user, B<toast> will have installed itself and everything
 it needs under C<I<$HOME>/.toast>, and you'll probably need to add
 C<I<$HOME>/.toast/armed/bin> to your C<PATH> environment variable in
 order to be able to use B<toast> and any other packages it installs.
@@ -5224,7 +5239,6 @@ Wish list:
   - toast get could be more robust w/r/t failures and concurrency
   - configure packages to use alternate /etc, /var, etc. when possible
   - share rewriting code between command wrappers and shared library
-  - wrap toast in #!/bin/sh: "sh configure" will work, find perl, etc.
   - come up with a better way to deal with gnome (guess dependencies?)
   - figure out where to go with "toast edit" (or document it as-is)
   - fold archives by URL and/or hash?
