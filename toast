@@ -3433,10 +3433,10 @@ $(prog): $(mysource)
   $(CP) $(prog) $(mysource)
 
 $(manpage): $(prog)
-  $(POD2MAN) $(prog) $(manpage)
+  $(POD2MAN) $(prog) > $(manpage) || rm $(manpage)
 
 $(tarball): $(prog)
-  ./$(prog) tarself < $(prog) > $(tarball)
+  ./$(prog) tarself < $(prog) > $(tarball) || rm $(tarball)
 
 install: $(prog) $(manpage)
   $(MKINSTALLDIRS) $(bindir) $(man1dir)
