@@ -2730,7 +2730,7 @@ sub build(@)
 {
   my($name, $version, $build, @urls) = @_;
   $build && error;
-  $build = latestbuilt($name, $version);
+  $build = defined($version) ? latestbuilt($name, $version) : undef;
   return $build ? ($name, $version, $build) : rebuild(@_);
 }
 
