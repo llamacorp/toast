@@ -17,7 +17,7 @@ if($^V) # 5.0 emits spurious message
 
 ##############################################################################
 
-my($rcsid) = q$Id: toast,v 1.216 2003/10/13 05:15:58 zaphod Exp $;
+my($rcsid) = q$Id: toast,v 1.217 2003/10/13 05:35:37 zaphod Exp $;
 $rcsid =~ /^Id: (.+),v (\S+) (\S+ \S+) (\S+) Exp (\S+ )?$/ || die;
 my($myname, $myversion, $mytimestamp, $myauthor) = ($1, $2, $3, $4);
 $myversion .= "+" if $5; # if this version may contain changes not in RCS
@@ -1207,19 +1207,20 @@ sub allbuilds($$;$)
 sub isname($)
 {
   my($name) = @_;
-  -d(pkgpath($name));
+  defined($name) && -d(pkgpath($name));
 }
 
 sub isversion($$)
 {
   my($name, $version) = @_;
-  -d(pkgpath($name, $version));
+  defined($name) && defined($version) && -d(pkgpath($name, $version));
 }
 
 sub isbuild($$$)
 {
   my($name, $version, $build) = @_;
-  -d(pkgpath($name, $version, $build));
+  defined($name) && defined($version) && defined($build) &&
+      -d(pkgpath($name, $version, $build));
 }
 
 ##############################################################################
@@ -3617,8 +3618,8 @@ sub rejectmissing(@)
   for(@_)
   {
     my($name, $version, $build, @urls) = @$_;
-    error("no such package: ", pkgname($name, $version)) unless
-        defined($version) ? isversion($name, $version) : isname($name)
+    error("no such package: ", pkgname($name, $version))
+        unless defined($version) ? isversion($name, $version) : isname($name);
   }
   @_;
 }
