@@ -2371,7 +2371,8 @@ sub configure($$)
 
   # find a configure script
   my($cfg);
-  for $cfg (qw[configure configure.gnu Configure])
+  #            usual     Perl          elm       nvi
+  for $cfg (qw[configure configure.gnu Configure dist/configure])
   {
     my($confprog) = path($dir, $cfg);
     if(-x($confprog))
