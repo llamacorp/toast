@@ -160,6 +160,7 @@ BEGIN
     "postarmprog" => superuser ? "/sbin/ldconfig" : "",
     "verbose" => true,
     "autofind" => true,
+    "autochange" => true,
     "autorename" => true,
     "autoclean" => true,
     "autopurge" => false,
@@ -1369,6 +1370,18 @@ sub pkgurls($$)
   return map { chomp; $_ } readfile($urlfile);
 }
 
+sub setpkgurls($$@)
+{
+  my($name, $version, @urls) = @_;
+  error unless defined($name);
+  error unless defined($version);
+  error unless @urls;
+
+  my($verdir) = pkgpath($name, $version);
+  my($urlfile) = path($verdir, urlfile);
+  writefile($urlfile, map("$_\n", @urls));
+}
+
 ##############################################################################
 
 sub add(@)
@@ -1390,7 +1403,6 @@ sub add(@)
   my($goodver) = defined($version);
   $version = "unknown" unless $goodver;
   my($verdir) = pkgpath($name, $version);
-  my($urlfile) = path($verdir, urlfile);
 
   if($goodver)
   {
@@ -1435,7 +1447,7 @@ sub add(@)
     announce("mkdir", $verdir);
   }
 
-  writefile($urlfile, map { "$_\n" } @urls);
+  setpkgurls($name, $version, @urls);
 
   ($name, $version);
 }
@@ -1482,7 +1494,7 @@ sub smartgeturl($$)
     }
     close(FILE) || error("close $file: $!");
 
-    return true unless $redir;
+    return $url unless $redir;
 
     rm($file);
     $url = $redir;
@@ -1492,11 +1504,32 @@ sub smartgeturl($$)
   error("too many links: $url");
 }
 
-sub autorenamepkg($$)
+sub renamepkg($$$$)
 {
-  my($name, $version) = @_;
+  my($oldname, $oldversion, $newname, $newversion) = @_;
 
-  my($namedir) = pkgpath($name);
+  my($oldnamedir) = pkgpath($oldname);
+  my($newnamedir) = pkgpath($newname);
+  my($oldverdir) = pkgpath($oldname, $oldversion);
+  my($newverdir) = pkgpath($newname, $newversion);
+
+  optmd($newnamedir);
+  mv($oldverdir, $newverdir);
+  rmdir($oldnamedir) && announce("rmdir", $oldnamedir);
+  return ($newname, $newversion);
+}
+
+sub autorenamepkg($$@)
+{
+  my($name, $version, @urls) = @_;
+
+  if(@urls)
+  {
+    my($newname, $newversion) = guessnv(@urls);
+    return renamepkg($name, $version, $newname, $newversion)
+        if defined($newname) && defined($newversion);
+  }
+
   my($verdir) = pkgpath($name, $version);
   my($archivedir) = path($verdir, archivedir);
 
@@ -1507,15 +1540,8 @@ sub autorenamepkg($$)
     next unless defined($extractname);
 
     my($newname, $newversion) = guessnv($extractname);
-    if(defined($newname) && defined($newversion))
-    {
-      my($newnamedir) = pkgpath($newname);
-      my($newverdir) = pkgpath($newname, $newversion);
-      optmd($newnamedir);
-      mv($verdir, $newverdir);
-      rmdir($namedir) && announce("rmdir", $namedir);
-      return ($newname, $newversion);
-    }
+    return renamepkg($name, $version, $newname, $newversion)
+        if defined($newname) && defined($newversion);
   }
 
   ($name, $version);
@@ -1539,9 +1565,22 @@ sub get(@)
   my($tempdir) = addtmp($realdir);
 
   optmd($tempdir);
-  smartgeturl($_, $tempdir) foreach @urls;
+
+  my($changed) = false;
+  for(@urls)
+  {
+    my($newurl) = smartgeturl($_, $tempdir);
+    if($newurl ne $_ && autochange)
+    {
+      $_ = $newurl;
+      $changed = true;
+    }
+  }
+  setpkgurls($name, $version, @urls) if $changed;
+
   mv($tempdir, $realdir);
-  ($name, $version) = autorenamepkg($name, $version) if $autorename;
+  ($name, $version) = autorenamepkg($name, $version, $changed ? @urls : ())
+      if $autorename;
 
   ($name, $version);
 }
@@ -2918,6 +2957,20 @@ sub rename(@)
 
 ##############################################################################
 
+sub change(@)
+{
+  my($name, $version, $build, @urls) = @_;
+  error unless defined($name);
+  error unless defined($version);
+  error if defined($build);
+  error unless @urls;
+
+  setpkgurls($name, $version, @urls);
+  ($name, $version);
+}
+
+##############################################################################
+
 BEGIN
 {
   my($checkresult);
@@ -3383,6 +3436,16 @@ sub rejectbuilds(@)
   @_;
 }
 
+sub requireurls(@)
+{
+  for(@_)
+  {
+    my($name, $version, $build, @urls) = @$_;
+    @urls || error("filename or URL expected for " .
+        pkgname($name, $version, $build));
+  }
+}
+
 sub uselatestversion(@)
 {
   my(@result);
@@ -3423,6 +3486,7 @@ sub parse_demolish(@) { rejectempty(rejectmissing(parse(@_))); }
 sub parse_purge(@) { rejectempty(rejectmissing(rejectbuilds(parse(@_)))); }
 sub parse_remove(@) { rejectempty(rejectmissing(parse(@_))); }
 sub parse_rename(@);
+sub parse_change(@) { requireurls(rejectempty(rejectmissing(uselatestversion(rejectbuilds(parse(@_)))))); }
 sub parse_status(@) { allowempty(rejectmissing(parse(@_))); }
 sub parse_check(@) { rejectall(@_); }
 sub parse_help(@) { allowall(@_); }
@@ -3844,6 +3908,27 @@ B<toast add>.  If any of the builds to be deleted is currently armed,
 and the B<autodisarm> option is disabled, B<toast remove> reports an
 error and nothing is removed; otherwise B<toast disarm> is implied.
 
+=item S<B<toast rename> I<PACKAGE> ... I<NEWNAME>>
+
+Renames an existing package or set of packages.  The package or packages
+must already exist.  I<NEWNAME> uses the same syntax used to refer to
+an existing package or build, except that the destination package must
+not already exist and must contain the same number of slash characters as
+I<PACKAGE>.  Attempting to rename an armed package causes B<toast rename>
+to report an error.  Otherwise, renaming a package that contains builds
+should be OK, though it could conceivably break ill-behaved packages.
+This command can also be used to renumber builds.
+
+=item S<B<toast change> I<PACKAGE> ...>
+
+Changes the stored URLs for an existing package or packages.  Use with
+caution!  Each package must already exist, and at least one URL must be
+given explicitly for each.  The URL or URLs previously stored for each
+package by B<toast add> will be discarded and replaced by the given URL
+or URLs.  No further action is taken; in particular, neither B<toast get>
+nor B<toast purge> is implied.  Note that it is often simpler and safer to
+remove and then re-create a package than it would be to use this command.
+
 =item S<B<toast status> [ I<BUILD> | I<PACKAGE> ] ...>
 
 Displays information about packages and builds.  If invoked without
@@ -3856,17 +3941,6 @@ is still running), C<broken> (if it failed), C<built> (if it succeeded),
 or C<armed> (by B<toast arm>).  In the last two cases, the build will
 be marked C<(not clean)> if intermediate files created by B<toast build>
 have not yet been removed by C<toast clean>.
-
-=item S<B<toast rename> I<PACKAGE> ... I<NEWNAME>>
-
-Renames an existing package or set of packages.  The package or packages
-must already exist.  I<NEWNAME> uses the same syntax used to refer to
-an existing package or build, except that the destination package must
-not already exist and must contain the same number of slash characters as
-I<PACKAGE>.  Attempting to rename an armed package causes B<toast rename>
-to report an error.  Otherwise, renaming a package that contains builds
-should be OK, though it could conceivably break ill-behaved packages.
-This command can also be used to renumber builds.
 
 =item S<B<toast help> [ I<TOPIC> ] ...>
 
@@ -4035,19 +4109,35 @@ been added previously or given explicitly.  If no version number is
 given either, the latest version listed on freshmeat.net will be used.
 Default: enabled.
 
+=item S<B<--autochange> | B<--noautochange>>
+
+When B<autochange> is enabled, B<toast get> may replace the URLs
+stored by B<toast add> with the actual URLs of the files it downloaded.
+This matters if an URL given on the command line points to an HTML page or
+FTP directory rather than to an actual archive to be extracted and built.
+In order to ensure consistent results, it is often desirable to store the
+more specific URLs, especially if B<autopurge> is enabled.  If this option
+is disabled, B<toast get> will still follow links in the usual way, but
+stored URLs will be left untouched, and future invocations of B<toast get>
+may end up downloading different files for the same package if new files
+or links have since been added to a page or directory.  Default: enabled.
+
 =item S<B<--autorename> | B<--noautorename>>
 
-When B<autorename> is enabled, B<toast get> may try to use the contents of
-the files it downloads to attempt to guess a new name for any implicitly
-added package for which no name and/or version number was specified on
-the command line or could be guessed from the URLs given.  If this method
-results in a new name being guessed, the package is renamed automatically
-as if by B<toast rename>, and any further processing continues under
-the new name.  If B<autorename> is disabled, packages with unguessed
-or partially guessed names always keep the unique names automatically
-assigned by B<toast add> based on URLs alone (version number will be
-C<unknown> optionally followed by a serial number for uniqueness; name
-may have been guessed or may also be C<unknown>).  Default: enabled.
+When B<autorename> is enabled, B<toast get> may try to use information
+gained after downloading files to attempt to guess a new name for any
+implicitly added package for which no name and/or version number was
+specified on the command line or could be guessed from the URLs given.
+If B<autochange> is also enabled, new URLs are first used to try to
+guess a new name; if this fails, the contents of the downloaded files
+are examined.  If either method results in a new name being guessed,
+the package is renamed automatically as if by B<toast rename>, and
+any further processing continues under the new name.  If B<autorename>
+is disabled, packages with unguessed or partially guessed names always
+keep the unique names automatically assigned by B<toast add> based on
+URLs alone (version number will be C<unknown> optionally followed by
+a serial number for uniqueness; name may have been guessed or may also
+be C<unknown>).  Default: enabled.
 
 =item S<B<--autoclean> | B<--noautoclean>>
 
