@@ -141,11 +141,25 @@ sub stripquery($) { my($arg) = @_; $arg =~ s/\?.*$//; $arg; }
 
 sub path(@)
 {
-  defined($_) || error("undefined path component in @_") foreach @_;
-  local($_) = join("/", @_);
-  m|//| && error("double slash in path(@_): $_");
-  m|/$| && error("final slash in path(@_): $_");
-  $_;
+  my(@args) = @_;
+  @args || error("empty path");
+  defined($_) || error("undefined path component in @args") for @args;
+  $args[0] = "" if $args[0] eq "/";
+  my($ret) = join("/", @args);
+  $ret =~ m|//| && error("double slash in path(@args): $ret");
+  $ret =~ m|/$| && error("final slash in path(@args): $ret");
+  return $ret;
+}
+
+sub laxpath(@)
+{
+  my(@args) = @_;
+  defined($_) || error("undefined path component in @args") for @args;
+  length($_) || error("empty path component in @args") for @args;
+  my($ret) = join("/", @args);
+  $ret =~ s|/+|/|g;
+  $ret =~ s|/$||;
+  return $ret;
 }
 
 sub optpath(@)
@@ -305,7 +319,7 @@ BEGIN
   sub dotfile()
   {
     my(@list);
-    push(@list, path($ENV{HOME}, qw[.toast conf]))
+    push(@list, laxpath($ENV{HOME}, qw[.toast conf]))
         if exists($ENV{HOME}) && length($ENV{HOME});
     push(@list, qw[/toast/conf /etc/toast.conf /usr/local/etc/toast.conf]);
     -e && return $_ for(@list);
