@@ -13,15 +13,14 @@
 #                                                                            #
 ##############################################################################
 
-use 5;
+use 5; # oldest version that actually works might be 5.003; not sure....
 
+# allow script to run even in the absence of strict.pm, etc.
 BEGIN { $^W = 1 } # use warnings
-BEGIN { $SIG{'__DIE__'} = sub { warn(@_) } }
-use strict; # if available
-BEGIN { $SIG{'__DIE__'} = 'DEFAULT' }
+BEGIN { $^H |= 0x602 } # use strict
 
 # warn if "use warnings" and "use strict" are not both in effect
-if($^V) # 5.0 emits spurious message
+if($^V && %SIG) # test requires perl 5.6.0 with working %SIG (not microperl)
 {
   { my($ok); { local $SIG{'__WARN__'} = sub { die };
       $ok = !eval('1 + "a"') } $ok || warn("use warnings"); }
@@ -2232,6 +2231,7 @@ sub configure($$)
         elsif($cfg eq "configure.gnu")
         {
           # force perl to install files it thinks are already installed
+          # (5.8.2 and later support DESTDIR and should no longer need this)
           optpatch { s/^use File::Compare;$/sub compare(\$\$){1}; #$genby/ }
               path($dir, "installperl");
         }
@@ -2473,7 +2473,7 @@ sub install($$)
   push(@targets, "install_root=$rootdir") if $usedestdir; # glibc
   push(@targets, "INS_BASE=$rootdir") if $cdrtools;
   cdrun($makedir, @trace, "make", @targets);
-  run(@trace, qw[cp -R], glob("$netpbm/*/"), $rootdir) if $netpbm;
+  run(@trace, "sh", "-c", "cp -R '$netpbm'/*/ '$rootdir'") if $netpbm;
   error("trace complete; aborting") if debugrewrite;
 }
 
@@ -5202,9 +5202,11 @@ Known bugs:
   - build fails for: jikes, sirc, netcat, lcab, busybox (ow!), gv
   - "toast --autoremove --crossversion upgrade toast" breaks everything
   - if x/1/1 is armed and x/1/2 is built, "toast arm x" does nothing
+  - various unquoted arguments to 2-arg open()
 
 Wish list:
 
+  - work around lack of getenv() in microperl
   - put version and additional information at the *top* of broken.log
   - "toast upgrade" w/o args should imply --nostoponerror or something
   - "toast arm" should move armed packages to top of stacking order
