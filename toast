@@ -132,6 +132,19 @@ sub min(@)
   $result;
 }
 
+sub uniq(@)
+{
+  my(@list) = @_;
+  my(@result, %seen);
+  for(@list)
+  {
+    next if $seen{$_};
+    $seen{$_} = true;
+    push(@result, $_);
+  }
+  return @result;
+}
+
 ##############################################################################
 
 sub dirname($) { my($arg) = @_; $arg =~ s|/[^/]*$|| ? $arg : "."; }
@@ -251,6 +264,7 @@ BEGIN
     "httpproxy" => exists($ENV{http_proxy}) ? $ENV{http_proxy} : "",
     "ftpproxy" => exists($ENV{ftp_proxy}) ? $ENV{ftp_proxy} : "",
     "quiet" => "false",
+    "expand" => "true",
     "autofind" => "true",
     "autochange" => "true",
     "autorename" => "true",
@@ -1019,7 +1033,7 @@ sub linksfromstream(*$)
   {
     push(@links, linksfromstring($_, $url));
   }
-  return @links;
+  return uniq(@links);
 }
 
 sub linksfromurl($)
@@ -2065,11 +2079,11 @@ sub isbuiltmatch(@)
 sub lookslikepkgurl($;$;$)
 {
   my($url, $name, $version) = @_;
-  return false unless $url =~ m!^(http|ftp)://!;
+  return false unless $url =~ m!^(http|ftp)://.*/[^/]+\.[a-z][^/]+$!i;
   return false if $url =~ m/\#/;
   my($noquery) = stripquery($url);
   return false unless $noquery =~ m!\.\w+$!;
-  return false if $noquery =~ m!\.(html?|php)$!i;
+  return false if $noquery =~ m!\.(html?|php|txt|gif|jpg|png|css)$!i;
   return true unless defined($name);
   my($basename) = basename($noquery);
   return false unless $basename =~ /\Q$name\E/i;
@@ -4674,10 +4688,11 @@ sub findpkg($$)
 
 sub parse(@)
 {
+  my(@args) = @_;
   my(@result) = ();
-  while(@_)
+  while(@args)
   {
-    local($_) = shift;
+    local($_) = shift(@args);
     my($name, $version, $build, @urls, $nourls, $multi, $split);
 
     if($_ ne "[" && m!^([^:/\.]*)(/([^:/]+)(/([1-9]\d*))?)?(:?)$!)
@@ -4689,8 +4704,8 @@ sub parse(@)
       {
         defined($oversion) || error("missing version number: \"$_\"");
         defined($build) && error("unexpected build number: \"$_\"");
-        @_ || error("expected file or URL after \"$_\"");
-        $_ = shift;
+        @args || error("expected file or URL after \"$_\"");
+        $_ = shift(@args);
       }
       elsif(defined($oversion) && !defined($version))
       {
@@ -4711,8 +4726,8 @@ sub parse(@)
         $multi = true unless s/\]$//;
         if($_ eq "")
         {
-          ($multi && @_) || error("expected file after \"[\"");
-          $_ = shift;
+          ($multi && @args) || error("expected file after \"[\"");
+          $_ = shift(@args);
         }
       }
 
@@ -4728,6 +4743,48 @@ sub parse(@)
         if(/^\w+:/)
         {
           $url = cleanurl($_);
+          if(expand && $url =~ m!/$!)
+          {
+            my(@expansion) = grep(lookslikepkgurl($_, $name, $version),
+                linksfromurl($url));
+
+            # filter out older versions of duplicated packages
+            my(%bestver);
+            for(@expansion)
+            {
+              my($n, $v) = guessnv($_);
+              $bestver{$n} = $v if defined($n) && defined($v) &&
+                  (!defined($bestver{$n}) ||
+                  (sort cmpab ($bestver{$n}, $v))[1] eq $v);
+            }
+            @expansion = grep
+            {
+              my($n, $v) = guessnv($_);
+              defined($n) && defined($v) && $bestver{$n} eq $v;
+            } @expansion;
+
+            # filter out foo.tar.gz if foo.tar.bz2 is also present
+            my(%expansion);
+            $expansion{$_} = true for @expansion;
+            @expansion = grep
+            {
+              my($xform) = $_;
+              !($xform =~ s/\.tar\.gz$/.tar.bz2/ && $expansion{$xform});
+            } @expansion;
+
+            error("unable to expand $url") unless @expansion;
+
+            $url = shift(@expansion);
+            if(@expansion)
+            {
+              if(defined($name) && !$multi)
+              {
+                $multi = true;
+                push(@expansion, "]");
+              }
+              unshift(@args, @expansion);
+            }
+          }
         }
         else
         {
@@ -4738,8 +4795,8 @@ sub parse(@)
 
         if($multi)
         {
-          @_ || error("expected \"]\" after \"$_\"");
-          $_ = shift;
+          @args || error("expected \"]\" after \"$_\"");
+          $_ = shift(@args);
         }
       }
 
@@ -4755,12 +4812,15 @@ sub parse(@)
 
 sub cmd_parse(@)
 {
-  print("parsed ", scalar(@_), " argument(s)\n");
+  my(@args) = @_;
+  my(@pkgs) = parse(@args);
+  print("parsed ", scalar(@args), " word(s) into ",
+      scalar(@pkgs), " package(s)\n");
   my($index) = 0;
-  for(parse(@_))
+  for(@pkgs)
   {
     my($name, $version, $build, @urls) = @$_;
-    print("argument ", ++$index, ":\n");
+    print("package ", ++$index, ":\n");
     print(defined($name) ? "  name: $name\n" : "  no name\n");
     print(defined($version) ? "  version: $version\n" : "  no version\n");
     print(defined($build) ? "  build: $build\n" : "  no build\n");
@@ -6088,6 +6148,24 @@ is not set.
 When B<quiet> is enabled, most commands will produce output only on
 failure.  Some commands, such as B<toast status>, are not affected by
 this flag.  Default: disabled.
+
+=item S<B<--expand> | B<--noexpand>>
+
+When B<expand> is enabled, any URL ending in a slash encountered
+while parsing the command line that will be treated as a pointer to a
+directory listing whose contents are to be fetched, parsed, filtered, and
+interpolated into the command line.  The filtering heuristic scans for
+links that seem likely to be package URLs, without actually retrieving
+anything other than the single directory URL given.  If a package name
+and/or version number are given on the command line, those are taken
+into account by the filter.  Use square brackets on the command line or
+specify an explicit name or version number to force all of the resulting
+URLs to be grouped into a single package, or omit brackets and name to
+let B<toast> decide for itself whether and how to group the new URLs
+into packages.  If B<expand> is disabled, URLs ending in slashes will not
+receive any special treatment, and B<toast> will never attempt to fetch
+anything from the network while it is still parsing the command line.
+Default: enabled.
 
 =item S<B<--autofind> | B<--noautofind>>
 
