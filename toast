@@ -4074,7 +4074,7 @@ files from the network.
 
 Creates a new build for one or more packages.  This may involve
 implicitly invoking B<toast add>, extracting archives, applying patch
-files, compiling a new build of the package and "installing" it in
+files, compiling a new build of the package and installing it in
 a build-specific directory tree.  Each package can have any number of
 independent builds.  Builds for a given package are automatically assigned
 sequential numbers starting from 1.  If the package is not stored, or
@@ -4244,7 +4244,7 @@ located automatically; if B<VERSION> is omitted, the latest available
 version will be used.  If B<NAME> matches a previously-added package and
 B<VERSION> is omitted, the latest existing version is used, except when
 the documentation for the command specifically says that it affects all
-versions or operates on "sets of packages," in which case all versions
+versions or operates on sets of packages, in which case all versions
 are affected.  Examples: C<wget>, C<gcc/3.2.2>, C<openssl/0.9.7b>
 
 =item I<NAME>B</>I<VERSION>B</>I<BUILDNUM>
@@ -4333,7 +4333,7 @@ if invoked by root, C<armed> otherwise.
 
 =item B<--username=>I<USER>
 
-When invoked as root, B<toast build> will unpack, compile, and "install"
+When invoked as root, B<toast build> will unpack, compile, and install
 packages under I<USER>'s UID and GID as returned by C<getpwnam(3)>.
 Note that any additional groups (such as those in C</etc/groups>) will
 be ignored, as will I<USER>'s password, home directory, shell, and so on.
@@ -4453,7 +4453,7 @@ for details.  Default: disabled.
 
 When B<strictpreload> is enabled, B<toast build> will fail unless it can
 successfully compile a shared library for use with LD_PRELOAD during the
-"make install" phase.  If B<strictpreload> is disabled, B<toast build>
+C<make install> phase.  If B<strictpreload> is disabled, B<toast build>
 still tries to build and use the shared library, but will do the best
 it can otherwise.  This may allow B<toast build> to succeed in the
 absence of a suitable C compiler, but it may allow some packages to
@@ -4605,7 +4605,7 @@ requirements for B<toast build> vary according to the package being built.
 
 Please report any bugs, unexpected behavior, unsurprising but inconvenient
 failures, and so on to C<pub.comp.toast> on the ofb.net Gale system
-(preferred; see C<http://gale.org>), or via email to "toast-bugs" at
+(preferred; see C<http://gale.org>), or via email to C<toast-bugs> at
 the hostname of the toast distribution site, toastball.net.
 
 Known bugs:
@@ -4622,7 +4622,7 @@ Known bugs:
   - "toast upgrade gcc" doesn't work (ftp site has a subdir per version)
   - can't extract nss-tools-3.4.1-2.i686.rpm in some environments (?)
   - build overrides LD_PRELOAD instead of appending [space-separated]
-  - autofind fails for: sleepycat db, gcc, latex, gv, arch (?)
+  - autofind fails for: sleepycat db, gcc, latex, gv, GNU arch (?)
   - build fails for: jikes, sirc, netcat, lcab, busybox (ow!), gv
 
 Wish list:
@@ -4671,7 +4671,7 @@ Jacques Frechet
   GAR            http://www.lnx-bbc.org/garchitecture.html
   GARStow        http://offog.org/code/garstow.html
   Gentoo         http://www.gentoo.org/
-  GNU stow       http://www.gnu.org/software/stow
+  GNU stow       http://www.gnu.org/software/stow/
   Graft          http://www.gormand.com.au/peters/tools/graft/graft.html
   LFS            http://www.linuxfromscratch.org/
   Linuxports     http://linuxports.sourceforge.net/
