@@ -3447,11 +3447,14 @@ sub compiledata($$)
   my($cat) = path($srcdir, "catalog.xml");
   if(-r($cat))
   {
-    my($name, $version);
-    whilefile
+    my($name, $version, $dup);
+    patch
     {
       ($name, $version) = (lc($1), $2) if m!//DTD (\w+) XML V([\d\.]+)//!i;
-      !$version;
+      $dup .= $_ if $dup;
+      $dup = "$1.1.2/$2" if reconfigure &&
+          m!(<public publicId="-//OASIS//DTD DocBook XML V4).*(/EN".*)!s;
+      ($dup, $_) = (undef, "$_$dup") if $dup && />/;
     } $cat;
     @installdir = (qw(share xml), $name, $version) if $version;
   }
