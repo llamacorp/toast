@@ -2,23 +2,14 @@
 
 ##############################################################################
 #                                                                            #
-# This file (except for the GNU General Public License, if present)          #
-# is toast, a program for installing and managing software packages.         #
-# Copyright (C) 2003 Jacques Frechet                                         #
+# This entire file is toast, a program for installing and managing software. #
+# Copyright (C) 2003 Jacques Frechet.                                        #
+# Note that this file contains Version 2 of the GNU General Public License,  #
+# which includes its own copyright notice.                                   #
 #                                                                            #
-# This program is free software; you can redistribute it and/or modify       #
-# it under the terms of the GNU General Public License as published by       #
-# the Free Software Foundation; either version 2 of the License, or          #
-# (at your option) any later version.                                        #
-#                                                                            #
-# This program is distributed in the hope that it will be useful,            #
-# but WITHOUT ANY WARRANTY; without even the implied warranty of             #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              #
-# GNU General Public License for more details.                               #
-#                                                                            #
-# You should have received a copy of the GNU General Public License          #
-# along with this program; if not, write to the Free Software                #
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA  #
+# For more information on toast, including purpose, usage, licensing, and    #
+# LACK OF ANY WARRANTY, visit http://www.toastball.net/toast/, run "toast"   #
+# without arguments, or refer to the documentation at the end of this file.  #
 #                                                                            #
 ##############################################################################
 
@@ -4460,6 +4451,11 @@ packages are also supported.
 
 =head2 Purpose
 
+B<toast> is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
 B<toast> is designed to be used in any of three ways:
 
 =over 4
@@ -4500,8 +4496,11 @@ possible, rather than using B<toast> to replace it or go behind its back.
 
 B<toast> itself is known to work with Perl 5.005_03 through 5.8.x under
 Linux, FreeBSD and Cygwin, without relying on the presence or absence
-of any Perl modules or other tools.  Additional requirements for B<toast
-build> vary according to the package being built.
+of any Perl modules or other tools.  Perl is available for download at
+C<http://www.cpan.org/src/stable.tar.gz>.  Although it isn't required,
+B<toast get> works better if you have GNU wget; use C<toast arm wget>
+to download and install it if necessary.  Additional requirements for
+B<toast build> vary according to the package being built.
 
 =head2 Setup
 
@@ -4531,10 +4530,10 @@ compiler is gcc, you may be able to use the CPATH environment variable
 instead of messing with CFLAGS; see the gcc documentation for details.
 
 The above procedure is by no means required in order to install or
-use B<toast>.  The unmodified script can be copied to and run from any
-location, and you can use B<toast man> to view the man page without
-having to install it first.  The default option settings should be
-sensible, and any necessary directories will be created on demand.
+use B<toast>.  The unmodified B<toast> script can be copied to and run
+from any location, and you can use B<toast man> to view the man page
+without having to install it first.  The default option settings should
+be sensible, and any necessary directories will be created on demand.
 
 A GNU-like C<configure> wrapper script is also provided with the official
 B<toast> distribution for your convenience.  You can supply an alternate
@@ -4563,22 +4562,32 @@ change> to specify new URLs for an existing package.
 =item S<B<toast get> I<PACKAGE> ...>
 
 Downloads the given packages' files into the repository.  Implies B<toast
-add>.  After this command completes successfully, other commands will
-be able to operate on the package without downloading any additional
-files from the network.  If a given package is already C<stored>, the
-existing downloaded files are silently preserved; use B<toast purge>
-to force them to be downloaded afresh.
+add>.  After this command completes successfully, other commands will be
+able to operate on the package without downloading any additional files
+from the network.  If a given package is already C<stored>, the existing
+downloaded files are silently preserved; use B<toast purge> to force
+them to be downloaded afresh.  B<toast get> has rudimentary built-in
+support for C<file> and C<http> URLs.  If GNU B<wget> is installed,
+B<toast get> will use it to fetch C<http>, C<https>, and C<ftp> URLs.
+If B<ssh> is available, B<toast get> can use it to fetch (non-standard)
+URLs of the form C<ssh:/[username@]hostname/absolute/path/to/file>.
 
 =item S<B<toast build> I<PACKAGE> ...>
 
-Ensures that the given packages are built.  Packages that already
-have at least one C<built> or C<armed> build (as reported by B<toast
-status>) are skipped by this command without causing an error; use
-B<toast rebuild> to force such packages to be rebuilt.  Building may
-involve implicitly invoking B<toast get>, extracting archives, applying
-patch files, compiling a new build of the package and installing it
-in a build-specific directory tree.  Many options can influence this
-command's behavior; see the options reference for complete details.
+Ensures that the given packages are built.  Packages that already have
+at least one C<built> or C<armed> build (as reported by B<toast status>)
+are skipped by this command without causing an error; use B<toast rebuild>
+to force such packages to be rebuilt.  Building may involve implicitly
+invoking B<toast get>, decompressing and extracting archives, applying
+patch files, compiling a new build of the package and installing it in
+a build-specific directory tree.  Supported archive formats include
+compress, gzip, bzip2, zip, rpm, cpio, tar, shar, patch, and most
+combinations of the above.  You don't need to have RPM installed to
+extract .rpm files; gzip and cpio usually suffice.  Archives should
+contain either precompiled binaries or source code; in the latter case,
+a C<configure> script, C<Makefile>, C<Imakefile>, C<install.sh> or similar
+is usually, but not always, required.  Many options can influence this
+command's behavior; see the options reference for full details.
 
 =item S<B<toast rebuild> I<PACKAGE> ...>
 
@@ -5150,15 +5159,9 @@ Wish list:
 Questions left unanswered by this documentation:
 
   - What are some realistic examples of toast commands?
-  - What kinds of packages can be expected to build?
-  - What protocols and archive formats are supported?
   - How are storedir and armdir structured?
   - How does this tool differ from similar tools?
   - How can I address common problems not directly caused by toast?
-
-=head1 AUTHOR
-
-Jacques Frechet
 
 =head1 SEE ALSO
 
@@ -5180,6 +5183,28 @@ Jacques Frechet
   RPM            http://www.rpm.org/
   Source Mage    http://www.sourcemage.org/
   spasm          http://www.linux.org/apps/AppId_6909.html
+
+=head1 AUTHOR
+
+Jacques Frechet
+
+=head1 COPYRIGHT
+
+This manual is part of B<toast>.  Copyright (C) 2003 Jacques Frechet.
+
+B<toast> is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation; either version 2 of the License, or (at your
+option) any later version.
+
+B<toast> is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with B<toast>; if not, write to the Free Software Foundation, Inc.,
+59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 =cut
 
