@@ -2453,7 +2453,8 @@ sub install($$)
   local($ENV{ROOT}) = $rootdir; # lilo
   local($ENV{DESTDIR}) = $rootdir; # not always on command line due to libtiff
   local($ENV{install_root}) = $rootdir;
-  announce("export", "$_=$ENV{$_}") foreach (qw[ROOT DESTDIR install_root]);
+  local($ENV{PREFIX}) = $rootdir; # airhook v2
+  announce("export", "$_=$ENV{$_}") for (qw[ROOT DESTDIR install_root PREFIX]);
   my(@targets) = "install";
   whilefile
   {
