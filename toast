@@ -1067,15 +1067,21 @@ sub dumpstdin($)
 
 sub extractstdin($);
 
+sub autoextractstdin()
+{
+  my($buf) = readstdin(magicbufsize);
+  forkstdin ? extractstdin(magicstring($buf)) : dumpstdin($buf);
+}
+
 sub rpmextractstdin()
 {
-  extractstdin(".gz") if forkstdin;
+  autoextractstdin if forkstdin;
 
   local($_) = readstdin(96);
   /^\xed\xab\xee\xdb[\x03\x04]/ || error("not rpm v3 or v4");
 
   my($pad) = 0;
-  while(magicstring($_ = readstdin(16 + $pad)) ne ".gz")
+  while(magicstring($_ = readstdin(16 + $pad)) !~ /^\..z/i)
   {
     my($magic, $zero, $sections, $bytes) = unpack("x$pad N4", $_);
     $magic == 0x8eade801 || error(sprintf("bad rpm header: %08x", $magic));
@@ -1084,12 +1090,6 @@ sub rpmextractstdin()
   }
 
   dumpstdin($_);
-}
-
-sub autoextractstdin()
-{
-  my($buf) = readstdin(magicbufsize);
-  forkstdin ? extractstdin(magicstring($buf)) : dumpstdin($buf);
 }
 
 sub extractstdin($)
