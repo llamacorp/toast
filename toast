@@ -1785,6 +1785,12 @@ sub helplib($$$)
 #include <stdio.h>
 #include <string.h>
 
+#ifdef __CYGWIN__
+#ifndef RTLD_NEXT
+#define RTLD_NEXT ((void *) -1L)
+#endif
+#endif
+
 #ifndef DEBUG
 $defdebug
 #endif
