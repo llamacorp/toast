@@ -2743,10 +2743,10 @@ sub configure($$)
         if(reconfigure)
         {
           s/^\s*AUTOTHREAD=no\s+\#+ leave off for now/\#$&/; # qt multithreaded
-          my($opt); # glibc; libjpeg; others?
-          for $opt (qw[--enable-add-ons --enable-shared])
+          my($opt); # glibc; libjpeg; tetex; others?
+          for $opt (qw[enable-add-ons enable-shared disable-multiplatform])
           {
-            $confopts{$opt} ||= / \Q$opt\E\b($|[^-])/;
+            $confopts{"--$opt"} ||= / \Q--$opt\E\b($|[^-])/;
           }
           $confopts{$1} = 1 if /"configure (-\S+)"; by default a static/;#zlib
         }
@@ -6194,6 +6194,7 @@ hostname of the B<toast> distribution site, C<toastball.net>.
 
 Known bugs:
 
+  - info pages with .off suffix are being included in info/dir
   - autofind produces URLs with extra slashes, e.g. "toast arm latex"
   - make oldconfig isn't running for linux/2.6.x
   - toast add misguesses device-mapper name/version from URL
@@ -6213,7 +6214,6 @@ Known bugs:
 
 Wish list:
 
-  - default to --disable-multiplatform for tetex? (email 5/26/04)
   - error messages that explain command usage (gale 2004-05-06 17:08:20)
   - convenient way to specify storedir, etc. during first time setup
   - work around lack of getenv(), mkdir(), etc. in microperl...?
