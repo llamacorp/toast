@@ -2083,7 +2083,7 @@ sub isarmedmatch(@)
   {
     my($name, $version, $build) = @_;
     return !isbuildarmedin(armdir, $name, $version, $build);
-  };
+  } @_;
 }
 
 sub ismismatched($$$)
