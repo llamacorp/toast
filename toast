@@ -3481,18 +3481,16 @@ be cleaned.  If no arguments are given, all eligible builds are cleaned.
 
 Creates symbolic links to each file in a build.  This step is normally
 required before a package can be used.  The links are typically created
-under a directory such as F</usr/local>.  Existing links to other builds
+under a directory such as C</usr/local>.  Existing links to other builds
 are moved out of the way if necessary, and the corresponding builds are
 still considered to be armed.  A build must be in the C<built> state (as
-reported by B<toast status>) before it can be armed.
-
-If no explicit build number is supplied on the command line, this
-command implicitly creates a new build (as if by B<toast build>) if the
-package has no builds, or arms the latest B<built> build if such a build
-exists and was created later (numbered higher) than the latest C<armed>
-build for that package (if any).  If the latest build is already armed,
-the command fails; you probably meant to invoke B<toast build> with the
-C<autoarm> option set.
+reported by B<toast status>) before it can be armed.  If no explicit build
+number is supplied on the command line, this command implicitly creates
+a new build (as if by B<toast build>) if the package has no builds, or
+arms the latest C<built> build if such a build exists and was created
+later (numbered higher) than the latest C<armed> build for that package
+(if any).  If the latest build is already armed, the command fails; you
+probably meant to invoke B<toast build> with the C<autoarm> option set.
 
 =item S<B<toast disarm> I<BUILD> | I<PACKAGE> ...>
 
@@ -3569,19 +3567,18 @@ Displays the complete B<toast> man page.  You're either reading the man
 page now, or reading something that was derived from it (such as the
 output of B<toast help>).  This command is supposed to behave about the
 same way C<man toast> would, but it doesn't require the C<man> program or
-the C<toast> man page to be installed.
-
-If standard output is a tty, the man page is formatted using
-C<Pod::Text::Overstrike>, C<Pod::Termcap>, C<Pod::Text> or the rudimentary
-internal formatting routine used by B<toast help>, and the formatted page
-is piped to C<$MANPAGER>, C<$PAGER>, C<less -ir>, or C<more>, or dumped
-directly to the terminal as a last resort.  If output is redirected to a
-file or pipe, the man page is rendered as plain text using C<Pod::Text>
-if available or the internal routine otherwise.  If you want more control
-over the output, try feeding the C<toast> script itself to S<C<pod2text>>,
-C<pod2html>, C<pod2man>, or C<pod2latex>, all of which are command-line
-utilities that accepts lots of exciting switches and things and that
-come bundled with recent versions of Perl.
+the C<toast> man page to be installed.  If standard output is a tty, the
+man page is formatted using C<Pod::Text::Overstrike>, C<Pod::Termcap>,
+C<Pod::Text> or the rudimentary internal formatting routine used
+by B<toast help>, and the formatted page is piped to C<$MANPAGER>,
+C<$PAGER>, C<less -ir>, or C<more>, or dumped directly to the terminal
+as a last resort.  If output is redirected to a file or pipe, the man
+page is rendered as plain text using C<Pod::Text> if available or the
+internal routine otherwise.  If you want more control over the output,
+try feeding the C<toast> script itself to S<C<pod2text>>, C<pod2html>,
+C<pod2man>, or C<pod2latex>, all of which are command-line utilities
+that accepts lots of exciting switches and things and that come bundled
+with recent versions of Perl.
 
 =back
 
@@ -3648,10 +3645,10 @@ respectively involve brace and glob expansion performed by your shell).
 
 =back
 
-Every command that accepts one package as an argument will also take
-several packages, so multiple files or URLs will always be treated
-as distinct packages unless they are explicitly grouped into a single
-package using square brackets as shown above.  For instance,
+Every command that accepts a I<PACKAGE> argument will accept several
+I<PACKAGE> arguments in sequence, so multiple files or URLs will always
+be treated as distinct packages unless they are explicitly grouped into
+a single package using square brackets as shown above.  For instance,
 S<C<toast add *>> puts each file in the current directory in its own
 package, while S<C<toast add [ * ]>> tries to combine them all into a
 single package.
@@ -3840,18 +3837,19 @@ boolean option, one of the explicit values listed in item 1 must be given.
 
 =item 3.
 
-The configuration file.  If option I<NAME> has not been assigned a value
-through any of the above methods, its value will be taken from a line of
-the form I<NAME>=I<VALUE>, if such a line exists, in C<$HOME/.toast/conf>,
-if that file exists.  (C<$HOME> specifically represents the value
-of the C<HOME> environment variable.)  I<NAME> is case-insensitive
-in this context.  Any whitespace before or after I<NAME> or I<VALUE>
-will be ignored, as will blank lines, lines containing only whitespace,
-and lines with B<#> as their first non-whitespace character.  If the file
-exists but cannot be read or contains invalid syntax, an invalid I<NAME>,
-or an illegal I<VALUE> for a boolean option (an explicit value must be
-given; see item 1 for allowed forms), B<toast> will normally give an
-error message at startup and refuse to execute any commands.
+The configuration file.  If option I<NAME> has not been assigned
+a value through any of the above methods, its value will be taken
+from a line of the form I<NAME>B<=>I<VALUE>, if such a line exists,
+in C<$HOME/.toast/conf>, if that file exists.  (C<$HOME> specifically
+represents the value of the C<HOME> environment variable.)  I<NAME>
+is case-insensitive in this context.  Any whitespace before or after
+I<NAME> or I<VALUE> will be ignored, as will any blank line, any
+line containing only whitespace, and any line with B<#> as its first
+non-whitespace character.  If the file exists but cannot be read or has
+invalid syntax, an invalid I<NAME>, or an illegal I<VALUE> for a boolean
+option (an explicit value must be given; see item 1 for allowed forms),
+B<toast> will normally give an error message at startup and refuse to
+execute any commands.
 
 =item 4.
 
