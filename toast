@@ -1266,22 +1266,19 @@ sub findnewpkg($$)
   local(*LIST);
   openurl(*LIST, $listurl);
   my(@urls);
-  if(!-B(LIST))
+  while(<LIST>)
   {
-    while(<LIST>)
+    while(m!\bhref\s*=\s*"([^"]+)"!gi)
     {
-      while(m!\bhref\s*=\s*"([^"]+)"!gi)
-      {
-        my($url) = $1;
-        next unless $url =~ m!^(http|ftp)://!;
-        next if $url =~ m/\#/;
-        my($noquery) = stripquery($url);
-        next unless $noquery =~ m!\.\w+$!;
-        my($basename) = basename($noquery);
-        next unless $basename =~ /\Q$name\E/i;
-        next unless $basename =~ /\Q$version\E/i;
-        push(@urls, $url);
-      }
+      my($url) = $1;
+      next unless $url =~ m!^(http|ftp)://!;
+      next if $url =~ m/\#/;
+      my($noquery) = stripquery($url);
+      next unless $noquery =~ m!\.\w+$!;
+      my($basename) = basename($noquery);
+      next unless $basename =~ /\Q$name\E/i;
+      next unless $basename =~ /\Q$version\E/i;
+      push(@urls, $url);
     }
   }
   close(LIST) || error;
