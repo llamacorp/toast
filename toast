@@ -2235,8 +2235,9 @@ sub install($$)
 {
   my($makedir, $rootdir) = @_;
   my($mf) = makefile($makedir) || error("no Makefile found");
-  my(@strace, $man, $subdir);
-  @strace = qw(strace -s 256 -f -F -o make.install.strace) if debugrewrite;
+  my(@trace, $man, $subdir);
+  @trace = qw[strace -s 256 -f -F -o make.install.strace] if debugrewrite;
+  @trace = qw[ktrace -f make.install.ktrace] if @trace && $^O =~ /bsd/i;
   local($ENV{ROOT}) = $rootdir; # lilo
   local($ENV{DESTDIR}) = $rootdir; # not on command line due to libtiff
   local($ENV{install_root}) = $rootdir;
@@ -2251,7 +2252,7 @@ sub install($$)
   return &install(path($makedir, $subdir), $rootdir) if $subdir;
   push(@targets, "install.man") if $man && reconfigure; # e.g. XFree86
   @targets = "upgrade" if -r(path($makedir, "postfix-install")); # postfix
-  cdrun($makedir, @strace, "make", @targets);
+  cdrun($makedir, @trace, "make", @targets);
   error("trace complete; aborting") if debugrewrite;
 }
 
@@ -4000,12 +4001,13 @@ for that package was given explicitly on the command line.
 
 =item S<B<--debugrewrite> | B<--nodebugrewrite>>
 
-If B<debugrewrite> is enabled, B<toast build> will always generate broken
-builds.  The builds will contain extra debugging information that can be
-used to help diagnose problems involving packages that build correctly
-outside of B<toast>, but refuse to build or build incorrect files due
-to bugs in B<toast>'s path-rewriting mechanism.  This option currently
-requires that the C<strace> program be available.
+If B<debugrewrite> is enabled, B<toast build> will always generate
+broken builds.  The builds will contain extra debugging information that
+can be used to help diagnose problems involving packages that build
+correctly outside of B<toast>, but refuse to build or build incorrect
+files due to bugs in B<toast>'s path-rewriting mechanism.  This option
+currently requires that the (for BSD) or C<strace> program be available
+(or C<ktrace> for *BSD).
 
 =back
 
