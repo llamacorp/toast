@@ -3007,96 +3007,94 @@ sub configure($$)
 
   # find a configure script
   my($cfg);
-  #            autoconf  Perl          openssl elm       pmk (bootstrap)
-  for $cfg (qw[configure configure.gnu config  Configure pmkcfg.sh])
+  #            autoconf  Perl          openssl elm       libmng     pmk
+  for $cfg (qw[configure configure.gnu config  Configure autogen.sh pmkcfg.sh])
   {
     my($confprog) = path($dir, $cfg);
-    if(-x($confprog) && !-d($confprog))
+    next if -d($confprog);
+    next unless -x($confprog) || $confprog =~ /\.sh$/;
+
+    my($self) = false;
+    my($builddir) = false;
+    my($bogus) = false;
+    my($twowordprefix) = false;
+    my($noprefix) = false;
+    my($mozilla) = false;
+    my(%confopts);
+
+    my($opensslcfg) = path($dir, "Configure");
+    if(reconfigure && $cfg eq "config" && -x($opensslcfg))
     {
-      my($self) = false;
-      my($builddir) = false;
-      my($bogus) = false;
-      my($twowordprefix) = false;
-      my($noprefix) = false;
-      my($mozilla) = false;
-      my(%confopts);
-
-      my($opensslcfg) = path($dir, "Configure");
-      if(reconfigure && $cfg eq "config" && -x($opensslcfg))
+      whilefile
       {
-        whilefile
-        {
-          !($confopts{"shared"} ||= /^# \[no-\]shared\s/);
-        } $opensslcfg;
-      }
-
-      patch
-      {
-        $self ||= /this is toast 89a72ef9c34e1fd4927afa36c9be8b15/;
-        $twowordprefix ||= /^\s*prefix=\$2; shift;;$/; # ocaml
-        $twowordprefix ||= /  --prefix dir  /; # doxygen
-        $builddir ||= /error: you must configure in a separate build/; # glibc
-        $builddir||=m!\. \$srcdir/build-tools/scripts/configure-top !;#arch/tla
-        $bogus ||= /There is no .+configure.+ script .+Instead/i; # libpng
-        $bogus ||= /configure is no longer used - just type /i; # cdrtools
-        s/(^\s*)read\s+(acceptance)(\s*$)/$1$2=yes$3/; # qt license
-        s/^if test ! -t 0; /if false; /; # elm
-        $noprefix = $confopts{"-d"} = 1 if /^\s*-d\) shift; fastread='y/; # elm
-        if(reconfigure)
-        {
-          s/^\s*AUTOTHREAD=no\s+\#+ leave off for now/\#$&/; # qt multithreaded
-          $mozilla = $1 if /(--enable-default-toolkit)=TK/;
-          my($opt); # glibc; libjpeg; tetex; others?
-          for $opt ("enable-add-ons", # glibc
-              "enable-shared", # various
-              "with-shared", # ncurses
-              "disable-multiplatform") # tetex
-          {
-            $confopts{"--$opt"} ||= / \Q--$opt\E\b($|[^-])/;
-          }
-          $confopts{$1} = 1 if /"configure (-\S+)"; by default a static/;#zlib
-        }
-      } $confprog;
-      $noprefix ||= -x(path($dir, "installnetpbm")); # netpbm 10.19
-      if($mozilla)
-      {
-        local($^W) = false; # suppress misguided exec failure warning
-        $confopts{"$mozilla=gtk2"} ||= system(qw(pkg-config gtk+)) == 0;
-      }
-
-      my(@confcmd) = ("./$cfg", "--prefix=$prefix");
-      if(!$self)
-      {
-        next if $bogus;
-        @confcmd = ("./$cfg", "--prefix", $prefix) if $twowordprefix;
-        @confcmd = ("./$cfg") if $noprefix;
-        push(@confcmd, sort(grep($confopts{$_}, keys(%confopts))));
-        if($builddir)
-        {
-          $confcmd[0] = "../$cfg";
-          $dir = path($dir, "$myname-build.d");
-          md($dir);
-        }
-        elsif($cfg eq "configure.gnu")
-        {
-          # force perl to install files it thinks are already installed
-          # (5.8.2 and later support DESTDIR and should no longer need this)
-          optpatch { s/^use File::Compare;$/sub compare(\$\$){1}; #$genby/ }
-              path($dir, "installperl");
-        }
-      }
-
-      my($amhelper) = path($dir, "install-sh");
-      if(-l($amhelper) && !-r($amhelper)) # e.g. sgml-common/0.6.3
-      {
-        optcdrun($dir, "aclocal");
-        optcdrun($dir, "automake", "-acf");
-        optcdrun($dir, "autoconf", "-f");
-      }
-
-      cdrunconf($dir, @confcmd);
-      return $dir;
+        !($confopts{"shared"} ||= /^# \[no-\]shared\s/);
+      } $opensslcfg;
     }
+
+    patch
+    {
+      $self ||= /this is toast 89a72ef9c34e1fd4927afa36c9be8b15/;
+      $twowordprefix ||= /^\s*prefix=\$2; shift;;$/; # ocaml
+      $twowordprefix ||= /  --prefix dir  /; # doxygen
+      $builddir ||= /error: you must configure in a separate build/; # glibc
+      $builddir||=m!\. \$srcdir/build-tools/scripts/configure-top !;#arch/tla
+      $bogus ||= /There is no .+configure.+ script .+Instead/i; # libpng
+      $bogus ||= /configure is no longer used - just type /i; # cdrtools
+      s/(^\s*)read\s+(acceptance)(\s*$)/$1$2=yes$3/; # qt license
+      s/^if test ! -t 0; /if false; /; # elm
+      $noprefix = $confopts{"-d"} = 1 if /^\s*-d\) shift; fastread='y/; # elm
+      if(reconfigure)
+      {
+        s/^\s*AUTOTHREAD=no\s+\#+ leave off for now/\#$&/; # qt multithreaded
+        $mozilla = $1 if /(--enable-default-toolkit)=TK/;
+        my($opt); # glibc; libjpeg; tetex; others?
+        for $opt ("enable-add-ons", # glibc
+            "enable-shared", # various
+            "with-shared", # ncurses
+            "disable-multiplatform") # tetex
+        {
+          $confopts{"--$opt"} ||= / \Q--$opt\E\b($|[^-])/;
+        }
+        $confopts{$1} = 1 if /"configure (-\S+)"; by default a static/;#zlib
+      }
+    } $confprog;
+    $noprefix ||= -x(path($dir, "installnetpbm")); # netpbm 10.19
+    if($mozilla)
+    {
+      local($^W) = false; # suppress misguided exec failure warning
+      $confopts{"$mozilla=gtk2"} ||= system(qw(pkg-config gtk+)) == 0;
+    }
+
+    my(@confcmd) = ("./$cfg", "--prefix=$prefix");
+    next if $self || $bogus;
+    @confcmd = ("./$cfg", "--prefix", $prefix) if $twowordprefix;
+    @confcmd = ("./$cfg") if $noprefix;
+    push(@confcmd, sort(grep($confopts{$_}, keys(%confopts))));
+    unshift(@confcmd, "sh") unless -x($confprog);
+    if($builddir)
+    {
+      $confcmd[0] = "../$cfg";
+      $dir = path($dir, "$myname-build.d");
+      md($dir);
+    }
+    elsif($cfg eq "configure.gnu")
+    {
+      # force perl to install files it thinks are already installed
+      # (5.8.2 and later support DESTDIR and should no longer need this)
+      optpatch { s/^use File::Compare;$/sub compare(\$\$){1}; #$genby/ }
+          path($dir, "installperl");
+    }
+
+    my($amhelper) = path($dir, "install-sh");
+    if(-l($amhelper) && !-r($amhelper)) # e.g. sgml-common/0.6.3
+    {
+      optcdrun($dir, "aclocal");
+      optcdrun($dir, "automake", "-acf");
+      optcdrun($dir, "autoconf", "-f");
+    }
+
+    cdrunconf($dir, @confcmd);
+    return $dir;
   }
 
   for(qw[build_unix build.unix]) # e.g. Sleepycat DB and nvi, respectively
