@@ -1736,7 +1736,6 @@ sub ismismatched($$$)
   my($armdirlink) = path(pkgpath($name, $version, $build), armdirlink);
   my($armdirisdir, $linkisdir) = (-d(armdir), -d($armdirlink));
   return !samefile($armdirlink, armdir) if $armdirisdir && $linkisdir;
-  return true if $armdirisdir && !$linkisdir;
   return true if !$armdirisdir && $linkisdir;
   my($target) = readlink($armdirlink);
   return false unless defined($target);
