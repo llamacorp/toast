@@ -2418,6 +2418,7 @@ sub make($)
   {
     $systype ||= /You must specify the system which you want to compil/;#mpg123
     $systype ||= /If you're not sure about the characteristics of your /;#unzip
+    $systype ||= /^\t\@echo 'Choose target:'$/; # plugger 5.0
     $lk ||= /^do-it-all:.*\bvmlinux\b/;
     $xf86 ||= /Please use make World/i;
     $ocaml ||= /^\# For users who don't read the INSTALL file$/; #thanks ocaml!
@@ -5192,6 +5193,7 @@ Known bugs:
   - autofind fails for: sleepycat db, gcc, latex, gv, GNU arch (?), ogle
   - build fails for: jikes, sirc, netcat, lcab, busybox (ow!), gv
   - "toast --autoremove --crossversion upgrade toast" fails w/ NFS
+  - if x/1/1 is armed and x/1/2 is built, "toast arm x" does nothing
 
 Wish list:
 
