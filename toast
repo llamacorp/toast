@@ -2186,6 +2186,23 @@ sub configure($$)
   return $dbbuilddir if -d($dbbuilddir) && -x($dbconfprog) &&
       cdrun($dbbuilddir, "../dist/configure", "--prefix=$prefix");
 
+  # Maybe there's just an install script of some kind that we need to run.
+  # Create an appropriate Makefile.
+  for(qw[install.sh])
+  {
+    my($script) = path($dir, $_);
+    if(-x($script))
+    {
+      my(@cmd) = "./$_";
+      my($useprefix);
+      whilefile { !($useprefix ||= /--prefix=/) } $script;
+      push(@cmd, "--prefix=$prefix") if $useprefix;
+      writefile(path($dir, "Makefile"),
+          "# $genby\n\nall:\n\ttrue\n\ninstall:\n\t@cmd\n");
+      return $dir;
+    }
+  }
+
   # Terrible, terrible hack to allow glibc+linuxthreads to compile:
   # Look for a situation where we have multiple subdirectories, but no files,
   # and only one of the subdirectories contains an executable configure script
