@@ -1409,7 +1409,7 @@ sub newenv()
     chomp($out) if defined($out);
     $defaultman = $out if defined($out) && $out =~ m!^/! && $out !~ /\n/;
   }
-  my($x) = path(qw(etc xml catalog));
+  my($x) = path(qw(etc xml toast-xml-catalog));
 
   my(@vars);
   push(@vars, newenvvar("PATH", "bin"));
@@ -2918,10 +2918,9 @@ sub inithelpers($$$)
   md($helperdir);
 
   helprewrite($srcdir, $rootdir, $helperdir, $_, false)
-      foreach (qw[mkdir rmdir touch cp rm ln install chmod test ranlib gzip],
-      "[");
-  helprewrite($srcdir, $rootdir, $helperdir, $_, true)
-      foreach (qw[mv]);
+      for (qw[mkdir rmdir touch cp rm ln install chmod test ranlib gzip
+      xmlcatalog], "[");
+  helprewrite($srcdir, $rootdir, $helperdir, $_, true) for (qw[mv]);
   helpnop($helperdir, $_) for (qw[chown chgrp ldconfig install-info mknod]);
   $env{PATH} = "$helperdir:$env{PATH}";
 
@@ -3896,25 +3895,26 @@ sub rebuildinfodir($)
 
 sub rebuildxmlcatalog(@)
 {
-  return true unless xmlcatalog;
-
   my($armdir) = @_;
   my($etcdir) = path($armdir, "etc");
   my($xmldir) = path($etcdir, "xml");
-  my($master) = path($xmldir, "catalog");
-  return true if -l($master);
-
+  my($master) = path($xmldir, "toast-xml-catalog");
   my(@subcats);
-  my($dir) = path($armdir, qw[share xml]);
-  dfs
-  (
-    $dir,
-    sub { true },
-    sub { push(@subcats, $_) if m!/catalog.xml$!; true },
-    sub { true },
-  ) if -d($dir);
 
-  return -e($master) ? rm($master) : true unless @subcats;
+  if(xmlcatalog)
+  {
+    @subcats = grep(m!/catalog[^/]*$!, absls(path(armdir, qw(etc xml))));
+    my($dir) = path($armdir, qw[share xml]);
+    dfs
+    (
+      $dir,
+      sub { true },
+      sub { push(@subcats, $_) if m!/catalog.xml$!; true },
+      sub { true },
+    ) if -d($dir);
+  }
+
+  return -e($master) || -l($master) ? rm($master) : true unless @subcats;
 
   for(grep(!-d, $etcdir, $xmldir))
   {
@@ -6524,28 +6524,26 @@ enabled.
 
 =item S<B<--infodir> | B<--noinfodir>>
 
-When B<infodir> is enabled, B<toast arm> and B<toast disarm> will create a
-file in B<armdir> called C<info/dir>; if the file already exists, it will
-be replaced with an updated version.  The "info" command uses this file to
-display a list of installed info pages.  This is normally the only regular
-file in B<armdir>; all the other files are symbolic links.  If B<infodir>
-is disabled, B<toast arm> and B<toast disarm> will delete the C<info/dir>
+When B<infodir> is enabled, B<toast arm> and B<toast disarm> will create
+a file in B<armdir> called C<info/dir>; if the file already exists,
+it will be replaced with an updated version.  When this option is set,
+B<toast env> sets C<INFODIR> to point to this file, so that the "info"
+command can display a list of installed info pages.  If B<infodir> is
+disabled, B<toast arm> and B<toast disarm> will delete the C<info/dir>
 file, if present, instead of rebuilding it.  Default: enabled.
 
 =item S<B<--xmlcatalog> | B<--noxmlcatalog>>
 
 When B<xmlcatalog> is enabled, B<toast arm> and B<toast disarm> will
-maintain a catalog file in B<armdir> called C<etc/xml/catalog>, whose
-presence and contents depend on the contents of B<armdir>'s C<share/xml>
-subdirectory.  If the catalog already exists, it may be overwritten
-or deleted.  It may be convenient to refer to this catalog from the real
-master XML catalog file (outside of B<armdir>), in order to allow programs
-to locate XML DTDs, XSL style sheets, and perhaps other XMLish things
-in B<armdir>.  This is most likely to come up in the context of DocBook.
-If B<xmlcatalog> is disabled, B<toast arm> and B<toast disarm> will not
-create an XML catalog and will ignore any existing catalog.  Note that
-this option is implicitly disabled if any package installed in B<armdir>
-itself provides an C<etc/xml/catalog> file.  Default: enabled.
+maintain a catalog file in B<armdir> called C<etc/xml/toast-xml-catalog>,
+whose presence and contents depend on the contents of B<armdir>'s
+C<share/xml> and C<etc/xml> subdirectories.  If the catalog already
+exists, it may be overwritten or deleted.  The B<toast env> command will
+set C<XML_CATALOG_FILES> to point to this file when this option is set,
+which helpds things like DocBook operate correctly.  If B<xmlcatalog>
+is disabled, B<toast arm> and B<toast disarm> will delete the
+C<toast-xml-catalog> file, if present, instead of rebuilding it.
+Default: enabled.
 
 =item S<B<--protect> | B<--noprotect>>
 
@@ -6690,7 +6688,6 @@ Known bugs:
 
 Wish list:
 
-  - simpler setup for root: auto-create toast user? (email 7/21/04)
   - deal better with missing gcc: clearer error msg? (email 7/21/04)
   - error messages that explain command usage (gale 2004-05-06 17:08:20)
   - convenient way to specify storedir, etc. during first time setup
