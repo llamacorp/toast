@@ -742,19 +742,10 @@ sub linksfromstring($$)
   while($html =~ m!\b(href\s*\=\s*\"?|((http|ftp)://))([^\s\>\"]+)!ig)
   {
     my($link) = join("", undeftoempty($2, $4));
-warn("url = $url");
-warn("proto = $proto");
-warn("host = $host");
-warn("parent = $parent");
-warn("link = $link");
     next if $link =~ /^mailto:/i;
-warn("link = $link");
     $link = $proto . $link if $link =~ m!^//!;
-warn("link = $link");
     $link = $host . $link if $link =~ m!^/!;
-warn("link = $link");
     $link = $parent . $link unless $link =~ m!^(\w+)://!;
-warn("link = $link");
     push(@links, $link);
   }
   return @links;
