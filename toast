@@ -2121,7 +2121,7 @@ sub lookslikepkgurl($;$;$)
   my($noquery) = stripquery($url);
   return false unless $noquery =~ m!\.\w+$!;
   return false if $noquery =~
-      m!\.(html?|php|txt|gif|jpg|png|css|asc|sum|sig|lsm)$!i;
+      m!\.(html?|php|txt|gif|jpg|png|css|asc|sum|sig|sign|lsm)$!i;
   return true unless defined($name);
   my($basename) = basename($noquery);
   return false unless $basename =~ /\Q$name\E/i;
@@ -2162,7 +2162,7 @@ sub findnewpkg($$)
     $redirurl || error("no suitable URL for package $name on $sitename");
 
     my($redirhead) = httphead($redirurl);
-    $redirhead =~ /^Location: ([^\r\n]+)/m ||
+    $redirhead =~ /^Location: ([^\r\n]+)/im ||
         error("unexpected response from $redirurl");
     $url = $1;
     # wget can't always get FTP directory listing correctly w/o trailing slash
