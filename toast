@@ -2556,6 +2556,14 @@ sub compilehelp($$$)
   return true;
 }
 
+sub fixrootsubdir($)
+{
+  my($dir) = @_;
+  my(undef, undef, $mode) = safestat($dir);
+  safechmod(0755, $dir) unless ($mode & 07777) == 0755;
+  return true;
+}
+
 sub fixrootlink($)
 {
   # XFree86 gets (understandably) confused by stdlinks and makes broken links
@@ -2584,7 +2592,7 @@ sub polishrootdir($$)
   dfs
   (
     $rootdir,
-    sub { $count{$_} = $total; true },
+    sub { $count{$_} = $total; fixrootsubdir($_) },
     sub { fixrootlink($_) if -l && !-e; ++$total },
     sub { $count{$_} < $total || rd($_) }
   );
