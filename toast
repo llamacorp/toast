@@ -4555,8 +4555,8 @@ boolean option, one of the explicit values listed in item 1 must be given.
 
 The configuration file.  If option I<NAME> has not been assigned
 a value through any of the above methods, its value will be taken
-from a line of the form I<NAME>B<=>I<VALUE>, if such a line exists,
-in C<$HOME/.toast/conf>, if that file exists.  (C<$HOME> specifically
+from a line of the form I<NAME>B<=>I<VALUE>, if such a line exists, in
+C<I<$HOME>/.toast/conf>, if that file exists.  (C<I<$HOME>> specifically
 represents the value of the C<HOME> environment variable.)  I<NAME>
 is case-insensitive in this context.  Any whitespace before or after
 I<NAME> or I<VALUE> will be ignored, as will any blank line, any
@@ -4580,29 +4580,105 @@ S<B<toast help>> mean the same thing.  Commands do not behave like options
 in the environment or the configuration file, but see the B<defaultcmd>
 option above for an alternative.
 
+=head1 ENVIRONMENT
+
+Environment variables whose names start with C<TOAST_> may be interpreted
+as option settings as described above.  In addition, various standard
+environment variables such as C<PATH>, C<LD_LIBRARY_PATH>, C<CFLAGS>
+and others may directly or indirectly influence B<toast>'s behavior,
+especially when building new packages.
+
+=head1 FILES
+
+By default, B<toast> writes only to the C<I<$HOME>/.toast> directory,
+which will be created automatically if needed.
+
+=head1 AVAILABILITY
+
+B<toast> may be downloaded from C<http://toastball.net/toast/> under
+the terms of the GNU GPL.  B<toast> itself is known to work with Perl
+5.005_03 through 5.8.x under Linux, FreeBSD and Cygwin, without relying
+on the presence or absence of any Perl modules or other tools.  Additional
+requirements for B<toast build> vary according to the package being built.
+
+=head1 BUGS
+
+Please report any bugs, unexpected behavior, unsurprising but inconvenient
+failures, and so on to C<pub.comp.toast> on the ofb.net Gale system
+(preferred; see C<http://gale.org>), or via email to "toast-bugs" at
+the hostname of the toast distribution site, toastball.net.
+
+Known bugs:
+
+  - "toast add [ ftp://bar/bar.tar.gz bar.patch ]" guesses "f/unknown"
+  - autofind mishandles http redirects (e.g. http://toastball.net/toast)
+  - "toast --noautoarm build foo" disarms and demolishes old foo builds
+  - __END__ causes trouble when piping toast to perl for bootstrapping
+  - gtk+ doesn't seem to build properly when it is already armed
+  - sleepycat db utterly fails to build when already armed
+  - toast arm/disarm can leave info.dir in the wrong state
+  - gimp will load plugins from other armed versions despite .off suffix
+  - "toast rename a/b c/d" doesn't remove a if b was the only version
+  - "toast upgrade gcc" doesn't work (ftp site has a subdir per version)
+  - can't extract nss-tools-3.4.1-2.i686.rpm in some environments (?)
+  - build overrides LD_PRELOAD instead of appending [space-separated]
+  - autofind fails for: sleepycat db, gcc, latex, gv, arch (?)
+  - build fails for: jikes, sirc, netcat, lcab, busybox (ow!), gv
+
+Wish list:
+
+  - add "toast rebuild" command; "toast build" should just ensure built
+  - "toast build" w/o arguments should build all unbuilt packages
+  - "toast arm" should move armed packages to top of stacking order
+  - "toast status" should give information about stacking order
+  - directories in armdir should be read-only (mode 0555) by default
+  - add "toast check": verify storedir and armdir integrity (and fix?)
+  - improve name-guessing: gtk+, mozilla-source, jpegsrc, X/430src (?)
+  - toast get could be more robust w/r/t failures and concurrency
+  - configure packages to use alternate /etc, /var, etc. when possible
+  - share rewriting code between command wrappers and shared library
+  - wrap toast in #!/bin/sh: "sh configure" will work, find perl, etc.
+  - come up with a better way to deal with gnome (guess dependencies?)
+  - figure out where to go with "toast edit" (or document it as-is)
+  - fold archives by URL and/or hash?
+  - zsh completions!
+
+Questions left unanswered by this documentation:
+
+  - For what purposes might one actually use toast?
+  - What environment variables should I set?
+  - What are some realistic examples of toast commands?
+  - What kinds of packages can be expected to build?
+  - What protocols and archive formats are supported?
+  - How are storedir and armdir structured?
+  - How does this tool differ from similar tools?
+  - How can I address common problems not directly caused by toast?
+
 =head1 AUTHOR
 
 Jacques Frechet
 
+=head1 SEE ALSO
+
+  /package       http://cr.yp.to/slashpackage/management.html
+  Alien          http://kitenet.net/programs/alien/
+  autopackage    http://autopackage.org/
+  CheckInstall   http://asic-linux.com.mx/~izto/checkinstall
+  Debian         http://www.debian.org/
+  Encap          http://www.encap.org/
+  fakeroot       http://packages.debian.org/stable/utils/fakeroot.html
+  FreeBSD Ports  http://www.freebsd.org/ports/
+  GAR            http://www.lnx-bbc.org/garchitecture.html
+  GARStow        http://offog.org/code/garstow.html
+  Gentoo         http://www.gentoo.org/
+  GNU stow       http://www.gnu.org/software/stow
+  Graft          http://www.gormand.com.au/peters/tools/graft/graft.html
+  LFS            http://www.linuxfromscratch.org/
+  Linuxports     http://linuxports.sourceforge.net/
+  RPM            http://www.rpm.org/
+  Source Mage    http://www.sourcemage.org/
+  spasm          http://www.linux.org/apps/AppId_6909.html
+
 =cut
 
-# questions still unanswered by man page:
-# what protocols and archive formats are supported?
-# what kinds of packages can be expected to build?
-# how are storedir and armdir structured?
-# how does this tool differ from similar tools?
-# how might people actually use this thing?
-
-# other ideas (stolen from real man pages observed in the wild):
-# RETURN VALUE
-# TIPS
-# NOTES
-# AVAILABILITY
-# URL
-# ENVIRONMENT
-# FILES
-# SEE ALSO
-# DIAGNOSTICS
-# BUGS
-# VERSIONS
-
+# toast: EOF
