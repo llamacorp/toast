@@ -6424,6 +6424,7 @@ Known bugs:
   - autofind fails for: sleepycat db, gcc, latex, gv, GNU arch (?), ogle,
       wxpython
   - autofind chooses Linux binaries over source for doxygen
+  - autofind chooses old (2001) version of Postfix
   - build fails for: jikes, sirc, netcat, lcab, gv, bittorrent, xmlcatmgr
   - if x/1 is armed and x/2 is built, "toast rebuild x" also arms x/2
   - "toast build" arms newly built packages for no apparent reason
