@@ -35,7 +35,7 @@ sub error(@)
 
 ##############################################################################
 
-my($rcsid) = q$Id: toast,v 1.169 2003/08/09 19:33:29 zaphod Exp $;
+my($rcsid) = q$Id: toast,v 1.214 2003/10/13 04:34:23 zaphod Exp $;
 $rcsid =~ /^Id: (.+),v (\S+) (\S+ \S+) (\S+) Exp (\S+ )?$/ || error;
 my($myname, $myversion, $mytimestamp, $myauthor) = ($1, $2, $3, $4);
 $myversion .= "+" if $5; # if this version may contain changes not in RCS
@@ -1022,8 +1022,9 @@ sub magicstring($)
   return ".bz2" if /^BZ/;
   return ".zip" if /^PK\x03\x04/;
   return ".rpm" if /^\xed\xab\xee\xdb/;
-  return ".tar" if /^[^\x00]+(..)?\x00{5,}[\x00\s\d]*$/ || /\x00ustar[ \x00]/;
   return ".cpio" if /^07070[a-f\d]{30}/i;
+  return ".tar" if /^[^\x00]+(..)?\x00{5,}[\x00\s\d]{30}/
+      || /\x00ustar[ \x00]/;
   return ".shar" if m:^\#!/bin/sh\n\# This is a shell archive:;
   return ".patch" if /^(diff |\*\*\* |Only in |Common subdirectories: |--- )/m;
 
