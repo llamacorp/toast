@@ -2627,8 +2627,8 @@ sub configure($$)
 
   # find a configure script
   my($cfg);
-  #            usual     Perl          elm
-  for $cfg (qw[configure configure.gnu Configure])
+  #            autoconf  Perl          elm       pmk (bootstrap)
+  for $cfg (qw[configure configure.gnu Configure pmkcfg.sh])
   {
     my($confprog) = path($dir, $cfg);
     if(-x($confprog))
@@ -2722,6 +2722,10 @@ sub configure($$)
   # perl modules have a Makefile.PL script that spits out a Makefile
   my($mfpl) = path($dir, "Makefile.PL");
   return $dir if -r($mfpl) && cdrun($dir, "perl", $mfpl);
+
+  # pmk is some kind of newfangled autoconf replacement
+  my($pmkfile) = path($dir, "pmkfile");
+  return $dir if -r($pmkfile) && cdrun($dir, "pmk");
 
   # Write a custom Makefile for glibc with add-ons and/or kernel headers.
   my($glibcdir, $hdrdir, @addons);
@@ -6111,6 +6115,8 @@ hostname of the B<toast> distribution site, C<toastball.net>.
 
 Known bugs:
 
+  - "toast arm man" fails due to incorrect DESTDIR symlinks
+  - autofind produces URLs with extra slashes, e.g. "toast arm flex"
   - make oldconfig isn't running for linux/2.6.x
   - toast add misguesses device-mapper name/version from URL
   - autofind hangs in httphead() when going through tinyproxy?
