@@ -1448,6 +1448,7 @@ sub smartgeturl($$)
   error("too many links: $url") unless $ttl;
 
   my($basename) = basename(stripquery($url));
+  $basename = "index" if $basename eq "";
   my($file) = path($dir, $basename);
 
   geturl($url, $file);
@@ -1460,15 +1461,26 @@ sub smartgeturl($$)
   if($header =~ /^\<.*\bHTML\b/i)
   {
     seek(FILE, 0, 0) || error("rewind $file: $!");
-    my($link);
-    for $link (linksfromstream(*FILE, $url))
+    my(@links) = reverse(sort cmpab linksfromstream(*FILE, $url));
+    for (@links)
     {
-      $redir = $link if !$redir && basename(stripquery($link)) eq $basename;
+      $redir = $_ if !$redir && basename(stripquery($_)) eq $basename;
+    }
+    my($ext);
+    for $ext (qw[.tar.bz2 .tar.gz .tgz .zip .rpm])
+    {
+      for (@links)
+      {
+        $redir = $_ if !$redir && stripquery($_) =~ /\Q$ext\E$/i;
+      }
     }
   }
   close(FILE) || error("close $file: $!");
 
-  return $redir ? &smartgeturl($redir, $dir, $ttl - 1) : true;
+  return true unless $redir;
+
+  rm($file);
+  return &smartgeturl($redir, $dir, $ttl - 1);
 }
 
 sub autorename($$)
@@ -2386,7 +2398,6 @@ sub purge(@)
 sub build(@)
 {
   my($name, $version, $build, @urls) = @_;
-  $name || error;
   $build && error;
 
   ($name, $version) = get(@_) if !isstored($name, $version);
