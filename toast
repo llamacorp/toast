@@ -2717,6 +2717,15 @@ sub configure($$)
       my($noprefix) = false;
       my(%confopts);
 
+      my($opensslcfg) = path($dir, "Configure");
+      if(reconfigure && $cfg eq "config" && -x($opensslcfg))
+      {
+        whilefile
+        {
+          !($confopts{"shared"} ||= /^# \[no-\]shared\s/);
+        } $opensslcfg;
+      }
+
       patch
       {
         $self ||= /this is toast 89a72ef9c34e1fd4927afa36c9be8b15/;
