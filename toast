@@ -180,11 +180,20 @@ sub checkedeval($)
 
 ##############################################################################
 
+sub safeopen(*$$)
+{
+  local(*HANDLE) = shift;
+  my($mode, $file) = @_;
+  my($escaped) = "$file\x00";
+  $escaped = "./$escaped" unless $escaped =~ m!^/!;
+  open(HANDLE, "$mode$escaped") or error("open $file: $!");
+}
+
 sub whilefile(&$)
 {
   my($sub, $file) = @_;
   local(*FILE, $_);
-  open(FILE, "<$file") || error("open $file for read: $!");
+  safeopen(*FILE, "<", $file);
   while(defined($_ = <FILE>) && &$sub($_)) { }
   close(FILE) || error("close $file for read: $!");
   !defined($_);
@@ -526,7 +535,7 @@ sub writefilemode($$@)
   my($name, $mode, @contents) = @_;
   local(*FILE);
   explain("creating $name");
-  open(FILE, ">$name") || error("open $name for write: $!");
+  safeopen(*FILE, ">", $name) || error("open $name for write: $!");
   print FILE @contents;
   close(FILE) || error("close $name for write: $!");
   safechmod($mode, $name) if $mode;
@@ -760,7 +769,7 @@ sub openfileurl(*$)
   $host eq "localhost" || error("bad file-url hostname: $host");
   my($source) = urlunescape($path);
   explain("reading $source");
-  open(HANDLE, "<$source") || error("open $source for read: $!");
+  safeopen(*HANDLE, "<", $source);
 }
 
 sub opensshurl(*$)
@@ -803,7 +812,7 @@ sub geturl($$)
 
   local(*SOURCE, *DEST);
   explain("creating $dest");
-  open(DEST, ">$dest") || error("open $dest for write: $!");
+  safeopen(*DEST, ">", $dest);
   openurl(*SOURCE, $url);
 
   my($buf, $result);
@@ -1167,7 +1176,7 @@ sub magicfile($)
 {
   my($file) = $_;
   local(*FILE);
-  open(FILE, "<$file") || error("open $file for read: $!");
+  safeopen(*FILE, "<", $file);
   my($buf);
   defined(read(FILE, $buf, magicbufsize)) || error("read $file: $!");
   close(FILE) || error("close $file for read: $!");
@@ -1286,7 +1295,7 @@ sub extractfile($$)
     chdir($outdir) || error("chdir $outdir: $!");
     my($type) = magicfile($infile);
     exec("unzip", "-qo", $infile) || error("unzip: $!") if $type eq ".zip";
-    open(STDIN, "<$infile") || error("open $infile for stdin: $!");
+    safeopen(*STDIN, "<", $infile);
     extractstdin($type);
     error;
   }
@@ -1311,7 +1320,7 @@ sub extractname($)
 
   local(*SAVE);
   open(SAVE, "<&STDIN") || error("save stdin: $!");
-  open(STDIN, "<$file") || error("open $file: $!");
+  safeopen(*STDIN, "<", $file);
   my($result) = `$cmd`;
   open(STDIN, "<&SAVE") || error("restore stdin: $!");
 
@@ -1680,7 +1689,7 @@ sub smartgeturl($$)
     $visited{$url} = 1;
 
     local(*FILE);
-    open(FILE, "<$file") || error("open $file: $!");
+    safeopen(*FILE, "<", $file);
     my($header);
     read(FILE, $header, 128) || error("read $file: $!");
     my($redir);
@@ -2843,7 +2852,7 @@ sub rebuild(@)
   $SIG{INT} = "IGNORE";
   my($tmplogname) = addtmp(path($builddir, buildlog));
   local(*LOG);
-  open(LOG, ">$tmplogname") || error("open $tmplogname for write: $!");
+  safeopen(*LOG, ">", $tmplogname);
 
   while(<CHILD>)
   {
@@ -2961,7 +2970,7 @@ BEGIN
     my($path) = @_;
     error("$path already locked") if $locks{$path};
     local(*LOCK);
-    open(LOCK, "<$path") || error("open $path: $!");
+    safeopen(*LOCK, "<", $path);
     $locks{$path} = *LOCK{IO};
     return unless useflock;
     if(!flock(LOCK, 6)) # LOCK_EX | LOCK_NB
@@ -3406,7 +3415,7 @@ sub edit(@)
   }
 
   local(*PATCH);
-  open(PATCH, ">$patchfile") or error("open $patchfile: $!");
+  safeopen(*PATCH, ">", $patchfile);
   my($pid) = fork;
   error("fork: $!") unless defined($pid);
 
@@ -3607,7 +3616,7 @@ sub selfopen(*)
 {
   local(*SCRIPT) = @_;
   my($package, $file) = caller(0);
-  open(SCRIPT, "<$file") || error("open $file for read: $!");
+  safeopen(*SCRIPT, "<", $file);
 }
 
 sub depodify($)
@@ -5469,7 +5478,6 @@ Known bugs:
   - build fails for: jikes, sirc, netcat, lcab, gv
   - "toast --autoremove --crossversion upgrade toast" breaks everything
   - if x/1/1 is armed and x/1/2 is built, "toast arm x" does nothing
-  - various unquoted arguments to 2-arg open()
 
 Wish list:
 
