@@ -172,11 +172,12 @@ BEGIN
     "autoremove" => false,
     "crossversion" => false,
     "strictpreload" => true,
+    "useflock" => $^O !~ /win/i,
     "reconfigure" => true,
     "stoponerror" => true,
     "ignorecase" => true,
     "showurls" => true,
-    "debugrewrite" => false
+    "debugrewrite" => false,
   );
 
   sub envopt($)
@@ -2704,6 +2705,7 @@ BEGIN
     local(*LOCK);
     open(LOCK, "<$path") || error("open $path: $!");
     $locks{$path} = *LOCK{IO};
+    return unless useflock;
     if(!flock(LOCK, 6)) # LOCK_EX | LOCK_NB
     {
       explain("waiting for lock on $path");
@@ -2716,7 +2718,7 @@ BEGIN
     my($path) = @_;
     my($lock) = $locks{$path};
     error("$path not locked") unless $lock;
-    flock($lock, 8) || error("unlock $path: $!"); # LOCK_UN
+    flock($lock, 8) || error("unlock $path: $!") if useflock; # LOCK_UN
     close($lock) || error("close $path: $!");
     delete($locks{$path});
   }
@@ -4087,7 +4089,7 @@ downloaded and searched for a similar URL containing a higher version
 number.  The command fails if no URLs would change or if no single
 consistent newer version for all version-containing URLs can be found;
 otherwise, the highest eligible version is used for all modified URLs
-and the package itself.  The command performs an implicit <add>, B<get>,
+and the package itself.  The command performs an implicit B<add>, B<get>,
 B<build> or B<arm> on the extrapolated URLs so as to match the state of
 the given existing version, except that the new package will never be
 armed if the B<autoarm> option is disabled.
@@ -4423,6 +4425,17 @@ still tries to build and use the shared library, but will do the best
 it can otherwise.  This may allow B<toast build> to succeed in the
 absence of a suitable C compiler, but it may allow some packages to
 build incorrectly in some situations.  Default: enabled.
+
+=item S<B<--useflock> | B<--nouseflock>>
+
+When B<useflock> is enabled, some commands (such as B<toast arm>)
+may try to use Perl's built-in flock() to prevent multiple concurrent
+invocations of B<toast> from modifying the repository in ways that might
+corrupt it.  Disabling this option is probably not a good idea, but may
+be necessary in some environments.  Note that Perl's flock() will not
+necessarily use C's flock() routine; see the Perl manual for details.
+Note also that B<toast>'s locking strategy probably isn't foolproof,
+especially under NFS.  Default: disabled under Cygwin, enabled elsewhere.
 
 =item S<B<--reconfigure> | B<--noreconfigure>>
 
