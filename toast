@@ -310,6 +310,7 @@ BEGIN
     $optloaded{1} = 1;
     return unless $ENV{HOME};
     my($dotfile) = "$ENV{HOME}/.$myname/conf";
+    $dotfile = "/etc/toast.conf" unless -e($dotfile);
     return unless -e($dotfile);
     whilefile
     {
@@ -5403,26 +5404,24 @@ or just C<toast env> to see what variables would be set.
 To have B<toast> install itself as root under C</toast> with symlinks in
 C</usr/local>, you should first either create a user called C<toast> whose
 UID and GID will be used when building packages, or create a configuration
-file in root's home directory specifying an alternate username (C<fred>
-in this example) by running the following command as root:
+file specifying an alternate username (C<fred> in this example):
 
-  mkdir ~/.toast && echo 'username=fred' > ~/.toast/conf
+  echo 'username=fred' >> /etc/toast.conf
 
 If you want to use directories other than C</toast> and C</usr/local>,
-now would be a good time to specify those as well, since changing them
-later is very tedious:
+now would be a good time to specify those as well, since relocating
+armed packages can be tricky and time-consuming:
 
-  mkdir -p ~/.toast
-  echo 'storedir=/path/to/use/to/store/files'
-  echo 'armdir=/place/to/put/symlinks/to/armed/packages'
+  echo 'storedir=/path/to/use/to/store/files' >> /etc/toast.conf
+  echo 'armdir=/place/to/put/symlinks/to/armed/packages' >> /etc/toast.conf
 
-Once the C<toast> user and/or C<~/.toast/conf> configuration file has
+Once the C<toast> user and/or C</etc/toast.conf> configuration file has
 been created, just execute as root one of the same three download/install
 commands given above for non-root users.  When using the default B<armdir>
 location of C</usr/local>, you probably won't need to bother with the
-B<toast env> stuff described above, but when using another location, you
-may wish to put some variation on the B<toast env> command given above
-in C</etc/profile> or something.
+B<toast env> stuff described above, but when using another location,
+you may wish to put some variation on the B<toast env> command given
+above in C</etc/profile> or something.
 
 The above procedure is by no means required in order to install or
 use B<toast>.  Both the uncompressed B<toast> script and an official
@@ -6199,13 +6198,14 @@ Known bugs:
   - autofind fails for: sleepycat db, gcc, latex, gv, GNU arch (?), ogle,
       wxpython
   - autofind chooses Linux binaries over source for doxygen
-  - build fails for: jikes, sirc, netcat, lcab, gv, bittorrent
+  - build fails for: jikes, sirc, netcat, lcab, gv, bittorrent, xmlcatmgr
   - if x/1 is armed and x/2 is built, "toast rebuild x" also arms x/2
   - "toast build" arms newly built packages for no apparent reason
   - "toast edit" leaves things in an odd state if you hang up on it
 
 Wish list:
 
+  - error messages that explain command usage (gale 2004-05-06 17:08:20)
   - convenient way to specify storedir, etc. during first time setup
   - work around lack of getenv(), mkdir(), etc. in microperl...?
   - "toast upgrade" w/o args should imply --nostoponerror or something
