@@ -223,7 +223,7 @@ BEGIN
     "postarmprog" => superuser ? "/sbin/ldconfig" : "",
     "editprog" => "",
     "defaultcmd" => "help",
-    "verbose" => true,
+    "quiet" => false,
     "autofind" => true,
     "autochange" => true,
     "autorename" => true,
@@ -362,12 +362,12 @@ sub baksuffix() { ".orig" }
 
 sub explain(@)
 {
-  print("# @_\n") if verbose;
+  print("# @_\n") unless quiet;
 }
 
 sub announce(@)
 {
-  print("@_\n") if verbose;
+  print("@_\n") unless quiet;
 }
 
 ##############################################################################
@@ -2808,7 +2808,7 @@ sub rebuild(@)
     my(@times) = gettimes;
 
     open(STDERR, ">&STDOUT") || error("dup stdout: $!");
-    setopt("verbose", true);
+    setopt("quiet", false);
     nice(10);
     dropprivs;
     showprebuildinfo($name, $version, $build);
@@ -2836,7 +2836,7 @@ sub rebuild(@)
   {
     print LOG $_;
     chomp;
-    print("  $_\n") if verbose;
+    print("  $_\n") unless quiet;
   }
 
   my($success) = close(CHILD);
@@ -4160,7 +4160,7 @@ warning("$myname: returning failure ($result)") if $result != 0;
 
 sub selfconfigure(@)
 {
-  setopt("verbose", true);
+  setopt("quiet", false);
 
   my($prefix) = "/usr";
   my($arg);
@@ -5119,11 +5119,11 @@ invoking B<toast> without command-line options or arguments is always
 equivalent to running B<toast help>, regardless of this option's setting.
 Default: C<help>.
 
-=item S<B<--verbose> | B<--noverbose>>
+=item S<B<--quiet> | B<--noquiet>>
 
-Enables or disables verbose command output.  When disabled, most commands
-will produce output only on failure.  Some commands, such as B<toast
-status>, are not affected by this flag.  Default: enabled.
+When B<quiet> is enabled, most commands will produce output only on
+failure.  Some commands, such as B<toast status>, are not affected by
+this flag.  Default: disabled.
 
 =item S<B<--autofind> | B<--noautofind>>
 
