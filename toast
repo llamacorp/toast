@@ -149,7 +149,7 @@ sub uniq(@)
 
 sub dirname($) { my($arg) = @_; $arg =~ s|/[^/]*$|| ? $arg : "."; }
 sub basename($) { my($arg) = @_; $arg =~ s|.*/||g; $arg; }
-sub stripext($) { my($arg) = @_; $arg =~ s/(\.tar)?(\.[a-z]\w*)?$//i; $arg; }
+sub stripext($) { my($a) = @_; $a =~ s/(\.tar(\.g?z)?)?(\.[a-z]\w*)?$//i; $a; }
 sub stripquery($) { my($arg) = @_; $arg =~ s/\?.*$//; $arg; }
 
 sub path(@)
@@ -2120,8 +2120,7 @@ sub lookslikepkgurl($;$;$)
   return false if $url =~ m/\#/;
   my($noquery) = stripquery($url);
   return false unless $noquery =~ m!\.\w+$!;
-  return false if $noquery =~
-      m!\.(html?|php|txt|gif|jpg|png|css|asc|sum|sig|sign|lsm)$!i;
+  return false if $noquery =~ m!\.(html?|php|txt|diff|gif|jpg|png|css|asc|sum|sig|sign|lsm|md5)(\.\w\w)?$!i;
   return true unless defined($name);
   my($basename) = basename($noquery);
   return false unless $basename =~ /\Q$name\E/i;
@@ -6728,6 +6727,7 @@ Known bugs:
   - autofind chooses "libraries only" version of xfig
   - build fails for: jikes, sirc, netcat, lcab, gv, bittorrent, xmlcatmgr
   - "toast edit" leaves things in an odd state if you hang up on it
+  - "toast rename" is more case-sensitive than it ought to be
 
 Wish list:
 
