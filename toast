@@ -1990,7 +1990,6 @@ sub latestbuilt($$;$)
 sub whilebuild(&@)
 {
   my($sub, $name, $version, $build, @urls) = @_;
-  @urls && error;
 
   for $name (allnames($name))
   {
@@ -3275,6 +3274,21 @@ install:
           "# $genby\n\nall:\n\ttrue\n\ninstall:\n\t@cmd\n");
       return $dir;
     }
+  }
+
+  # Construct a Makefile to invoke setup.py on behalf of certain Python source
+  # packages (notably BitTorrent):
+  if(-r(path($dir, "setup.py")))
+  {
+    writefile
+    (
+      path($dir, "Makefile"),
+      "# $genby\n\n",
+      "all:\n\tpython setup.py build\n\n",
+      "install:\n\tpython setup.py install " .
+          "--prefix=\Q$prefix\E --root=\$(DESTDIR)\n",
+    );
+    return $dir;
   }
 
   # try looking in promisingly-named subdirectories
