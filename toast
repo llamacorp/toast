@@ -2547,7 +2547,6 @@ cat \$2 > $kernel
 cp \$3 $map
 ln -s $kbase $kernel-\$1
 ln -s $mbase $map-\$1
-(cd $makedir; tar cf - include/linux include/asm/.) | (cd $rootdir; tar xf -)
 ]);
 
   return $makehome;
@@ -2706,34 +2705,56 @@ sub configure($$)
   my($mfpl) = path($dir, "Makefile.PL");
   return $dir if -r($mfpl) && cdrun($dir, "perl", $mfpl);
 
-  # Terrible, terrible hack to allow glibc+linuxthreads to compile:
-  # Look for a situation where we have multiple subdirectories, but no files,
-  # and only one of the subdirectories contains an executable configure script
-  # that actually does something.  If that happens, move the other directories
-  # into the directory with the non-broken configure script and run that.
-  # Otherwise one of the rules below will grab a Makefile from a random
-  # subdirectory and try to use it, which doesn't work.
-  my($newdir);
-  my(@addons);
-  my($addonsok) = whiledir
+  # Write a custom Makefile for glibc with linuxthreads and/or kernel headers.
+  my($glibcdir, $hdrdir, @addons);
+  my($glibcok) = whiledir
   {
     push(@addons, $_);
     my($abs) = path($dir, $_);
     return false if !-d($abs) || -l($abs);
+    if(-r(path($abs, qw[include linux kernel.h])))
+    {
+      $hdrdir = $abs;
+      pop(@addons);
+      return true;
+    }
     my($cfg) = path($abs, "configure");
     if(-x($cfg))
     {
       return true if whilefile { /^\s*(\#|exit|$)/ } $cfg;
-      return false if $newdir;
-      $newdir = $abs;
+      return false if $glibcdir;
+      $glibcdir = $abs;
       pop(@addons);
     }
     true;
   } $dir;
-  if($addonsok && @addons && $newdir)
+  if($glibcok && (@addons || $hdrdir) && $glibcdir)
   {
-    mv(path($dir, $_), path($newdir, $_)) foreach @addons;
-    return &configure($newdir, $prefix);
+    mv(path($dir, $_), path($glibcdir, $_)) foreach @addons;
+    my($makedir) = path($glibcdir, "$myname-build.d");
+    md($makedir);
+
+    if($hdrdir)
+    {
+      cdrun($hdrdir, qw[make include/linux/version.h]);
+      optcdrun($hdrdir, qw[make include/asm]) || # 2.6.x
+          cdrun($hdrdir, qw[make symlinks]); # 2.4.x
+    }
+
+    my($emdir) = shellescape($makedir);
+    my($ehdir) = defined($hdrdir) ? (shellescape($hdrdir)) : ();
+    my($mftext) = "# $genby\n\nall:\n\t\$(MAKE) -C $emdir\n\n" .
+        "install:\n\t\$(MAKE) -C $emdir\n";
+    $mftext .= "\t\(cd $ehdir && tar c include/linux include/asm/.) |" .
+        " (cd \$(DESTDIR) && tar x)\n" if $ehdir;
+    writefile(path($dir, "Makefile"), $mftext);
+
+    my(@confcmd) = ("../configure", "--prefix=$prefix");
+    push(@confcmd, "--enable-add-ons") if @addons;
+    push(@confcmd, "--with-headers=$hdrdir/include") if $hdrdir;
+    cdrun($makedir, @confcmd);
+
+    return $dir;
   }
 
   # Write a custom Makefile for Sun J2SDK (grumble grumble).
@@ -6056,6 +6077,7 @@ hostname of the B<toast> distribution site, C<toastball.net>.
 
 Known bugs:
 
+  - toast add misguesses device-mapper name/version from URL
   - autofind hangs in httphead() when going through tinyproxy?
   - autofind mishandles http redirects (e.g. http://toastball.net/toast)
   - gtk+ doesn't seem to build properly when it is already armed
