@@ -2173,7 +2173,7 @@ static const char *rewrite(const char *pathname)
     wrap0 int rename(const char *pathname1, const char *pathname2);
     wrap0 int unlink(const char *pathname);
     wrap int utime(const char *pathname, void *foo);
-    wrap int utimes(const char *pathname, struct timeval *tvp);
+    wrap int utimes(const char *pathname, const struct timeval *tvp);
     suppress int chown(const char *pathname, int user, int group);
     suppress int lchown(const char *pathname, int user, int group);
     suppress int fchown(int fd, int user, int group);
