@@ -602,11 +602,28 @@ sub nice($)
   eval { setpriority(0, 0, min(getpriority(0, 0) + $_[0], 20)) };
 }
 
-sub run(@)
+sub runimpl(@)
 {
   my(@prog) = @_;
   announce(@prog);
-  system(@prog) == 0 || error("@prog returned $?");
+  my($result) = system(@prog);
+  return "exec @prog: $!" unless defined($result);
+  my($code) = $? & 0xff;
+  my($sig) = ($? >> 8) & 0xff;
+  return "@prog failed (code $code, signal $sig)" if $?;
+  return undef;
+}
+
+sub run(@)
+{
+  my($msg) = runimpl(@_);
+  error($msg) if defined($msg);
+}
+
+sub optrun(@)
+{
+  my($msg) = runimpl(@_);
+  explain($msg) if defined($msg);
 }
 
 sub optcdrun($@)
@@ -1034,6 +1051,38 @@ sub yes()
   return if $pid;
   print("\n") || exit(0) foreach 1..9999;
   error("yes count exceeded");
+}
+
+sub showprebuildinfo($$$)
+{
+  my($name, $version, $build) = @_;
+  explain("$myname $myversion building " . pkgname($name, $version, $build));
+  explain("$^X $0 $] $^O");
+  optrun("uname", "-a");
+  optrun($^X, "-V");
+  optrun("printenv");
+  my(@urls) = pkgurls($name, $version);
+  explain("url: $_") for @urls;
+  my($verdir) = pkgpath($name, $version);
+  my($archivedir) = path($verdir, archivedir);
+  optrun("md5sum", absls($archivedir));
+  true;
+}
+
+sub gettimes() { (time, times) }
+
+sub showtimedeltas(@)
+{
+  my($swall, $suser, $ssys, $scuser, $scsys) = @_;
+  my($ewall, $euser, $esys, $ecuser, $ecsys) = gettimes;
+  my($text) = "";
+  if(defined($suser))
+  {
+    $text .= ($euser - $suser + $ecuser - $scuser) . "s user ";
+    $text .= ($esys  - $ssys  + $ecsys  - $scsys ) . "s system ";
+  }
+  $text .= ($ewall - $swall) . "s total";
+  explain($text);
 }
 
 ##############################################################################
@@ -2695,10 +2744,13 @@ sub rebuild(@)
   {
     defined($pid) || error("fork: $!");
 
+    my(@times) = gettimes;
+
     open(STDERR, ">&STDOUT") || error("dup stdout: $!");
     setopt("verbose", true);
     nice(10);
     dropprivs;
+    showprebuildinfo($name, $version, $build);
     yes;
 
     my($archivedir) = path($verdir, archivedir);
@@ -2710,6 +2762,7 @@ sub rebuild(@)
     extract($archivedir, $srcdir);
     compile($srcdir, $rootdir, $helperdir);
 
+    showtimedeltas(@times);
     exit(0);
   }
 
@@ -5229,7 +5282,6 @@ Known bugs:
 Wish list:
 
   - work around lack of getenv() in microperl
-  - put version and additional information at the *top* of broken.log
   - "toast upgrade" w/o args should imply --nostoponerror or something
   - "toast arm" should move armed packages to top of stacking order
   - "toast status" should give information about stacking order
