@@ -1,12 +1,19 @@
 #!/usr/bin/perl
 
-require 5.6.0;  # eval { open(1,2,3) } if 0;
-use strict;     # $^H |= 0x602;
-use warnings;   # $^W = 1;
+use 5;
 
-eval('$dummy = 1') && warn("use strict");
-{ my($ok); { local $SIG{'__WARN__'} = sub { die }; $ok = !eval('1 + "a"') }
-    $ok || warn("use warnings"); }
+BEGIN { $^W = 1 } # use warnings
+BEGIN { $SIG{'__DIE__'} = sub { warn(@_) } }
+use strict; # if available
+BEGIN { $SIG{'__DIE__'} = 'DEFAULT' }
+
+# warn if "use warnings" and "use strict" are not both in effect
+if($^V) # 5.0 emits spurious message
+{
+  { my($ok); { local $SIG{'__WARN__'} = sub { die };
+      $ok = !eval('1 + "a"') } $ok || warn("use warnings"); }
+  { eval('$foo = 1') && warn("use strict") }
+}
 
 ##############################################################################
 
@@ -337,7 +344,7 @@ sub dfs($&&&)
 sub md(@)
 {
   announce("mkdir", @_);
-  mkdir($_) || error("mkdir $_: $!") foreach @_;
+  mkdir($_, 0777) || error("mkdir $_: $!") foreach @_;
   true;
 }
 
@@ -347,7 +354,7 @@ sub optmd(@)
   {
     next if -d;
     announce("mkdir", $_);
-    if(!mkdir($_))
+    if(!mkdir($_, 0777))
     {
       my($err) = $!;
       -d || error("mkdir $_: $err");
@@ -438,7 +445,7 @@ sub writefilemode($$@)
   my($tempname) = addtmp($realname);
   local(*FILE);
   explain("creating $tempname");
-  open(FILE, ">", $tempname) || error("open $tempname for write: $!");
+  open(FILE, ">$tempname") || error("open $tempname for write: $!");
   print FILE @contents;
   close(FILE) || error("close $tempname for write: $!");
   safechmod($mode, $tempname) if $mode;
@@ -461,7 +468,7 @@ sub whilefile(&$)
 {
   my($sub, $file) = @_;
   local(*FILE, $_);
-  open(FILE, "<", $file) || error("open $file for read: $!");
+  open(FILE, "<$file") || error("open $file for read: $!");
   while(defined($_ = <FILE>) && &$sub($_)) { }
   close(FILE) || error("close $file for read: $!");
   !defined($_);
@@ -575,7 +582,7 @@ sub openprog(*$@)
   local(*HANDLE) = shift;
   my($prog, @args) = @_;
   announce($prog, @args);
-  return true if open(HANDLE, "-|", "$prog @args");
+  return true if open(HANDLE, "$prog @args |");
   explain("failed to exec $prog: $!");
   return false;
 }
@@ -621,7 +628,7 @@ sub openfileurl(*$)
   $host eq "localhost" || error("bad file-url hostname: $host");
   my($source) = urlunescape($path);
   explain("reading $source");
-  open(HANDLE, "<", $source) || error("open $source for read: $!");
+  open(HANDLE, "<$source") || error("open $source for read: $!");
 }
 
 sub opensshurl(*$)
@@ -664,7 +671,7 @@ sub geturl($$)
 
   local(*SOURCE, *DEST);
   explain("creating $dest");
-  open(DEST, ">", $dest) || error("open $dest for write: $!");
+  open(DEST, ">$dest") || error("open $dest for write: $!");
   openurl(*SOURCE, $url);
 
   my($buf, $result);
@@ -927,7 +934,7 @@ sub magicfile($)
 {
   my($file) = $_;
   local(*FILE);
-  open(FILE, "<", $file) || error("open $file for read: $!");
+  open(FILE, "<$file") || error("open $file for read: $!");
   my($buf);
   defined(read(FILE, $buf, magicbufsize)) || error("read $file: $!");
   close(FILE) || error("close $file for read: $!");
@@ -1040,7 +1047,7 @@ sub extractfile($$)
     chdir($outdir) || error("chdir $outdir: $!");
     my($type) = magicfile($infile);
     exec("unzip", "-qo", $infile) || error("unzip: $!") if $type eq ".zip";
-    open(STDIN, "<", $infile) || error("open $infile for stdin: $!");
+    open(STDIN, "<$infile") || error("open $infile for stdin: $!");
     extractstdin($type);
     error;
   }
@@ -1065,7 +1072,7 @@ sub extractname($)
 
   local(*SAVE);
   open(SAVE, "<&STDIN") || error("save stdin: $!");
-  open(STDIN, "<", $file) || error("open $file: $!");
+  open(STDIN, "<$file") || error("open $file: $!");
   my($result) = `$cmd`;
   open(STDIN, "<&SAVE") || error("restore stdin: $!");
 
@@ -1272,7 +1279,7 @@ sub add(@)
         $version = "unknown" . ($max + 1);
         $verdir = pkgpath($name, $version);
       }
-      $errmsg = mkdir($verdir) ? false : $!;
+      $errmsg = mkdir($verdir, 0777) ? false : $!;
       error("mkdir $verdir: $errmsg") if $errmsg && !-d($verdir);
     }
     announce("mkdir", $verdir);
@@ -1300,7 +1307,7 @@ sub smartgeturl($$)
   geturl($url, $file);
 
   local(*FILE);
-  open(FILE, "<", $file) || error("open $file: $!");
+  open(FILE, "<$file") || error("open $file: $!");
   my($header);
   read(FILE, $header, 128) || error("read $file: $!");
   my($redir);
@@ -1494,7 +1501,7 @@ while(@ARGV)
       my($dir, $elem) = "";
       for $component (split(/\//, $_))
       {
-        $dir ne "" && mkdir("$rootdir$dir") &&
+        $dir ne "" && mkdir("$rootdir$dir", 0777) &&
             print("$myname: created directory $rootdir$dir");
         $dir .= "/$component";
       }
@@ -2253,7 +2260,7 @@ sub build(@)
   {
     $build++;
     $builddir = path($verdir, $build);
-    $errmsg = mkdir($builddir) ? false : $!;
+    $errmsg = mkdir($builddir, 0777) ? false : $!;
     error("mkdir $builddir: $errmsg") if $errmsg && !-d($builddir);
   }
   announce("mkdir", $builddir);
@@ -2291,7 +2298,7 @@ sub build(@)
   $SIG{INT} = "IGNORE";
   my($tmplogname) = addtmp(path($builddir, buildlog));
   local(*LOG);
-  open(LOG, ">", $tmplogname) || error("open $tmplogname for write: $!");
+  open(LOG, ">$tmplogname") || error("open $tmplogname for write: $!");
 
   while(<CHILD>)
   {
@@ -2400,7 +2407,7 @@ BEGIN
     my($path) = @_;
     error("$path already locked") if $locks{$path};
     local(*LOCK);
-    open(LOCK, "<", $path) || error("open $path: $!");
+    open(LOCK, "<$path") || error("open $path: $!");
     $locks{$path} = *LOCK{IO};
     if(!flock(LOCK, 6)) # LOCK_EX | LOCK_NB
     {
@@ -2736,7 +2743,7 @@ sub selfopen(*)
 {
   local(*SCRIPT) = @_;
   my($package, $file) = caller(0);
-  open(SCRIPT, "<", $file) || error("open $file for read: $!");
+  open(SCRIPT, "<$file") || error("open $file for read: $!");
 }
 
 sub depodify($)
@@ -2863,7 +2870,7 @@ sub tryman($;$)
   local(*PAGER);
   if($pager)
   {
-    return false unless open(PAGER, "|-", $pager);
+    return false unless open(PAGER, "| $pager");
     $out = \*PAGER;
   }
   local(*SCRIPT);
