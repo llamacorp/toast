@@ -1997,7 +1997,6 @@ sub helplib($$$)
 
 #define _GNU_SOURCE
 
-#include <assert.h>
 #include <dlfcn.h>
 #include <errno.h>
 #include <stdio.h>
@@ -2211,8 +2210,6 @@ static ${rettype}real_$name($proto)
   {
     next_$name = dlsym(RTLD_NEXT, "$name");
   }
-
-  assert(next_$name);
 
   return next_$name($args);
 }
