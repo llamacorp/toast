@@ -3553,7 +3553,7 @@ sub rebuildinfodir($)
     my($offsuffix) = offsuffix;
     abswhiledir
     {
-      return true if !m!(/dir|\Q$tmpsuffix\E|\Q$offsuffix\E|-\d+(\.info)?)$!;
+      return true if m!(/dir|\Q$tmpsuffix\E|\Q$offsuffix\E|-\d+(\.info)?)$!;
       safechmod(0777, $dir);
       optrun("install-info", $_, $tmpfile);
       true;
@@ -6208,7 +6208,6 @@ hostname of the B<toast> distribution site, C<toastball.net>.
 
 Known bugs:
 
-  - info pages with .off suffix are being included in info/dir
   - autofind produces URLs with extra slashes, e.g. "toast arm latex"
   - make oldconfig isn't running for linux/2.6.x
   - toast add misguesses device-mapper name/version from URL
