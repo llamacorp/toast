@@ -2115,7 +2115,7 @@ sub lookslikepkgurl($;$;$)
   return false if $url =~ m/\#/;
   my($noquery) = stripquery($url);
   return false unless $noquery =~ m!\.\w+$!;
-  return false if $noquery =~ m!\.(html?|php|txt|gif|jpg|png|css)$!i;
+  return false if $noquery =~ m!\.(html?|php|txt|gif|jpg|png|css|asc|sum)$!i;
   return true unless defined($name);
   my($basename) = basename($noquery);
   return false unless $basename =~ /\Q$name\E/i;
@@ -4771,6 +4771,10 @@ sub parse(@)
           {
             my(@expansion) = grep(lookslikepkgurl($_, $name, $version),
                 linksfromurl($url));
+
+            # filter out likely symlinks, e.g. LVM2.0-stable.tgz
+            my(@filtered) = grep(!/\b(latest|stable)\b/i, @expansion);
+            @expansion = @filtered if @filtered;
 
             # filter out older versions of duplicated packages
             my(%bestver);
