@@ -342,6 +342,12 @@ sub ls($)
   @result;
 }
 
+sub optls($)
+{
+  my($dir) = @_;
+  return -e($dir) ? ls($dir) : ();
+}
+
 sub absls($)
 {
   my($dir) = @_;
@@ -1095,7 +1101,7 @@ sub extractname($)
 
 sub allnames(;$)
 {
-  @_ && defined($_[0]) ? @_ : sort cmpab ls(pkgpath);
+  @_ && defined($_[0]) ? @_ : sort cmpab optls(pkgpath);
 }
 
 sub allversions($;$)
