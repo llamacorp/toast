@@ -2729,7 +2729,7 @@ sub arm(@)
 {
   my($name, $version, $build, @urls) = @_;
   ($name, $version, $build) = build($name, $version, undef, @urls)
-      if !isbuilt($name, $version, $build);
+      if !defined($build) || !isbuilt($name, $version, $build);
 
   isarmed($name, $version, $build) &&
       error(pkgname($name, $version, $build) . " is already armed");
@@ -3438,6 +3438,7 @@ sub fileurl($)
 sub pkgname($;$$)
 {
   my($name, $version, $build) = @_;
+  error unless defined($name);
   my($result) = "$name";
   $result .= " version $version" if defined($version);
   $result .= " build $build" if defined($build);
