@@ -967,9 +967,9 @@ sub geturl($$)
 sub linksfromstring($$)
 {
   my($html, $url) = @_;
-  $url =~ m!^(((\w+:)//[^/]+)[^\?]*/)([^/\?](\?|$))?!
-      || error("bad url: $url");
-  my($proto, $host, $parent) = ($3, $2, $1);
+  $url =~ m!^((\w+:)//[^/]+)([^\?\#]*/)?! || error("bad url: $url");
+  my($proto, $host, $parent) = ($2, $1, $3);
+  $parent = defined($parent) && $parent ne "" ? "$host$parent" : "$host/";
   my(@links);
   while($html =~ m!\b(href\s*\=\s*\"?|((http|ftp)://))([^\s\>\"]+)!ig)
   {
@@ -1824,6 +1824,7 @@ sub findnewpkg($$)
     $url = $1;
     # wget can't always get FTP directory listing correctly w/o trailing slash
     $url .= "/" unless basename(stripquery($url)) =~ /\./; # e.g. atop
+    $url = cleanurl($url);
   }
 
   for(1..3)
@@ -4294,7 +4295,8 @@ sub cleanurl($)
   my($url) = @_;
   $url =~ s/ /\+/g;
   $url =~ s/[^\!-\~]/urlescapechar($&)/ge;
-  $url =~ s!^(ftp://[^/:]+):21(/|$)!$1$2!; # wget emits redundant ftp port no.
+  $url .= "/" if $url =~ m!^\w+://[^/]+$!;
+  $url =~ s!^(ftp://[^/:]+):21/!$1/!; # wget emits redundant ftp port no.
   return $url;
 }
 
