@@ -1160,22 +1160,24 @@ sub magicfile($)
 sub readstdin($)
 {
   my($len) = @_;
-  my($buf);
-  my($result) = read(STDIN, $buf, $len);
-  defined($result) || error("read stdin: $!");
-  $result == $len || error("read stdin: unexpected eof");
+  my($buf) = "";
+  while($len > 0)
+  {
+    my($result) = sysread(STDIN, $buf, $len, length($buf));
+    defined($result) || error("read stdin: $!");
+    last unless $result;
+    $len -= $result;
+  }
   $buf;
 }
 
 sub skipstdin($)
 {
   my($len) = @_;
-  return true if seek(STDIN, $len, 1);
-
   while($len > 0)
   {
     my($chunk) = min($len, 8192);
-    readstdin($chunk);
+    error("unexpected eof") unless length(readstdin($chunk)) == $chunk;
     $len -= $chunk;
   }
   return true;
@@ -1192,16 +1194,19 @@ sub dumpstdin($)
 {
   my($buf) = @_;
   print($buf);
-  print($buf) while read(STDIN, $buf, 8192);
+  print($buf) while sysread(STDIN, $buf = "", 8192, 0);
   exit(0);
 }
 
 sub extractstdin($);
 
-sub autoextractstdin()
+sub autoextractstdin(;$)
 {
-  my($buf) = readstdin(magicbufsize);
-  forkstdin ? extractstdin(magicstring($buf)) : dumpstdin($buf);
+  my($buf) = @_;
+  $buf = readstdin(magicbufsize) unless defined($buf);
+  my($type) = magicstring($buf);
+  error("unknown file type: " . unpack("H*", $buf)) unless $type;
+  forkstdin ? extractstdin($type) : dumpstdin($buf);
 }
 
 sub rpmextractstdin()
@@ -1211,15 +1216,16 @@ sub rpmextractstdin()
 
   my($pad) = 0;
   my($hdr);
-  while(magicstring($hdr = readstdin(16 + $pad)) !~ /^\..z/i)
+  while(magicstring($hdr = readstdin($pad + 16)) !~ /^\..z/i)
   {
+    error("short rpm: " . unpack("H*", $hdr)) unless length($hdr) == $pad + 16;
     my($magic, $zero, $sections, $bytes) = unpack("x$pad N4", $hdr);
     $magic == 0x8eade801 || error(sprintf("bad rpm header: %08x", $magic));
     skipstdin($bytes + 16*$sections);
     $pad = (8 - $bytes%8) % 8;
   }
 
-  forkstdin ? extractstdin(magicstring($hdr)) : dumpstdin($hdr);
+  autoextractstdin($hdr);
   error;
 }
 
