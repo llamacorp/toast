@@ -1721,7 +1721,9 @@ sub helprewrite($$$$$)
 {
   my($srcdir, $rootdir, $helperdir, $cmd, $force) = @_;
   helpstub($helperdir, $cmd);
-  writescript(path($helperdir, "$cmd.helper"), "#!$^X\n# $genby\n", q[
+  my($perl) = $^X;
+  $perl = "/usr/bin/perl" unless $perl =~ m!/!;
+  writescript(path($helperdir, "$cmd.helper"), "#!$perl\n# $genby\n", q[
 $cmd = ], quote($cmd), q[;
 $srcdir = ], quote($srcdir), q[;
 $rootdir = ], quote($rootdir), q[;
