@@ -240,6 +240,7 @@ BEGIN
     "stoponerror" => true,
     "ignorecase" => true,
     "showurls" => true,
+    "infodir" => true,
     "debugrewrite" => false,
   );
 
@@ -641,12 +642,14 @@ sub run(@)
 {
   my($msg) = runimpl(@_);
   error($msg) if defined($msg);
+  return true;
 }
 
 sub optrun(@)
 {
   my($msg) = runimpl(@_);
   explain($msg) if defined($msg);
+  return !defined($msg);
 }
 
 sub optcdrun($@)
@@ -2250,7 +2253,7 @@ sub inithelpers($$$)
       "[");
   helprewrite($srcdir, $rootdir, $helperdir, $_, true)
       foreach (qw[mv]);
-  helpnop($helperdir, $_) foreach (qw[chown ldconfig]);
+  helpnop($helperdir, $_) foreach (qw[chown ldconfig install-info]);
   $env{PATH} = "$helperdir:$env{PATH}";
 
   my($preload) = helplib($srcdir, $rootdir, $helperdir);
@@ -2618,6 +2621,7 @@ sub stdlinks()
     "X11R6" => ".",
     "games" => "bin",
     "share/man" => "../man",
+    "share/info" => "../info",
   );
 }
 
@@ -2711,6 +2715,8 @@ sub polishrootdir($$)
   my(%link) = rootlinks;
   -l && rm($_) foreach map { path($rootdir, $_) }
       (keys(%link), unpath($rootdir), unpath($armdir));
+
+  rmexisting(path($rootdir, "info", "dir"));
 
   my($total, %count) = 0;
   dfs
@@ -2962,6 +2968,40 @@ BEGIN
   }
 }
 
+sub postarm()
+{
+  my($dir) = path(armdir, "info");
+  my($dirfile) = path($dir, "dir");
+
+  # remove old links left by previous version of toast:
+  my($oldfile) = addoff($dirfile);
+  while(-e($oldfile) || -l($oldfile))
+  {
+    rm($oldfile);
+    $oldfile = addoff($oldfile);
+  }
+
+  if(!infodir)
+  {
+    rmexisting($dirfile);
+  }
+  else
+  {
+    my($tmpfile) = addtmp($dirfile);
+    rmexisting($tmpfile);
+    my($tmpsuffix) = tmpsuffix;
+    my($offsuffix) = offsuffix;
+    abswhiledir
+    {
+      m!(/dir|\Q$tmpsuffix\E|\Q$offsuffix\E|-\d+(\.info)?)$! or
+          optrun("install-info", $_, $tmpfile);
+    } $dir;
+    mv($tmpfile, $dirfile) if -e($tmpfile);
+  }
+
+  run(postarmprog) if postarmprog;
+}
+
 sub arm(@)
 {
   my($name, $version, $build, @urls) = @_;
@@ -2994,7 +3034,7 @@ sub arm(@)
     sub { true }
   );
 
-  run(postarmprog) if postarmprog;
+  postarm;
 
   unlock(armdir);
 
@@ -3050,7 +3090,7 @@ sub disarm(@)
     );
   } @_;
 
-  run(postarmprog) if postarmprog;
+  postarm;
 
   unlock(armdir);
 
@@ -5232,14 +5272,25 @@ cause an error.  Note that case is always preserved in URLs and when
 explicitly naming new packages.  Note also that it is always legal for
 two distinct packages to have names and/or version numbers that differ
 only in case, and that such packages are never treated as if they were
-related, even if B<crossversion> is enabled.
+related, even if B<crossversion> is enabled.  Default: enabled.
 
 =item S<B<--showurls> | B<--noshowurls>>
 
 When B<showurls> is enabled, B<toast show> always displays the stored
 URLs associated with each displayed package.  If B<showurls> is disabled,
 B<toast show> only displays a package's URLs if a different list of URLs
-for that package was given explicitly on the command line.
+for that package was given explicitly on the command line.  Default:
+enabled.
+
+=item S<B<--infodir> | B<noinfodir>>
+
+When B<infodir> is enabled, B<toast arm> and B<toast disarm> will create a
+file in B<armdir> called C<info/dir>; if the file already exists, it will
+be replaced with an updated version.  The "info" command uses this file to
+display a list of installed info pages.  This is normally the only regular
+file in B<armdir>; all the other files are symbolic links.  If B<infodir>
+is disabled, B<toast arm> and B<toast disarm> will delete the C<info/dir>
+file, if present, instead of rebuilding it.  Default: enabled.
 
 =item S<B<--debugrewrite> | B<--nodebugrewrite>>
 
@@ -5249,6 +5300,7 @@ used to help diagnose problems involving packages that build correctly
 outside of B<toast>, but refuse to build or build incorrect files due
 to bugs in B<toast>'s path-rewriting mechanism.  This option currently
 requires that the C<strace> program be available (or C<ktrace> for *BSD).
+Default: disabled.
 
 =back
 
@@ -5336,7 +5388,6 @@ Known bugs:
   - autofind mishandles http redirects (e.g. http://toastball.net/toast)
   - gtk+ doesn't seem to build properly when it is already armed
   - opera and sleepycat db refuse to build when already armed
-  - toast arm/disarm can leave info.dir in the wrong state
   - gimp will load plugins from other armed versions despite .off suffix
   - "toast upgrade gcc" doesn't work (ftp site has a subdir per version)
   - autofind fails for: sleepycat db, gcc, latex, gv, GNU arch (?), ogle
@@ -5352,6 +5403,7 @@ Wish list:
   - "toast arm" should move armed packages to top of stacking order
   - "toast status" should give information about stacking order
   - "toast rename" should rename armed packages by rewriting symlinks
+  - "toast clean" should optionally remove old versions/builds
   - directories in armdir should be read-only (mode 0555) by default
   - "toast build" should be able to deal with perl modules
   - add "toast check": verify storedir and armdir integrity (and fix?)
@@ -5360,6 +5412,7 @@ Wish list:
   - share rewriting code between command wrappers and shared library
   - come up with a better way to deal with gnome (guess dependencies?)
   - figure out where to go with "toast edit" (or document it as-is)
+  - find a way to rebuild indices for apropos by default
   - fold archives by URL and/or hash?
   - zsh completions!
 
