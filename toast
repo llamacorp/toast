@@ -1711,7 +1711,7 @@ while(@ARGV)
       for $component (split(/\//, $_))
       {
         $dir ne "" && mkdir("$rootdir$dir", 0777) &&
-            print("$myname: created directory $rootdir$dir");
+            print("$myname: created directory $rootdir$dir\n");
         $dir .= "/$component";
       }
       $_ = "$rootdir$_";
@@ -2472,7 +2472,6 @@ sub clean(@)
 sub purge(@)
 {
   my($name, $version, $build, @urls) = @_;
-  @urls && error;
   $build && error;
 
   for $name (allnames($name))
@@ -2677,7 +2676,7 @@ sub arm(@)
 {
   my($name, $version, $build, @urls) = @_;
   ($name, $version, $build) = build($name, $version, undef, @urls)
-      if @urls || !isbuilt($name, $version, $build);
+      if !isbuilt($name, $version, $build);
 
   isarmed($name, $version, $build) &&
       error(pkgname($name, $version, $build) . " is already armed");
