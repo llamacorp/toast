@@ -651,12 +651,26 @@ sub nice($)
   eval { setpriority(0, 0, min(getpriority(0, 0) + $_[0], 20)) };
 }
 
+sub safeexec(@)
+{
+  my(@prog) = @_;
+  {
+    local($^W) = false; # suppress misguided exec failure warning
+    exec(@prog);
+  }
+  error("exec @prog: $!");
+}
+
 sub runimpl(@)
 {
   my(@prog) = @_;
   announce(@prog);
-  my($result) = system(@prog);
-  return "exec @prog: $!" unless defined($result);
+  my($result);
+  {
+    local($^W) = false; # suppress misguided exec failure warning
+    $result = system(@prog);
+  }
+  return "exec @prog: $!" unless defined($result) && $result != -1;
   my($code) = $? & 0xff;
   my($sig) = ($? >> 8) & 0xff;
   return "@prog failed (code $code, signal $sig)" if $?;
@@ -673,7 +687,7 @@ sub run(@)
 sub optrun(@)
 {
   my($msg) = runimpl(@_);
-  explain($msg) if defined($msg);
+  explain("warning: $msg; continuing") if defined($msg);
   return !defined($msg);
 }
 
@@ -691,7 +705,7 @@ sub optcdrun($@)
   {
     defined($pid) || error("fork: $!");
     chdir($dir) || error("chdir $dir: $!");
-    exec(@prog) || error("exec @prog: $!");
+    safeexec(@prog);
   }
 }
 
@@ -1285,10 +1299,10 @@ sub extractstdin($)
 {
   my($type) = @_;
 
-  exec("tar", "xf", "-") || error("tar: $!") if $type eq ".tar";
-  exec("cpio", "-di") || error("cpio: $!") if $type eq ".cpio";
-  exec("/bin/sh") || error("/bin/sh: $!") if $type eq ".shar";
-  exec("patch", "-p0") || error("patch: $!") if $type eq ".patch";
+  safeexec("tar", "xf", "-") if $type eq ".tar";
+  safeexec("cpio", "-di") if $type eq ".cpio";
+  safeexec("/bin/sh") if $type eq ".shar";
+  safeexec("patch", "-p0") if $type eq ".patch";
 
   rpmextractstdin if $type eq ".rpm";
   debextractstdin if $type eq ".deb";
@@ -1322,7 +1336,7 @@ sub extractfile($$)
   {
     chdir($outdir) || error("chdir $outdir: $!");
     my($type) = magicfile($infile);
-    exec("unzip", "-qo", $infile) || error("unzip: $!") if $type eq ".zip";
+    safeexec("unzip", "-qo", $infile) if $type eq ".zip";
     safeopen(*STDIN, "<", $infile);
     extractstdin($type);
     error;
@@ -5552,6 +5566,7 @@ Known bugs:
   - "toast --autoremove --crossversion upgrade toast" breaks everything
   - if x/1/1 is armed and x/1/2 is built, "toast arm x" does nothing
   - if x/1/1 is armed, "toast --noautodisarm rebuild x" arms then fails
+  - "toast add foo/bar-1.2.tar.gz" guesses "foo version bar-1.2.tar.gz"
 
 Wish list:
 
