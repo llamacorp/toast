@@ -1499,8 +1499,8 @@ sub extractstdin($)
 
   if($type =~ /^\.(Z|gz|bz2)$/)
   {
-    my($prog) = $type eq ".bz2" ? "bzip2" : "gzip";
-    open(STDIN, "$prog -cd |") || error("$prog: $!");
+    my($prog) = $type eq ".bz2" ? "bunzip2" : "gunzip";
+    open(STDIN, "$prog |") || error("$prog: $!");
     binmode(STDIN) || error("binmode stdin: $!"); # perl 5.8.0 utf8 bug
     autoextractstdin;
     error;
@@ -1542,8 +1542,8 @@ sub extractname($)
   s/\.tgz$/.tar.gz/i;
 
   my($cmd, $ok) = ("", false);
-  ($cmd, $arg) = ($cmd . "gzip -cd $arg | ", "-") if s/\.gz$//i;
-  ($cmd, $arg) = ($cmd . "bzip2 -cd $arg | ", "-") if s/\.bz2$//i;
+  ($cmd, $arg) = ($cmd . "gunzip < $arg | ", "-") if s/\.gz$//i;
+  ($cmd, $arg) = ($cmd . "bunzip2 < $arg | ", "-") if s/\.bz2$//i;
   ($cmd, $ok) = ($cmd . "tar tf $arg | ", true) if s/\.tar$//i;
   ($cmd, $ok) = ("unzip -Z1 $arg | ", true) if $arg eq $_ && s/\.zip$//i;
   return undef unless $ok;
@@ -2940,7 +2940,7 @@ sub make($)
   {
     my($in) = path("/proc", "config.gz");
     my($out) = path($dir, ".config");
-    optrun("gzip -cd < " . shellescape($in) . " > " . shellescape($out))
+    optrun("gunzip < " . shellescape($in) . " > " . shellescape($out))
         if -r($in) && !-e($out)
   }
 
@@ -5404,8 +5404,8 @@ and extracting archives, applying patch files, compiling a new build
 of the package and installing it in a build-specific directory tree.
 Supported archive formats include compress, gzip, bzip2, zip, rpm,
 deb, cpio, tar, shar, patch, and most combinations of the above.
-You don't need to have RPM installed to extract .rpm files; gzip and
-cpio usually suffice.  Similarly, only gzip and tar should be required
+You don't need to have RPM installed to extract .rpm files; gunzip and
+cpio usually suffice.  Similarly, only gunzip and tar should be required
 to extract .deb files.  Note that toast completely ignores dependencies
 and other meta-information in .rpm and .deb files; only the raw binaries
 are extracted and used.  Archives should contain either precompiled
@@ -6098,6 +6098,7 @@ Known bugs:
   - autofind chooses Linux binaries over source for doxygen
   - build fails for: jikes, sirc, netcat, lcab, gv, bittorrent
   - if x/1 is armed and x/2 is built, "toast rebuild x" also arms x/2
+  - toast disarm fails spuriously whenever an altarmdir isn't writable
 
 Wish list:
 
