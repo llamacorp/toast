@@ -4433,7 +4433,6 @@ Public License instead of this License.
 ##############################################################################
 
 $0 =~ /\bconfigure$/i ? selfconfigure(@ARGV) : main(@ARGV);
-__END__
 
 ##############################################################################
 
@@ -5117,7 +5116,6 @@ Known bugs:
 
   - autofind mishandles http redirects (e.g. http://toastball.net/toast)
   - "toast --noautoarm build foo" disarms and demolishes old foo builds
-  - __END__ causes trouble when piping toast to perl for bootstrapping
   - gtk+ doesn't seem to build properly when it is already armed
   - opera and sleepycat db refuse to build when already armed
   - toast arm/disarm can leave info.dir in the wrong state
@@ -5127,6 +5125,7 @@ Known bugs:
   - build overrides LD_PRELOAD instead of appending [space-separated]
   - autofind fails for: sleepycat db, gcc, latex, gv, GNU arch (?)
   - build fails for: jikes, sirc, netcat, lcab, busybox (ow!), gv
+  - version 1.2.3rc4 should precede 1.2.3; also 1.2.3-{rc,test,pre}4
 
 Wish list:
 
@@ -5181,4 +5180,4 @@ Jacques Frechet
 
 =cut
 
-# toast: EOF
+__END__
