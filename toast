@@ -240,6 +240,7 @@ BEGIN
     "autofind" => "true",
     "autochange" => "true",
     "autorename" => "true",
+    "autoenv" => "true",
     "autoclean" => "true",
     "autopurge" => "false",
     "autoarm" => "true",
@@ -728,7 +729,7 @@ sub optcdrun($@)
   else # child
   {
     defined($pid) || error("fork: $!");
-    chdir($dir) || error("chdir $dir: $!");
+    silentcd($dir);
     safeexec(@prog);
   }
 }
@@ -1045,6 +1046,14 @@ sub linksfromurl($)
     }
     error("level>1024 in pwd");
   }
+
+  sub silentcd($)
+  {
+    my($dir) = @_;
+    $ENV{PWD} = $pwd = abspath($dir);
+    chdir($dir) || error("chdir $dir: $!");
+    return true;
+  }
 }
 
 sub abspath($)
@@ -1310,6 +1319,72 @@ sub findperl()
 
 ##############################################################################
 
+sub newenvvar($$;$)
+{
+  my($varname, $subdirs, $default) = @_;
+  my(@dirs) = map(path(armdir, $_), split(/:/, $subdirs));
+  my($current) = exists($ENV{$varname}) ? $ENV{$varname} : $default;
+
+  if(defined($current))
+  {
+    my(%have);
+    $have{$_} = 1 for split(/:/, $current);
+    @dirs = grep(!$have{$_}, @dirs);
+    push(@dirs, $current);
+  }
+
+  return($varname, join(":", @dirs));
+}
+
+sub newenv()
+{
+  my($defaultman) = "/usr/man:/usr/share/man:/usr/local/man:/usr/X11R6/man";
+  if(!exists($ENV{MANPATH})) # don't bother unless we're going to use it...
+  {
+    my($out) = `man -w 2>/dev/null`;
+    chomp($out) if defined($out);
+    $defaultman = $out if defined($out) && $out =~ m!^/! && $out !~ /\n/;
+  }
+
+  my(@vars);
+  push(@vars, newenvvar("PATH", "sbin:bin"));
+  push(@vars, newenvvar("MANPATH", "man", $defaultman));
+  push(@vars, newenvvar("INFOPATH", "info", ""));
+  push(@vars, newenvvar("CPATH", "include"));
+  push(@vars, newenvvar("LIBRARY_PATH", "lib"));
+  # there's also a LIBRARY_RUN_PATH or something that affects ld somehow...
+  return @vars;
+}
+
+sub printnewenv()
+{
+  my(@vars) = newenv;
+  while(@vars)
+  {
+    my($key, $value) = (shift(@vars), shellescape(shift(@vars)));
+    my($export) = exists($ENV{$key}) ? "" : " export $key;";
+    print("$key=$value;$export\n");
+  }
+  return @vars;
+}
+
+sub setbuildenv()
+{
+  my(%vars) = printnewenv;
+  $ENV{$_} = $vars{$_} for keys(%vars);
+optrun("printenv") || optrun("env");
+  true;
+}
+
+sub env(@)
+{
+  @_ && error;
+  printnewenv;
+  return true;
+}
+
+##############################################################################
+
 sub yes()
 {
   explain("forking yes subprocess");
@@ -1327,7 +1402,7 @@ sub showprebuildinfo($$$)
   explain("$^X $0 $] $^O");
   optrun("uname", "-a");
   optrun(findperl, "-V");
-  optrun("printenv");
+  optrun("printenv") || optrun("env");
   my(@urls) = pkgurls($name, $version);
   explain("no urls") unless @urls;
   explain("url: $_") for @urls;
@@ -1537,7 +1612,7 @@ sub extractfile($$)
   }
   else
   {
-    chdir($outdir) || error("chdir $outdir: $!");
+    silentcd($outdir);
     safeexec("unzip", "-qo", $infile) if $type eq ".zip";
     safeopen(*STDIN, "<", $infile);
     extractstdin($type);
@@ -3255,6 +3330,7 @@ sub rebuild(@)
     dropprivs;
     showprebuildinfo($name, $version, $build);
     yes;
+    setbuildenv if autoenv;
 
     my($archivedir) = path($verdir, archivedir);
     my($srcdir) = path($builddir, srcdir);
@@ -4080,49 +4156,6 @@ BEGIN
 
     return $checkresult;
   }
-}
-
-##############################################################################
-
-sub printenvcmd($$;$)
-{
-  my($varname, $subdirs, $default) = @_;
-  my(@dirs) = map(path(armdir, $_), split(/:/, $subdirs));
-  my($exists) = exists($ENV{$varname});
-  my($current) = $exists ? $ENV{$varname} : $default;
-  my($export) = $exists ? "" : " export $varname;";
-
-  if(defined($current))
-  {
-    my(%have);
-    $have{$_} = 1 for split(/:/, $current);
-    @dirs = grep(!$have{$_}, @dirs);
-  }
-
-  push(@dirs, $current) if defined($current);
-  print("$varname=" . shellescape(join(":", @dirs)) . ";$export\n");
-}
-
-sub env(@)
-{
-  @_ && error;
-
-  my($defaultman) = "/usr/man:/usr/share/man:/usr/local/man:/usr/X11R6/man";
-  if(!exists($ENV{MANPATH})) # don't bother unless we're going to use it...
-  {
-    my($out) = `man -w 2>/dev/null`;
-    chomp($out) if defined($out);
-    $defaultman = $out if defined($out) && $out =~ m!^/! && $out !~ /\n/;
-  }
-
-  printenvcmd("PATH", "sbin:bin");
-  printenvcmd("MANPATH", "man", $defaultman);
-  printenvcmd("INFOPATH", "info", "");
-  printenvcmd("CPATH", "include");
-  printenvcmd("LIBRARY_PATH", "lib");
-  # there's also a LIBRARY_RUN_PATH or something that affects ld somehow...
-
-  return true;
 }
 
 ##############################################################################
@@ -5840,6 +5873,13 @@ URLs alone (version number will be C<unknown> optionally followed by
 a serial number for uniqueness; name may have been guessed or may also
 be C<unknown>).  Default: enabled.
 
+=item S<B<--autoenv> | B<--noautoenv>>
+
+When B<autoenv> is enabled, B<toast> will automatically export the
+environment variable settings printed by B<toast env> to any programs
+invoked while building a package.  This may help the package being built
+to locate other armed packages on which it depends.  Default: enabled.
+
 =item S<B<--autoclean> | B<--noautoclean>>
 
 When B<autoclean> is enabled, commands that create a new build for a
@@ -6147,7 +6187,6 @@ Known bugs:
 
 Wish list:
 
-  - automatically "toast env"-ify environment during "toast build"
   - work around lack of getenv(), mkdir(), etc. in microperl...?
   - "toast upgrade" w/o args should imply --nostoponerror or something
   - "toast arm" should move armed packages to top of stacking order
