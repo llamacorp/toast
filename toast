@@ -3117,7 +3117,7 @@ install:
 
   # Maybe there's just an install script of some kind that we need to run.
   # Create an appropriate Makefile.
-  for(qw[install.sh INSTALL install.pl])
+  for(qw[install.sh INSTALL install.pl vmware-install.pl])
   {
     my($script) = path($dir, $_);
     if(-x($script))
@@ -3130,6 +3130,7 @@ install:
         $useprefix ||= /--prefix=/;
         s/\bOutputLicense\b/true/g unless /\(/; # acroread
         $prefixenvvar = $1 if /\b(InstallDir)\b/; # acroread
+        s/not is_root\(\)/0/; # vmware
       } $script;
       next unless $isscript;
       unshift(@cmd, "$prefixenvvar=$prefix") if defined($prefixenvvar);
@@ -3310,6 +3311,7 @@ sub stddirs()
   my(@result) =
       (qw[bin boot etc include info lib libexec man sbin share src var],
       map(path("man", "man$_"), 1..9), path(qw[var spool]),
+      path(qw[etc rc.d]), map(path("etc", "rc.d", "rc$_.d"), 0..6), # vmware
       path(qw[var run]), # hotplug/2004_01_05
       path(qw[share aclocal])); # librep/0.16.1
   sort(@result);
