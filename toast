@@ -2371,7 +2371,7 @@ sub configure($$)
 
   # find a configure script
   my($cfg);
-  for $cfg (qw[configure configure.gnu])
+  for $cfg (qw[configure configure.gnu Configure])
   {
     my($confprog) = path($dir, $cfg);
     if(-x($confprog))
@@ -2393,6 +2393,8 @@ sub configure($$)
         $bogus ||= /There is no .+configure.+ script .+Instead/i; # libpng
         $bogus ||= /configure is no longer used - just type /i; # cdrtools
         s/(^\s*)read\s+(acceptance)(\s*$)/$1$2=yes$3/; # qt license
+        s/^if test ! -t 0; /if false; /; # elm
+        $noprefix = $confopts{"-d"} = 1 if /^\s*-d\) shift; fastread='y/; # elm
         if(reconfigure)
         {
           s/^\s*AUTOTHREAD=no\s+\#+ leave off for now/\#$&/; # qt multithreaded
@@ -5581,6 +5583,8 @@ hostname of the B<toast> distribution site, C<toastball.net>.
 
 Known bugs:
 
+  - openprog() quoting and HTML unescaping bugs: "toast arm tinyproxy"
+  - autofind hangs in httphead() when going through tinyproxy?
   - autofind mishandles http redirects (e.g. http://toastball.net/toast)
   - gtk+ doesn't seem to build properly when it is already armed
   - opera and sleepycat db refuse to build when already armed
@@ -5617,6 +5621,7 @@ Wish list:
   - find a way to rebuild indices for apropos by default
   - fold archives by URL and/or hash?
   - zsh completions!
+  - built-in FTP?
 
 Questions left unanswered by this documentation:
 
