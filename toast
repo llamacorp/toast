@@ -2213,6 +2213,7 @@ sub configure($$)
           {
             $confopts{$opt} ||= / \Q$opt\E\b($|[^-])/;
           }
+          $confopts{$1} = 1 if /"configure (-\S+)"; by default a static/;#zlib
         }
       } $confprog;
 
