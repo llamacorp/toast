@@ -1606,7 +1606,6 @@ sub findnewpkg($$)
     if(lookslikepkgurl($url))
     {
       (undef, $version) = guessnv($url) unless defined($version);
-error("url = $url");
       return ($name, $version, $url);
     }
 
