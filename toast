@@ -264,6 +264,7 @@ BEGIN
     "defaultcmd" => "help",
     "httpproxy" => exists($ENV{http_proxy}) ? $ENV{http_proxy} : "",
     "ftpproxy" => exists($ENV{ftp_proxy}) ? $ENV{ftp_proxy} : "",
+    "confappend" => "",
     "quiet" => "false",
     "expand" => "true",
     "autofind" => "true",
@@ -2961,6 +2962,27 @@ sub makefile($)
   return false;
 }
 
+sub splitwords($)
+{
+  my($s) = @_;
+  $s =~ s/^\s+//;
+  my(@words);
+  while($s =~ s/^"((\\.|[^"])*)"//s || $s =~ s/^'((\\.|[^'])*)'//s ||
+      $s =~ s/^((\\.|\S)+)//s)
+  {
+    push(@words, $1);
+    $s =~ s/^\s+//;
+  }
+  error("unbalanced quotes") unless $s eq "";
+  return @words;
+}
+
+sub cdrunconf($@)
+{
+  my($dir, @prog) = @_;
+  cdrun($dir, @prog, splitwords(confappend));
+}
+
 sub configure($$)
 {
   my($dir, $prefix) = @_;
@@ -3054,7 +3076,7 @@ sub configure($$)
         optcdrun($dir, "autoconf", "-f");
       }
 
-      cdrun($dir, @confcmd);
+      cdrunconf($dir, @confcmd);
       return $dir;
     }
   }
@@ -3064,7 +3086,7 @@ sub configure($$)
     my($bubuilddir) = path($dir, $_);
     my($buconfprog) = path($dir, "dist", "configure");
     return $bubuilddir if -d($bubuilddir) && -x($buconfprog) &&
-        cdrun($bubuilddir, "../dist/configure", "--prefix=$prefix");
+        cdrunconf($bubuilddir, "../dist/configure", "--prefix=$prefix");
   }
 
   # configure script might be hidden in a "source" subdirectory (e.g. samba)
@@ -3097,21 +3119,21 @@ sub configure($$)
       md(path($dir, "X11"));
       ln("..", path($dir, "X11", lastitem(unpath($dir))));
     }
-    cdrun($dir, "xmkmf");
+    cdrunconf($dir, "xmkmf");
     return $dir;
   }
 
   # perl modules have a Makefile.PL script that spits out a Makefile
   my($mfpl) = path($dir, "Makefile.PL");
-  return $dir if -r($mfpl) && cdrun($dir, "perl", $mfpl);
+  return $dir if -r($mfpl) && cdrunconf($dir, "perl", $mfpl);
 
   # pmk is some kind of newfangled autoconf replacement
   my($pmkfile) = path($dir, "pmkfile");
-  return $dir if -r($pmkfile) && cdrun($dir, "pmk");
+  return $dir if -r($pmkfile) && cdrunconf($dir, "pmk");
 
   # qmake is a similar tool that comes with Qt
   my(@profiles) = grep(/\.pro$/i, ls($dir));
-  return $dir if scalar(@profiles) == 1 && cdrun($dir, "qmake", $profiles[0]);
+  return $dir if scalar(@profiles)==1&& cdrunconf($dir, "qmake", $profiles[0]);
 
   # Write a custom Makefile for glibc with add-ons and/or kernel headers.
   my($glibcdir, $hdrdir, @addons);
@@ -3166,7 +3188,7 @@ sub configure($$)
     {
       $confopts{$1} = 1 if /(--(enable-add-ons|with-tls))\b/;
     } $cfg if reconfigure;
-    cdrun($makedir, qw(sh ../configure), sort(keys(%confopts)));
+    cdrunconf($makedir, qw(sh ../configure), sort(keys(%confopts)));
 
     return $dir;
   }
@@ -6300,6 +6322,17 @@ rather than a true FTP proxy server.  Default: the current value of the
 B<ftp_proxy> environment variable, or the empty string if that variable
 is not set.
 
+=item B<--confappend=>I<ARGS>
+
+Specifies additional arguments for B<toast build> to pass to a package's
+C<configure> script or equivalent, if any.  This should never be necessary
+in order to build a package correctly (if it is, send me a bug report!),
+but it can be awfully handy at times.  The I<ARGS> string is treated as
+a list of space-separated words, each of which may be optionally quoted
+with single or double quotes with backslash acting as an escape character;
+the resulting words are added to the end of the command line.  Default:
+empty string.
+
 =item S<B<--quiet> | B<--noquiet>>
 
 When B<quiet> is enabled, most commands will produce output only on
@@ -6691,8 +6724,6 @@ Known bugs:
   - autofind chooses old (2001) version of Postfix
   - autofind chooses "libraries only" version of xfig
   - build fails for: jikes, sirc, netcat, lcab, gv, bittorrent, xmlcatmgr
-  - if x/1 is armed and x/2 is built, "toast rebuild x" also arms x/2
-  - "toast build" arms newly built packages for no apparent reason
   - "toast edit" leaves things in an odd state if you hang up on it
 
 Wish list:
