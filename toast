@@ -3060,7 +3060,7 @@ sub edit(@)
   {
     $newversion = $oldversion . $suffix . $num;
     $newverdir = pkgpath($name, $newversion);
-    last if mkdir($newverdir);
+    last if mkdir($newverdir, 0777);
     error("mkdir $newverdir: $!") unless -d($newverdir);
     $num++;
   }
