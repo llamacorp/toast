@@ -157,6 +157,26 @@ sub checkedeval($)
 
 ##############################################################################
 
+sub whilefile(&$)
+{
+  my($sub, $file) = @_;
+  local(*FILE, $_);
+  open(FILE, "<$file") || error("open $file for read: $!");
+  while(defined($_ = <FILE>) && &$sub($_)) { }
+  close(FILE) || error("close $file for read: $!");
+  !defined($_);
+}
+
+sub readfile($)
+{
+  my($file) = @_;
+  my(@result);
+  whilefile { push(@result, $_) } $file;
+  @result;
+}
+
+##############################################################################
+
 BEGIN
 {
   my($uid, $euid) = ($<, $>);
@@ -243,16 +263,14 @@ BEGIN
     error unless isopt($name);
     return $optloaded{$name} if %optloaded;
     $optloaded{1} = 1;
-    local(*DOTFILE, $_);
     return unless $ENV{HOME};
     my($dotfile) = "$ENV{HOME}/.$myname/conf";
     return unless -e($dotfile);
-    open(DOTFILE, $dotfile) || error("open $dotfile for read: $!");
-    while(<DOTFILE>)
+    whilefile
     {
       s/^\s+//;
       s/\s+$//;
-      next if $_ eq "" || /^\#/;
+      return true if $_ eq "" || /^\#/;
       /^([^\=]*?)\s*\=\s*(.*)$/ ||
           error("$dotfile: line $.: missing \"=\"");
       my($name, $val) = ($1, $2);
@@ -261,8 +279,8 @@ BEGIN
       !isboolopt($name) || isboolean($val) ||
           error("$dotfile: line $.: illegal boolean value: \"$val\"");
       $optloaded{$name} = $val;
-    }
-    close(DOTFILE) || error("close $dotfile for read: $!");
+      true;
+    } $dotfile;
     $optloaded{$name};
   }
 
@@ -499,15 +517,13 @@ sub safechmod($@)
 
 sub writefilemode($$@)
 {
-  my($realname, $mode, @contents) = @_;
-  my($tempname) = addtmp($realname);
+  my($name, $mode, @contents) = @_;
   local(*FILE);
-  explain("creating $tempname");
-  open(FILE, ">$tempname") || error("open $tempname for write: $!");
+  explain("creating $name");
+  open(FILE, ">$name") || error("open $name for write: $!");
   print FILE @contents;
-  close(FILE) || error("close $tempname for write: $!");
-  safechmod($mode, $tempname) if $mode;
-  mv($tempname, $realname);
+  close(FILE) || error("close $name for write: $!");
+  safechmod($mode, $name) if $mode;
 }
 
 sub writefile($@)
@@ -520,24 +536,6 @@ sub writescript($@)
 {
   my($name, @contents) = @_;
   writefilemode($name, 0777, @contents);
-}
-
-sub whilefile(&$)
-{
-  my($sub, $file) = @_;
-  local(*FILE, $_);
-  open(FILE, "<$file") || error("open $file for read: $!");
-  while(defined($_ = <FILE>) && &$sub($_)) { }
-  close(FILE) || error("close $file for read: $!");
-  !defined($_);
-}
-
-sub readfile($)
-{
-  my($file) = @_;
-  my(@result);
-  whilefile { push(@result, $_) } $file;
-  @result;
 }
 
 sub safestat($)
@@ -1480,7 +1478,9 @@ sub setpkgurls($$@)
 
   my($verdir) = pkgpath($name, $version);
   my($urlfile) = path($verdir, urlfile);
-  writefile($urlfile, map("$_\n", @urls));
+  my($tmpfile) = addtmp($urlfile);
+  writefile($tmpfile, map("$_\n", @urls));
+  mv($tmpfile, $urlfile);
 }
 
 ##############################################################################
@@ -5235,6 +5235,7 @@ Wish list:
   - "toast status" should give information about stacking order
   - "toast rename" should rename armed packages by rewriting symlinks
   - directories in armdir should be read-only (mode 0555) by default
+  - "toast build" should be able to deal with perl modules
   - add "toast check": verify storedir and armdir integrity (and fix?)
   - toast get could be more robust w/r/t failures and concurrency
   - configure packages to use alternate /etc, /var, etc. when possible
