@@ -510,12 +510,6 @@ sub relln($$)
   ln($src =~ m|^/| ? findrelpath(dirname($target), $src) : $src, $target);
 }
 
-sub optln($$)
-{
-  my($source, $target) = @_;
-  ln($source, $target) unless -e($target) || -l($target);
-}
-
 sub optrelln($$)
 {
   my($source, $target) = @_;
@@ -666,7 +660,6 @@ sub rmall(@)
   true;
 }
 
-sub optrm(@) { rm(grep(-e || -l, @_)) }
 sub optrmall(@) { rmall(grep(-e || -l, @_)) }
 
 ##############################################################################
@@ -696,8 +689,8 @@ sub runimpl(@)
     $result = system(@prog);
   }
   return "exec @prog: $!" unless defined($result) && $result != -1;
-  my($code) = $? & 0xff;
-  my($sig) = ($? >> 8) & 0xff;
+  my($code) = ($? >> 8) & 0xff;
+  my($sig) = $? & 0xff;
   return "@prog failed (code $code, signal $sig)" if $?;
   return undef;
 }
@@ -3240,8 +3233,15 @@ sub polishrootdir($$)
       }
     } $libdir;
     my($mode) = getmode($libdir);
-    safechmod(0777, $libdir) if %liblinks;
-    optln($liblinks{$_}, path($libdir, $_)) for sort(keys(%liblinks));
+    for(sort(keys(%liblinks)))
+    {
+      my($from, $to) = ($liblinks{$_}, path($libdir, $_));
+      if(!-e($to) && !-l($to))
+      {
+        safechmod(0777, $libdir);
+        ln($from, $to);
+      }
+    }
     safechmod($mode, $libdir);
   }
 }
@@ -3448,19 +3448,6 @@ sub displace($)
   $_;
 }
 
-sub replace($)
-{
-  my($on) = @_;
-  rm($on);
-  my($off);
-  while(-e($off = addoff($on)))
-  {
-    mv($off, $on);
-    $on = $off;
-  }
-  true;
-}
-
 sub isempty($)
 {
   my($dir) = @_;
@@ -3516,37 +3503,35 @@ sub rebuildinfodir($)
   }
 
   my($mode) = getmode($dir);
-  safechmod(0777, $dir);
 
   if(!infodir)
   {
-    optrm($dirfile);
+    if(-e($dirfile) || -l($dirfile))
+    {
+      safechmod(0777, $dir);
+      rm($dirfile);
+    }
   }
   else
   {
     my($tmpfile) = addtmp($dirfile);
-    optrm($tmpfile);
+    if(-e($tmpfile) || -l($tmpfile))
+    {
+      safechmod(0777, $dir);
+      rm($tmpfile);
+    }
     my($tmpsuffix) = tmpsuffix;
     my($offsuffix) = offsuffix;
     abswhiledir
     {
-      m!(/dir|\Q$tmpsuffix\E|\Q$offsuffix\E|-\d+(\.info)?)$! or
-          optrun("install-info", $_, $tmpfile);
+      return true if !m!(/dir|\Q$tmpsuffix\E|\Q$offsuffix\E|-\d+(\.info)?)$!;
+      safechmod(0777, $dir);
+      optrun("install-info", $_, $tmpfile);
     } $dir;
     mv($tmpfile, $dirfile) if -e($tmpfile);
   }
 
   safechmod($mode, $dir);
-}
-
-sub postarm(;$$)
-{
-  my($armdir, $postarmprog) = @_;
-  $armdir = armdir unless defined($armdir);
-  $postarmprog = postarmprog unless defined($postarmprog);
-  rebuildinfodir($armdir);
-  run($postarmprog) if $postarmprog;
-  return true;
 }
 
 sub arm(@)
@@ -3581,7 +3566,7 @@ sub arm(@)
       if(!-d($dir))
       {
         my($parent) = dirname($dir);
-        safechmod(755, $parent);
+        safechmod(0777, $parent);
         md($dir);
         safechmod($mode, $parent);
       }
@@ -3599,18 +3584,24 @@ sub arm(@)
     sub
     {
       my($dir) = optpath(armdir, $_[0]);
-      optmd($dir);
-      safechmod(0777, $dir);
+      if(!-d($dir))
+      {
+        safechmod(0777, dirname($dir)) if defined($_[0]);
+        md($dir);
+      }
+      return true;
     },
     sub
     {
       my($target) = displace(optpath(armdir, $_[0]));
+      safechmod(0777, dirname($target));
       relative ? relln($_, $target) : ln($_, $target);
     },
     sub { safechmod($mode, optpath(armdir, $_[0])) }
   );
 
-  postarm;
+  rebuildinfodir(armdir);
+  run(postarmprog) if postarmprog;
 
   unlock(armdir);
 
@@ -3635,10 +3626,11 @@ sub disarm(@)
   my(@nvb) = @_; # see nvb comment below
 
   my(@armdirs) = allarmdirs;
-  my($i, $armdir);
+  my($i, $armdir, $anychanged);
   for $armdir (@armdirs)
   {
     lock($armdir);
+    my($changed);
 
     whilebuild
     {
@@ -3656,17 +3648,27 @@ sub disarm(@)
           if(-d($armsubdir) && !-l($armsubdir))
           {
             push(@dirmodes, getmode($armsubdir));
-            safechmod(0777, $armsubdir);
           }
           return true;
         },
         sub
         {
           my($rel) = @_;
-          my($armfile) = path($armdir, $rel); # BUG: $rel is sometimes undef?
+          my($armfile) = path($armdir, $rel);
           while(-e($armfile) || -l($armfile))
           {
-            return replace($armfile) if optsamefile($armfile, $_);
+            if(optsamefile($armfile, $_))
+            {
+              safechmod(0777, dirname($armfile));
+              rm($armfile);
+              my($off);
+              while(-e($off = addoff($armfile)) || -l($off))
+              {
+                mv($off, $armfile);
+                $armfile = $off;
+              }
+              return $changed = true;
+            }
             $armfile = addoff($armfile);
           }
           return true;
@@ -3678,7 +3680,9 @@ sub disarm(@)
           if(-d($armsubdir) && !-l($armsubdir))
           {
             my($mode) = pop(@dirmodes);
-            isempty($armsubdir) ? rd($armsubdir) : safechmod($mode, $armsubdir);
+            return safechmod($mode, $armsubdir) unless isempty($armsubdir);
+            safechmod(0777, dirname($armsubdir)) if @dirmodes;
+            rd($armsubdir);
           }
           return true;
         }
@@ -3687,7 +3691,8 @@ sub disarm(@)
       return true;
     } @nvb; # can't replace @nvb with ($n, $v, $b) due to perl 5.6.1 bug (?)
 
-    postarm($armdir, ++$i == scalar(@armdirs) ? postarmprog : "");
+    rebuildinfodir($armdir) if $changed;
+    run(postarmprog) if ++$i == scalar(@armdirs) && $anychanged && postarmprog;
     unlock($armdir);
   }
 
@@ -6183,7 +6188,7 @@ Known bugs:
   - autofind chooses Linux binaries over source for doxygen
   - build fails for: jikes, sirc, netcat, lcab, gv, bittorrent
   - if x/1 is armed and x/2 is built, "toast rebuild x" also arms x/2
-  - toast disarm fails spuriously whenever an altarmdir isn't writable
+  - "toast build" arms newly built packages for no apparent reason
 
 Wish list:
 
