@@ -2170,7 +2170,7 @@ sub findnewpkg($$)
       $notfound = /^Error: project not found/i ? 1 : 0 if !defined($notfound);
       $fmurl{$1} = $2 while m!<url_(\w+)>([^<]+)</!g;
     }
-    close(XML) || error;
+    close(XML) || error("unable to contact freshmeat.net");
 
     error("no listing for package $name on $sitename") if $notfound;
 
