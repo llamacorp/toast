@@ -2167,7 +2167,7 @@ sub configure($$)
         $self ||= /this is toast 89a72ef9c34e1fd4927afa36c9be8b15/;
         $twowordprefix ||= /^\s*prefix=\$2; shift;;$/; # ocaml
         $builddir ||= /error: you must configure in a separate build/; # glibc
-        $builddir ||= /unning configure in a source directory is not rec/;#arch
+        $builddir||=m!\. \$srcdir/build-tools/scripts/configure-top !;#arch/tla
         $bogus ||= /There is no .+configure.+ script .+Instead/i; # libpng
         s/(^\s*)read\s+(acceptance)(\s*$)/$1$2=yes$3/; # qt license
         if(reconfigure)
