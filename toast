@@ -1572,6 +1572,195 @@ sub debextractstdin()
   error;
 }
 
+BEGIN # built-in gunzip (zcat)
+{
+  my($inbuf, $inlen, $outbuf, $written);
+  my(@llens) = qw[3 4 5 6 7 8 9 10 11 13 15 17 19 23 27 31 35 43 51 59 67 83
+      99 115 131 163 195 227 258];
+  my(@lbits) = qw[0 0 0 0 0 0 0 0 1 1 1 1 2 2 2 2 3 3 3 3 4 4 4 4 5 5 5 5 0];
+  my(@dists) = qw[1 2 3 4 5 7 9 13 17 25 33 49 65 97 129 193 257 385 513 769
+      1025 1537 2049 3073 4097 6145 8193 12289 16385 24577];
+  my(@dbits) = qw[0 0 0 0 1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 8 9 9 10 10 11 11 12
+      12 13 13];
+  my(@order) = qw[16 17 18 0 8 7 9 6 10 5 11 4 12 3 13 2 14 1 15];
+
+  sub zread($)
+  {
+    my($len) = @_;
+    my($ofs, $buf) = 0;
+    while($len > 0)
+    {
+      my($ret) = read(STDIN, $buf, $len, $ofs);
+      defined($ret) or die("read: $!");
+      die("unexpected EOF") if $ret == 0;
+      $ofs += $ret;
+      $len -= $ret;
+    }
+    return $buf;
+  }
+
+  sub readbit()
+  {
+    ($inbuf, $inlen) = (unpack("C", zread(1)), 8) unless $inlen;
+    return ($inbuf & (1 << (8 - $inlen--))) ? 1 : 0;
+  }
+
+  sub nextbyte()
+  {
+    readbit && die("bad pad bit") while $inlen;
+  }
+
+  sub readbits($)
+  {
+    my($result, $bits) = (0, @_);
+    $result |= readbit << $_ for(0..$bits-1);
+    return $result;
+  }
+
+  sub inithuff(@)
+  {
+    my(@lens) = @_;
+    my($maxlen) = 0;
+    $_ > $maxlen && ($maxlen = $_) for @lens;
+    my(%result) = (maxlen => $maxlen);
+    my($code, $len) = 0;
+    for $len (1..$maxlen)
+    {
+      $code <<= 1;
+      for(0..$#lens)
+      {
+        $result{sprintf("\%0${len}b", $code++)} = $_ if $lens[$_] == $len;
+      }
+    }
+    return %result;
+  }
+
+  sub readhuff(%)
+  {
+    my(%map) = @_;
+    my($maxlen) = $map{"maxlen"};
+    my($bits) = "";
+    while(length($bits) < $maxlen)
+    {
+      $bits .= readbit;
+      return $map{$bits} if exists($map{$bits});
+    }
+    die("bad huffman code: $bits");
+  }
+
+  sub zwrite($)
+  {
+    my($data) = @_;
+    $written += length($data);
+    $outbuf .= $data;
+    substr($outbuf, 0, length($outbuf) - 32768) = "" if length($outbuf) > 65536;
+    print($data);
+  }
+
+  sub zcat()
+  {
+    my($id1, $id2, $cm, $flg) = unpack("C4", zread(10));
+    die("bad magic: $id1 $id2") unless $id1 == 31 && $id2 == 139;
+    die("bad cm: $cm") unless $cm == 8;
+    die("bad flags: $flg") if $flg & 0xe0;
+    zread(unpack("v", zread(2))) if $flg & 4; # FEXTRA
+    if($flg & 8) { while(zread(1) ne "\x00") { } } # FNAME
+    if($flg & 16) { while(zread(1) ne "\x00") { } } # FCOMMENT
+    zread(2) if $flg & 2; # FHCRC
+
+    ($written, $outbuf) = (0, "");
+    my($bfinal);
+    do
+    {
+      $bfinal = readbit;
+      my($btype) = readbits(2);
+      if($btype == 3)
+      {
+        die("bad btype");
+      }
+      elsif($btype == 0) # no compression
+      {
+        nextbyte;
+        my($len, $nlen) = unpack("v2", zread(4));
+        die("bad nlen: $len $nlen") if $nlen != (65535 - $len);
+        zwrite(zread($len));
+      }
+      else
+      {
+        my(%llmap, %dmap, $ll);
+        if($btype == 1) # fixed Huffman
+        {
+          $llmap{sprintf('%07b', $_)} = $_ + 256 for 0..23;
+          $llmap{sprintf('%08b', $_ + 48)} = $_ for 0..143;
+          $llmap{sprintf('%08b', $_ + 192)} = $_ + 280 for 0..7;
+          $llmap{sprintf('%09b', $_ + 400)} = $_ + 144 for 0..111;
+          $llmap{"maxlen"} = 9;
+          $dmap{sprintf('%05b', $_)} = $_ for 0..29;
+          $dmap{"maxlen"} = 5;
+        }
+        else # dynamic Huffman
+        {
+          my($hlit, $hdist, $hclen) = map(readbits($_), 5, 5, 4);
+          my(@rawclens, @clens, @lens);
+          push(@rawclens, readbits(3)) for 1..4+$hclen;
+          $clens[$order[$_]] = $rawclens[$_] || 0 for 0..$#order;
+          my(%cmap) = inithuff(@clens);
+          while(scalar(@lens) < $hlit + $hdist + 258)
+          {
+            my($code) = readhuff(%cmap);
+            if($code == 16)
+            {
+              die("no last code") unless @lens;
+              my($last) = $lens[$#lens];
+              push(@lens, $last) for 1..3+readbits(2);
+            }
+            elsif($code == 17)
+            {
+              push(@lens, 0) for 1..3+readbits(3);
+            }
+            elsif($code == 18)
+            {
+              push(@lens, 0) for 1..11+readbits(7);
+            }
+            else
+            {
+              push(@lens, $code);
+            }
+          }
+          %llmap = inithuff(@lens[0..$hlit+256]);
+          %dmap = inithuff(@lens[$hlit+257..$hlit+$hdist+257]);
+        }
+
+        while(256 != ($ll = readhuff(%llmap)))
+        {
+          if($ll < 256)
+          {
+            zwrite(chr($ll));
+          }
+          else
+          {
+            my($i) = $ll - 257;
+            my($len) = $llens[$i] + readbits($lbits[$i]);
+            my($dist) = $dists[$i = readhuff(%dmap)] + readbits($dbits[$i]);
+            zwrite(substr($outbuf, length($outbuf) - $dist, 1)) for(1..$len);
+          }
+        }
+      }
+    } until($bfinal);
+    my($crc32, $isize) = unpack("V2", zread(8));
+    die("bad isize: $isize != $written") unless $isize == $written;
+  }
+}
+
+sub zfork()
+{
+  explain("falling back on built-in gunzip");
+  return true if forkstdin;
+  zcat;
+  exit(0);
+  error;
+}
+
 sub extractstdin($)
 {
   my($type) = @_;
@@ -1588,7 +1777,7 @@ sub extractstdin($)
   if($type =~ /^\.(Z|gz|bz2)$/)
   {
     my($prog) = $type eq ".bz2" ? "bunzip2" : "gunzip";
-    open(STDIN, "$prog |") || error("$prog: $!");
+    open(STDIN, "$prog |") || $prog eq "gunzip" && zfork || error("$prog: $!");
     binmode(STDIN) || error("binmode stdin: $!"); # perl 5.8.0 utf8 bug
     autoextractstdin;
     error;
@@ -5499,21 +5688,20 @@ are given, acts on the latest version of every existing package.
 Packages that already have at least one C<built> or C<armed> build (as
 reported by B<toast status>) are skipped by this command without causing
 an error; use B<toast rebuild> to force such packages to be rebuilt.
-Building may involve implicitly invoking B<toast get>, decompressing
-and extracting archives, applying patch files, compiling a new build
-of the package and installing it in a build-specific directory tree.
-Supported archive formats include compress, gzip, bzip2, zip, rpm,
-deb, cpio, tar, shar, patch, and most combinations of the above.
-You don't need to have RPM installed to extract .rpm files; gunzip and
-cpio usually suffice.  Similarly, only gunzip and tar should be required
-to extract .deb files.  Note that toast completely ignores dependencies
-and other meta-information in .rpm and .deb files; only the raw binaries
-are extracted and used.  Archives should contain either precompiled
-binaries or source code, which will be identified and/or built according
-to heuristics too mind-numbing to describe completely; in the case of
-source files, a C<configure> script, C<Makefile> or similar is often
-required.  Many options can influence this command's behavior; see the
-options reference for full details.
+Building may involve implicitly invoking B<toast get>, decompressing and
+extracting archives, applying patch files, compiling a new build of the
+package and installing it in a build-specific directory tree.  Supported
+archive formats include compress, gzip, bzip2, zip, rpm, deb, cpio,
+tar, shar, patch, and most combinations of the above.  You don't need to
+have RPM installed to extract .rpm files; cpio should usually suffice.
+Similarly, only tar should be required to extract .deb files.  Note that
+toast completely ignores dependencies and other meta-information in .rpm
+and .deb files; only the raw binaries are extracted and used.  Archives
+should contain either precompiled binaries or source code, which will
+be identified and/or built according to heuristics too mind-numbing to
+describe completely; in the case of source files, a C<configure> script,
+C<Makefile> or similar is often required.  Many options can influence
+this command's behavior; see the options reference for full details.
 
 =item S<B<toast arm> [ I<BUILD> | I<PACKAGE> ...]>
 
@@ -6227,6 +6415,8 @@ Known bugs:
 
 Wish list:
 
+  - simpler setup for root: auto-create toast user? (email 7/21/04)
+  - deal better with missing gcc: clearer error msg? (email 7/21/04)
   - error messages that explain command usage (gale 2004-05-06 17:08:20)
   - convenient way to specify storedir, etc. during first time setup
   - work around lack of getenv(), mkdir(), etc. in microperl...?
