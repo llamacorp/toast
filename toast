@@ -1111,21 +1111,21 @@ sub autoextractstdin()
 
 sub rpmextractstdin()
 {
-  autoextractstdin if forkstdin;
-
-  local($_) = readstdin(96);
-  /^\xed\xab\xee\xdb[\x03\x04]/ || error("not rpm v3 or v4");
+  my($lead) = readstdin(96);
+  $lead =~ /^\xed\xab\xee\xdb[\x03\x04]/ || error("not rpm v3 or v4");
 
   my($pad) = 0;
-  while(magicstring($_ = readstdin(16 + $pad)) !~ /^\..z/i)
+  my($hdr);
+  while(magicstring($hdr = readstdin(16 + $pad)) !~ /^\..z/i)
   {
-    my($magic, $zero, $sections, $bytes) = unpack("x$pad N4", $_);
+    my($magic, $zero, $sections, $bytes) = unpack("x$pad N4", $hdr);
     $magic == 0x8eade801 || error(sprintf("bad rpm header: %08x", $magic));
     skipstdin($bytes + 16*$sections);
     $pad = (8 - $bytes%8) % 8;
   }
 
-  dumpstdin($_);
+  forkstdin ? extractstdin(magicstring($hdr)) : dumpstdin($hdr);
+  error;
 }
 
 sub extractstdin($)
@@ -5189,11 +5189,10 @@ Known bugs:
   - toast arm/disarm can leave info.dir in the wrong state
   - gimp will load plugins from other armed versions despite .off suffix
   - "toast upgrade gcc" doesn't work (ftp site has a subdir per version)
-  - can't extract nss-tools-3.4.1-2.i686.rpm in some environments (?)
   - build overrides LD_PRELOAD instead of appending [space-separated]
   - autofind fails for: sleepycat db, gcc, latex, gv, GNU arch (?), ogle
   - build fails for: jikes, sirc, netcat, lcab, busybox (ow!), gv
-  - "toast --autoremove --crossversion upgrade toast" fails w/ NFS
+  - "toast --autoremove --crossversion upgrade toast" breaks everything
   - if x/1/1 is armed and x/1/2 is built, "toast arm x" does nothing
 
 Wish list:
