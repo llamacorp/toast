@@ -798,13 +798,14 @@ sub openhttp(*$;$;$)
   $method ||= "GET";
   $proxy = httpproxy unless defined($proxy);
   explain("fetching $url");
-  $url =~ m!^(\w+)://([\w\.]+)(:(\d+))?(/[\!-\~]*)?$! || error("bad url: $url");
+  $url =~ m!^(\w+)://([-\w\.]+)(:(\d+))?(/[\!-\~]*)?$! ||
+      error("bad url: $url");
   my($proto, $host, $port, $path) = ($1, $2, $4 || 80, $5 || '/');
   my($hdrhost) = $port == 80 ? $host : "$host:$port";
   if($proxy)
   {
     $path = "$proto://$host:$port$path";
-    $proxy =~ m!^(\w+://)?([\w\.]+)(:(\d+))?([^:]+)(:(\d+))?/?$!
+    $proxy =~ m!^(\w+://)?([-\w\.]+)(:(\d+))?([^:]+)(:(\d+))?/?$!
         || error("bad proxy URL: $proxy");
     ($host, $port) = ($2, $4 || 8080);
   }
@@ -2588,7 +2589,7 @@ sub inithelpers($$$)
       "[");
   helprewrite($srcdir, $rootdir, $helperdir, $_, true)
       foreach (qw[mv]);
-  helpnop($helperdir, $_) foreach (qw[chown chgrp ldconfig install-info]);
+  helpnop($helperdir, $_) for (qw[chown chgrp ldconfig install-info mknod]);
   $env{PATH} = "$helperdir:$env{PATH}";
 
   my($preload) = helplib($srcdir, $rootdir, $helperdir);
@@ -6126,7 +6127,8 @@ hostname of the B<toast> distribution site, C<toastball.net>.
 
 Known bugs:
 
-  - autofind produces URLs with extra slashes, e.g. "toast arm flex"
+  - autofind produces URLs with extra slashes, e.g. "toast arm flex" (?)
+  - toast guesses device/mapper-1.00.17 for device-mapper.1.00.17.tgz
   - make oldconfig isn't running for linux/2.6.x
   - toast add misguesses device-mapper name/version from URL
   - autofind hangs in httphead() when going through tinyproxy?
@@ -6144,6 +6146,7 @@ Known bugs:
 
 Wish list:
 
+  - automatically "toast env"-ify environment during "toast build"
   - work around lack of getenv(), mkdir(), etc. in microperl...?
   - "toast upgrade" w/o args should imply --nostoponerror or something
   - "toast arm" should move armed packages to top of stacking order
