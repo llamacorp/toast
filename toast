@@ -2343,15 +2343,17 @@ sub make($)
   my($dir) = @_;
   my($mf) = makefile($dir) || error("no Makefile found");
 
+  my($abort) = false;
   my($ok) = true;
   my($systype) = false;
   my($lk) = false; # blatant special case for the Linux kernel
   my($xf86) = false; # blatant special case for XFree86
   my($ocaml) = false; # ditto ocaml
   my($please) = ""; # blatant special case for xdaliclock
+  my($figlet);
 
   explain("examining $mf...");
-  return false unless whilefile
+  patch
   {
     $systype ||= /You must specify the system which you want to compil/;#mpg123
     $systype ||= /If you're not sure about the characteristics of your /;#unzip
@@ -2359,9 +2361,12 @@ sub make($)
     $xf86 ||= /Please use make World/i;
     $ocaml ||= /^\# For users who don't read the INSTALL file$/; #thanks ocaml!
     $please = $1 if /  please make one of: "([^"]+)"/;
-    !/^all:[^\#]*\binstall\b/; # abort if all implies install (e.g. man-pages)
+    $abort ||= /^all:[^\#]*\binstall\b/; # all implies install (e.g. man-pages)
+    s/^DEFAULTFONTDIR = fonts$/# $&/ if $figlet;
+    $figlet ||= m!^DEFAULTFONTDIR = /usr.*/figlet$!;
   } $mf;
 
+  return false if $abort;
   my(@prog) = "make";
   my(@targets);
   @targets = $^O if $systype;
