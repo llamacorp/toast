@@ -159,6 +159,7 @@ BEGIN
     "username" => "toast",
     "postarmprog" => superuser ? "/sbin/ldconfig" : "",
     "verbose" => true,
+    "autofind" => true,
     "autoclean" => true,
     "autopurge" => false,
     "autoarm" => true,
@@ -1167,6 +1168,12 @@ sub whilebuild(&@)
 
 ##############################################################################
 
+sub isadded($$)
+{
+  my($name, $version) = @_;
+  return -d(pkgpath($name, $version));
+}
+
 sub isstored($$)
 {
   my($name, $version) = @_;
@@ -1175,7 +1182,8 @@ sub isstored($$)
 
 sub isbuilt(@)
 {
-  return !whilebuild
+  my($name, $version, $build) = @_;
+  return isadded($name, $version) && !whilebuild
   {
     my($name, $version, $build) = @_;
     return !-f(path(pkgpath($name, $version, $build), buildlog));
@@ -1223,6 +1231,65 @@ sub isarmed(@)
 
 ##############################################################################
 
+sub findnewpkg($$)
+{
+  my($name, $version) = @_;
+  defined($name) || error;
+  $name =~ /^\w+$/ || error("invalid package name: $name");
+  my($lcname) = lc($name);
+
+  local(*XML, $_);
+  my($sitename) = "freshmeat.net";
+  openurl(*XML, "http://freshmeat.net/projects-xml/$lcname/$lcname.xml");
+  my($notfound, %fmurl);
+  while(<XML>)
+  {
+    $notfound = /^Error: project not found/i ? 1 : 0 unless defined($notfound);
+    $fmurl{$1} = $2 while m!<url_(\w+)>([^<]+)</!g;
+    $version = $1 if !defined($version) && m!<latest_version>([^<]+)</!;
+  }
+  close(XML) || error;
+
+  error("no listing for package $name on $sitename") if $notfound;
+
+  my($listurl);
+  $listurl ||= $fmurl{$_} for qw(bz2 tgz zip rpm);
+  $listurl || error("no suitable URL for package $name on $sitename");
+  defined($version) || error("no version for package $name on $sitename");
+
+  local(*LIST);
+  openurl(*LIST, $listurl);
+  my(@urls);
+  if(!-B(LIST))
+  {
+    while(<LIST>)
+    {
+      while(m!\bhref\s*=\s*"([^"]+)"!gi)
+      {
+        my($url) = $1;
+        next unless $url =~ m!^(http|ftp)://!;
+        next if $url =~ m/\#/;
+        my($noquery) = stripquery($url);
+        next unless $noquery =~ m!\.\w+$!;
+        my($basename) = basename($noquery);
+        next unless $basename =~ /\Q$name\E/i;
+        next unless $basename =~ /\Q$version\E/i;
+        push(@urls, $url);
+      }
+    }
+  }
+  close(LIST) || error;
+
+  my($ext);
+  for $ext (qw[.tar.bz2 .tar.gz .tgz .zip .rpm])
+  {
+    my(@matches) = grep(stripquery($_) =~ /\Q$ext\E$/i, @urls);
+    return ($name, $version, $matches[0]) if @matches;
+  }
+
+  error("can't find URLs for $name version $version at $listurl");
+}
+
 sub pkgurls($$)
 {
   my($name, $version) = @_;
@@ -1240,7 +1307,12 @@ sub add(@)
   my($name, $version, $build, @urls) = @_;
 
   $build && error;
-  @urls || error;
+  $name || @urls || error;
+
+  ($name, $version, @urls) = findnewpkg($name, $version)
+      unless @urls || !autofind;
+  @urls || error("autofind is disabled; please specify URL(s) for " .
+      pkgname($name, $version));
 
   $name = "unknown" unless defined($name);
   my($namedir) = pkgpath($name);
@@ -1378,7 +1450,7 @@ sub get(@)
   my($name, $version, $build, @urls) = @_;
   my($autorename) = !defined($version);
 
-  ($name, $version) = add(@_) if @urls;
+  ($name, $version) = add(@_) if @urls || !isadded($name, $version);
 
   $build && error;
   defined($name) || error;
@@ -2973,34 +3045,33 @@ sub parse(@)
   while(@_)
   {
     local($_) = shift;
-    my($name, $version, $build, @urls, $exists, $multi, $split);
+    my($name, $version, $build, @urls, $nourls, $multi, $split);
 
     if($_ ne "[" && m!^([^:/\.]*)(/([^:/]+)(/([1-9]\d*))?)?(:?)$!)
     {
       my($oname, $oversion);
-      ($oname, $oversion, $build, $exists) = ($1, $3, $5, !$6);
+      ($oname, $oversion, $build, $nourls) = ($1, $3, $5, !$6);
       ($name, $version) = findpkg($oname, $oversion);
-      if(!$exists)
+      if(!$nourls)
       {
         defined($oversion) || error("missing version number: \"$_\"");
         defined($build) && error("unexpected build number: \"$_\"");
-        @_ || error("expected file after \"$_\"");
+        @_ || error("expected file or URL after \"$_\"");
         $_ = shift;
       }
       elsif(defined($oversion) && !defined($version))
       {
-        $exists = false;
-        -e || error("no such file or package: \"$_\"");
+        $nourls = false if -e;
       }
       else
       {
-        defined($name) || error("no such package: $oname");
         !defined($build) || isbuild($name, $version, $build) ||
             error("no such build: ", pkgname($name, $version, $build));
       }
+      ($name, $version) = ($oname, $oversion) unless defined($name);
     }
 
-    if(!$exists)
+    if(!$nourls)
     {
       if(s/^\[//)
       {
@@ -3049,6 +3120,30 @@ sub parse(@)
   return @result;
 }
 
+sub cmd_parse(@)
+{
+  print("parsed ", scalar(@_), " argument(s)\n");
+  my($index) = 0;
+  for(parse(@_))
+  {
+    my($name, $version, $build, @urls) = @$_;
+    print("argument ", ++$index, ":\n");
+    print(defined($name) ? "  name: $name\n" : "  no name\n");
+    print(defined($version) ? "  version: $version\n" : "  no version\n");
+    print(defined($build) ? "  build: $build\n" : "  no build\n");
+    if(!@urls)
+    {
+      print("  no urls\n");
+    }
+    else
+    {
+      print("  urls:\n");
+      print("    $_\n") for @urls;
+    }
+  }
+  true;
+}
+
 ##############################################################################
 
 sub rejectall(@)
@@ -3074,22 +3169,13 @@ sub allowempty(@)
   @_ ? @_ : [];
 }
 
-sub requireurls(@)
+sub rejectmissing(@)
 {
   for(@_)
   {
     my($name, $version, $build, @urls) = @$_;
-    @urls || error(pkgname($name, $version) . " already exists");
-  }
-  @_;
-}
-
-sub rejecturls(@)
-{
-  for(@_)
-  {
-    my($name, $version, $build, @urls) = @$_;
-    @urls && error("unexpected URL: $urls[0]");
+    error("no such package: ", pkgname($name, $version)) unless
+        defined($version) ? isversion($name, $version) : isname($name)
   }
   @_;
 }
@@ -3111,7 +3197,7 @@ sub uselatestversion(@)
   for(@_)
   {
     my($name, $version, $build, @urls) = @$_;
-    $version = latestversion($name, $version) unless @urls;
+    $version = latestversion($name, $version) if isname($name);
     push(@result, [$name, $version, $build, @urls]);
   }
   @result;
@@ -3123,8 +3209,10 @@ sub uselatestbuild(@)
   for(@_)
   {
     my($name, $version, $build, @urls) = @$_;
-    $version = latestversion($name, $version) unless @urls;
-    $build = latestbuild($name, $version, $build) unless @urls;
+    $version = latestversion($name, $version)
+        if isname($name);
+    $build = latestbuild($name, $version, $build)
+        if isversion($name, $version);
     push(@result, [$name, $version, $build, @urls]);
   }
   @result;
@@ -3132,17 +3220,17 @@ sub uselatestbuild(@)
 
 ##############################################################################
 
-sub parse_add(@) { rejectempty(requireurls(parse(@_))); }
+sub parse_add(@) { rejectempty(parse(@_)); }
 sub parse_get(@) { rejectempty(uselatestversion(rejectbuilds(parse(@_)))); }
 sub parse_build(@) { allowempty(uselatestversion(rejectbuilds(parse(@_)))); }
-sub parse_clean(@) { allowempty(rejecturls(parse(@_))); }
+sub parse_clean(@) { allowempty(rejectmissing(parse(@_))); }
 sub parse_arm(@) { rejectempty(uselatestbuild(parse(@_))); }
-sub parse_disarm(@) { rejectempty(rejecturls(parse(@_))); }
-sub parse_demolish(@) { rejectempty(rejecturls(parse(@_))); }
-sub parse_purge(@) { rejectempty(rejecturls(rejectbuilds(parse(@_)))); }
-sub parse_remove(@) { rejectempty(rejecturls(parse(@_))); }
+sub parse_disarm(@) { rejectempty(rejectmissing(parse(@_))); }
+sub parse_demolish(@) { rejectempty(rejectmissing(parse(@_))); }
+sub parse_purge(@) { rejectempty(rejectmissing(rejectbuilds(parse(@_)))); }
+sub parse_remove(@) { rejectempty(rejectmissing(parse(@_))); }
 sub parse_rename(@);
-sub parse_status(@) { allowempty(parse(@_)); }
+sub parse_status(@) { allowempty(rejectmissing(parse(@_))); }
 sub parse_check(@) { rejectall(@_); }
 sub parse_help(@) { allowall(@_); }
 sub parse_man(@) { rejectall(@_); }
@@ -3457,28 +3545,31 @@ packages are also supported.
 
 =item S<B<toast add> I<PACKAGE> ...>
 
-Adds new packages to the repository by storing URLs.  Use this command to
-store package file locations without actually downloading anything.  Each
-I<PACKAGE> must specify at least one URL or file; existing package names
-are not allowed here.  Absolute and relative pathnames are automatically
-translated into file URLs.  If the given package already exists, the
-command succeeds only if the given URLs match those stored previously
+Adds new packages to the repository by storing URLs.  Use this command
+to store package file locations without actually downloading anything.
+Each I<PACKAGE> must specify at least one URL or file unless the
+B<autofind> option is enabled.  Absolute and relative pathnames are
+automatically translated into file URLs.  If the given package has
+already been added, the command merely compares the given URLs against
+those already stored and gives an error if they don't match.
 
 =item S<B<toast get> I<PACKAGE> ...>
 
-Downloads the given packages' files into the repository.  If a I<PACKAGE>
-specifies a file or URL, B<toast add> is implied.
+Downloads the given packages' files into the repository.  Implies B<toast
+add>.  After this command completes successfully, other commands will
+be able to operate on the package without downloading any additional
+files from the network.
 
 =item S<B<toast build> I<PACKAGE> ...>
 
-Creates a new build for one or more packages.  This involves extracting
-archives, applying patch files, compiling a new build of the package
-and "installing" it in a build-specific directory tree.  Each package
-can have any number of independent builds.  Builds for a given package
-are automatically assigned sequential numbers starting from 1.  If the
-package is not stored, or if URLs are given, B<toast get> is implied.
-Many options can influence this command's behavior; see the options
-reference for complete details.
+Creates a new build for one or more packages.  This may involve
+implicitly invoking B<toast add>, extracting archives, applying patch
+files, compiling a new build of the package and "installing" it in
+a build-specific directory tree.  Each package can have any number of
+independent builds.  Builds for a given package are automatically assigned
+sequential numbers starting from 1.  If the package is not stored, or
+if URLs are given, B<toast get> is implied.  Many options can influence
+this command's behavior; see the options reference for complete details.
 
 =item S<B<toast clean> [ I<BUILD> | I<PACKAGE> ...]>
 
@@ -3512,7 +3603,7 @@ probably meant to invoke B<toast build> with the C<autoarm> option set.
 
 =item S<B<toast disarm> I<BUILD> | I<PACKAGE> ...>
 
-Deletes symlinks craated by B<toast arm>.  This works by removing symbolic
+Deletes symlinks created by B<toast arm>.  This works by removing symbolic
 links to the given build and replacing any links that had been moved
 out of the way.  If no build number is given, all C<armed> builds are
 disarmed.  If the package version number is also omitted, all C<armed>
@@ -3611,8 +3702,11 @@ not all commands accept all of these forms; in fact, some commands
 
 =item I<NAME>[B</>I<VERSION>]
 
-This syntax is used to refer to an existing package.  If the version
-number is omitted, the latest existing version is used, except when
+This syntax can be used to refer to an existing package.  If the
+package does not exist and the B<autofind> option is set, it will be
+located automatically; if B<VERSION> is omitted, the latest available
+version will be used.  If B<NAME> matches a previously-added package and
+B<VERSION> is omitted, the latest existing version is used, except when
 the documentation for the command specifically says that it affects all
 versions or operates on "sets of packages," in which case all versions
 are affected.  Examples: C<wget>, C<gcc/3.2.2>, C<openssl/0.9.7b>
@@ -3628,19 +3722,22 @@ Examples: C<xdaliclock/2.19/1>, C<glibc/2.3.2/4>.
 =item S<[ I<NAME>B</>I<VERSION>B<:> ] I<URL>>
 
 This syntax is most often used to implicitly add a new package by
-URL, though certain commands also allow it to be used to refer to
-an existing package.  If the package name and version are omitted,
-they will be guessed based on the filename in the URL.  Examples:
-C<ftp://alpha.gnu.org/gnu/tar/tar-1.13.25.tar.gz>,
-S<C<ps/3.1.8: http://procps.sf.net/procps-3.1.8.tar.gz>>.
+URL, though many commands also allow it to be used to refer to an
+existing package.  If the package name and version are omitted,
+they will be guessed based on the filename portion of the URL; if
+the package already exists, it will be found only if the guessed
+name and version match those used to add it.  An error will occur
+if the given package exists but has different URLs.  Examples:
+C<ftp://alpha.gnu.org/gnu/tar/tar-1.13.25.tar.gz>, S<C<ps/3.1.8:
+http://procps.sf.net/procps-3.1.8.tar.gz>>.
 
 =item S<[ I<NAME>B</>I<VERSION>B<:> ] I<PATH>>
 
 This syntax can be used to add a new package from a local file.
 The given path is automatically translated into an absolute file URL.
-Unlike a file URL, the path will be checked as soon as it is parsed to
-ensure that it refers to a readable file; if it does not, a fatal parse
-error will be displayed and the entire command will not be invoked,
+Unlike a file URL, the path will be checked as soon as it is parsed
+to ensure that it refers to a readable file; if it does not, a fatal
+parse error will occur and the entire command will not be invoked,
 even if previous arguments were parsed without error, the package
 already exists, or the B<stoponerror> option is disabled.  Examples:
 S<C<myprog/0.1test: myprog.zip>>, C</home/anandam/gdb-5.3.tar.gz>,
@@ -3721,6 +3818,14 @@ root, empty string otherwise.
 Enables or disables verbose command output.  When disabled, most commands
 will produce output only on failure.  Some commands, such as B<toast
 status>, are not affected by this flag.  Default: enabled.
+
+=item S<B<--autofind> | B<--noautofind>>
+
+When B<autofind> is enabled, B<toast add> and other commands will
+automatically look up package URLs on freshmeat.net when none have
+been added previously or given explicitly.  If no version number is
+given either, the latest version listed on freshmeat.net will be used.
+Default: enabled.
 
 =item S<B<--autoclean> | B<--noautoclean>>
 
