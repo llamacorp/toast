@@ -3024,7 +3024,22 @@ sub configure($$)
 
   # OK, how about an Imakefile?
   my($imf) = path($dir, "Imakefile");
-  return $dir if -r($imf) && cdrun($dir, "xmkmf");
+  if(-r($imf))
+  {
+    my($xaw3d); # cajole standalone Xaw3d build
+    patch
+    {
+      $xaw3d = 0 if $xaw3d && s/^XCOMM\s+//;
+      $xaw3d = 1 if !defined($xaw3d) && /^XCOMM When.*outside an X11 source t/;
+    } $imf;
+    if(defined($xaw3d))
+    {
+      md(path($dir, "X11"));
+      ln("..", path($dir, "X11", lastitem(unpath($dir))));
+    }
+    cdrun($dir, "xmkmf");
+    return $dir;
+  }
 
   # perl modules have a Makefile.PL script that spits out a Makefile
   my($mfpl) = path($dir, "Makefile.PL");
@@ -3364,6 +3379,7 @@ sub mkrootdir($$)
 sub compilebin($$)
 {
   my($srcdir, $rootdir) = @_;
+  return false if -d(path($srcdir, "xc")); # Xaw3d
   my($one);
   my($ok);
   abswhiledir
@@ -6425,6 +6441,7 @@ Known bugs:
       wxpython
   - autofind chooses Linux binaries over source for doxygen
   - autofind chooses old (2001) version of Postfix
+  - autofind chooses "libraries only" version of xfig
   - build fails for: jikes, sirc, netcat, lcab, gv, bittorrent, xmlcatmgr
   - if x/1 is armed and x/2 is built, "toast rebuild x" also arms x/2
   - "toast build" arms newly built packages for no apparent reason
