@@ -258,6 +258,7 @@ BEGIN
     "armdir" => superuser ? "/usr/local" : "armed",
     "altarmdirs" => "",
     "username" => "toast",
+    "fallbackuid" => 23,
     "postarmprog" => superuser ? "/sbin/ldconfig" : "",
     "editprog" => "",
     "defaultcmd" => "help",
@@ -1310,26 +1311,57 @@ sub mkcmdline(@)
 
 ##############################################################################
 
-sub getuidgid()
+BEGIN
 {
-  my($username) = username;
-  my($name, $passwd, $uid, $gid) = getpwnam($username);
-  error("getpwnam $username: $!") unless defined($name);
-  return ($uid, $gid);
-}
+  my($uid, $gid, $usertext);
 
-sub dropprivs()
-{
-  return unless superuser;
-  my($username) = username;
-  explain("running as user $username");
-  my($uid, $gid) = getuidgid;
-  $uid || error("refusing to run as root");
-  $( = $gid;
-  $) = "$gid $gid";
-  ($<, $>) = ($uid, $uid);
-  $> == $< || error("real and effective UIDs do not match");
-  $> == $uid || error("uid is not set correctly");
+  sub initnonroot()
+  {
+    error unless superuser;
+    return if $uid;
+    $usertext = username;
+    my($name);
+    ($name, undef, $uid, $gid) = getpwnam($usertext);
+    return if defined($name);
+    my($tryuid) = fallbackuid;
+    error("no such user: $usertext") unless $tryuid;
+    explain("no such user: $usertext");
+    for(1..65535)
+    {
+      if(!defined(getpwuid($tryuid)))
+      {
+        explain("falling back on uid $tryuid, gid $tryuid");
+        ($uid, $gid, $usertext) = ($tryuid, $tryuid, $tryuid);
+        return;
+      }
+      ++$uid;
+      $uid = 1 if $uid == 65536;
+    }
+    error("can't find unused uid");
+  }
+
+  sub chownnonroot(@)
+  {
+    my(@files) = @_;
+    return true unless superuser;
+    initnonroot;
+    $uid || error;
+    announce("chown", $usertext, @files);
+    chown($uid, $gid, @files) || error("chown $uid:$gid @files: $!");
+  }
+
+  sub dropprivs()
+  {
+    return true unless superuser;
+    initnonroot;
+    explain("running as user $usertext");
+    $uid || error("refusing to run as root");
+    $( = $gid;
+    $) = "$gid $gid";
+    ($<, $>) = ($uid, $uid);
+    $> == $< || error("real and effective UIDs do not match");
+    $> == $uid || error("uid is not set correctly");
+  }
 }
 
 ##############################################################################
@@ -3573,12 +3605,7 @@ sub rebuild(@)
     error("mkdir $builddir: $errmsg") if $errmsg && !-d($builddir);
   }
   announce("mkdir", $builddir);
-  if(superuser)
-  {
-    my($uid, $gid) = getuidgid;
-    announce("chown", username, $builddir);
-    chown($uid, $gid, $builddir) || error("chown $uid:$gid $builddir: $!");
-  }
+  chownnonroot($builddir);
 
   local(*CHILD);
   my($pid);
@@ -4225,13 +4252,7 @@ sub edit(@)
   my($patchfile) = path($editdir, $patchfilename);
   md($editdir, $olddir, $newdir);
 
-  if(superuser)
-  {
-    my($uid, $gid) = getuidgid;
-    announce("chown", username, $olddir, $newdir);
-    chown($uid, $gid, $olddir, $newdir) ||
-        error("chown $uid:$gid $olddir $newdir: $!");
-  }
+  chownnonroot($olddir, $newdir);
 
   local(*PATCH);
   safeopen(*PATCH, ">", $patchfile);
@@ -6100,6 +6121,14 @@ packages under I<USER>'s UID and GID as returned by C<getpwnam(3)>.
 Note that any additional groups (such as those in C</etc/groups>) will
 be ignored, as will I<USER>'s password, home directory, shell, and so on.
 Default: C<toast>.
+
+=item B<--fallbackuid=>I<UID>
+
+If B<toast> is invoked as root and needs to do something as a non-root
+user, it normally runs as the user given by the B<username> option.
+However, if no such user exists, B<toast> will search for an unused
+UID to use instead, starting at I<UID>.  Use 0 to disable this feature.
+Default: C<23>.
 
 =item B<--postarmprog=>I<PROG>
 
