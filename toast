@@ -1301,8 +1301,15 @@ sub magicfile($)
   safeopen(*FILE, "<", $file);
   my($buf);
   defined(read(FILE, $buf, magicbufsize)) || error("read $file: $!");
+  my($type) = magicstring($buf);
+  if(!$type && length($buf) >= magicbufsize)
+  {
+    seek(FILE, -22, 2) || error("seek $file: $!");
+    defined(read(FILE, $buf = "", 22)) || error("read $file: $!");
+    $type = ".zip" if $buf =~ /^PK\x05\x06/; # end-of-directory signature
+  }
   close(FILE) || error("close $file for read: $!");
-  return magicstring($buf);
+  return $type;
 }
 
 sub readstdin($)
@@ -1427,17 +1434,18 @@ sub extractfile($$)
   my($infile, $outdir) = @_;
   explain("extracting $infile");
 
+  my($type) = magicfile($infile);
   my($pid) = fork;
   error("fork: $!") unless defined($pid);
   if($pid)
   {
     waitpid($pid, 0);
-    $? && error("extract subprocess returned $?");
+    error("extract subprocess returned $?")
+        if $? && !($? == 256 && $type eq ".zip");
   }
   else
   {
     chdir($outdir) || error("chdir $outdir: $!");
-    my($type) = magicfile($infile);
     safeexec("unzip", "-qo", $infile) if $type eq ".zip";
     safeopen(*STDIN, "<", $infile);
     extractstdin($type);
@@ -2579,15 +2587,40 @@ sub configure($$)
     return &configure($newdir, $prefix);
   }
 
+  # Write a custom Makefile for Sun J2SDK (grumble grumble).
+  if(-x(path($dir, qw[jre bin java])))
+  {
+    my($mftext) = "# $genby" . q{
+
+all:
+  for i in "" `find . -name '*.pack'`; do [ -n "$$i" ] && \
+    lib/unpack $$i "`dirname $$i`/`basename $$i .pack`.jar"; rm -f $$i; done
+
+install:
+  tar c */ | (cd $(DESTDIR)/usr && tar x)
+};
+    $mftext =~ s/^  /\t/gm;
+    writefile(path($dir, "Makefile"), $mftext);
+    return $dir;
+  }
+
   # look for Unixish or OS-specific Makefile in a subdir and mv it here
   # e.g. zip -> unix/Makefile; libpng -> scripts/makefile.linux
   # note that this rule would incorrectly grab a spurious subdirectory
-  # Makefile from glibc+linuxthreads if the above rule didn't come first
+  # Makefile from glibc+linuxthreads or j2sdk 1.5 if the above rules didn't
+  # come first
   return $dir unless dfs
   (
     $dir,
     sub { true },
-    sub { !/makefile/i || !/$^O|\bunix/i || !mv($_, path($dir, "Makefile")); },
+    sub
+    {
+      my($rel) = @_;
+      return true unless $rel =~ /makefile/i;
+      return true unless $rel =~ /$^O|\bunix/i;
+      mv($_, path($dir, "Makefile"));
+      return false;
+    },
     sub { true }
   );
 
@@ -4911,7 +4944,7 @@ $0 =~ /\bconfigure$/i ? selfconfigure(@ARGV) : main(@ARGV);
 
 =head1 NAME
 
-toast - build and install programs from source
+toast - simple source-and-symlinks package manager for root and non-root users
 
 =head1 SYNOPSIS
 
