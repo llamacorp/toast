@@ -2978,6 +2978,7 @@ sub configure($$)
       my($bogus) = false;
       my($twowordprefix) = false;
       my($noprefix) = false;
+      my($mozilla) = false;
       my(%confopts);
 
       my($opensslcfg) = path($dir, "Configure");
@@ -3004,6 +3005,7 @@ sub configure($$)
         if(reconfigure)
         {
           s/^\s*AUTOTHREAD=no\s+\#+ leave off for now/\#$&/; # qt multithreaded
+          $mozilla = $1 if /(--enable-default-toolkit)=TK/;
           my($opt); # glibc; libjpeg; tetex; others?
           for $opt ("enable-add-ons", # glibc
               "enable-shared", # various
@@ -3016,6 +3018,11 @@ sub configure($$)
         }
       } $confprog;
       $noprefix ||= -x(path($dir, "installnetpbm")); # netpbm 10.19
+      if($mozilla)
+      {
+        local($^W) = false; # suppress misguided exec failure warning
+        $confopts{"$mozilla=gtk2"} ||= system(qw(pkg-config gtk+)) == 0;
+      }
 
       my(@confcmd) = ("./$cfg", "--prefix=$prefix");
       if(!$self)
