@@ -1812,18 +1812,6 @@ sub helpnop($$)
   writescript(path($helperdir, "$cmd.helper"), "#!/bin/sh\ntrue\n");
 }
 
-sub helpnorewrite($$)
-{
-  my($helperdir, $cmd) = @_;
-  my($path) = quote($ENV{PATH});
-  my($preload) = quote($ENV{LD_PRELOAD});
-  writescript(path($helperdir, "$cmd.helper"), qq[#!/bin/sh
-PATH=$path
-LD_PRELOAD=$preload
-exec $cmd \"\$\@\"
-]);
-}
-
 sub helprewrite($$$$$)
 {
   my($srcdir, $rootdir, $helperdir, $cmd, $force) = @_;
@@ -1836,11 +1824,19 @@ $srcdir = ], quote($srcdir), q[;
 $rootdir = ], quote($rootdir), q[;
 $armdir = ], quote(armdir), q[;
 $path = ], quote($ENV{PATH}), q[;
+$preload = ], quote($ENV{LD_PRELOAD}), q[;
 $myname = ], quote($myname), q[;
 
 # cleanse environment
 $ENV{PATH} = $path;
-delete $ENV{LD_PRELOAD};
+if($preload eq "")
+{
+  delete($ENV{LD_PRELOAD});
+}
+else
+{
+  $ENV{LD_PRELOAD} = $preload;
+}
 
 # save old arguments
 @oldargs = @ARGV;
@@ -2226,11 +2222,20 @@ sub inithelpers($$$)
   helprewrite($srcdir, $rootdir, $helperdir, $_, true)
       foreach (qw[mv]);
   helpnop($helperdir, $_) foreach (qw[chown ldconfig]);
-#  helpnorewrite($helperdir, $_) foreach (qw[gcc g++ cc]);
   $env{PATH} = "$helperdir:$env{PATH}";
 
   my($preload) = helplib($srcdir, $rootdir, $helperdir);
-  $env{LD_PRELOAD} = $preload if $preload;
+  if($preload)
+  {
+    if(exists($env{LD_PRELOAD}) && length($env{LD_PRELOAD}))
+    {
+      $env{LD_PRELOAD} .= " $preload";
+    }
+    else
+    {
+      $env{LD_PRELOAD} = $preload;
+    }
+  }
 
   $env{HOME} = helphome($srcdir, $rootdir, $helperdir);
 
@@ -5125,13 +5130,13 @@ for details.  Default: disabled.
 
 =item S<B<--strictpreload> | B<--nostrictpreload>>
 
-When B<strictpreload> is enabled, B<toast build> will fail unless it can
-successfully compile a shared library for use with LD_PRELOAD during the
-C<make install> phase.  If B<strictpreload> is disabled, B<toast build>
-still tries to build and use the shared library, but will do the best
-it can otherwise.  This may allow B<toast build> to succeed in the
-absence of a suitable C compiler, but it may allow some packages to
-build incorrectly in some situations.  Default: enabled.
+When B<strictpreload> is enabled, B<toast build> will fail unless it
+can successfully compile a shared library for use with C<LD_PRELOAD>
+during the C<make install> phase.  If B<strictpreload> is disabled,
+B<toast build> still tries to build and use the shared library, but will
+do the best it can otherwise.  This may allow B<toast build> to succeed
+in the absence of a suitable C compiler, but it may allow some packages
+to build incorrectly in some situations.  Default: enabled.
 
 =item S<B<--useflock> | B<--nouseflock>>
 
@@ -5149,14 +5154,14 @@ especially under NFS.  Default: disabled under Cygwin, enabled elsewhere.
 When B<reconfigure> is enabled, B<toast build> may attempt to pass extra
 arguments to a package's C<configure> script (such as B<--enable-shared>)
 and/or C<Makefile> (such as B<install.man>) in order to build or install
-extra files that the package itself may not build or install itself
-by default.  This produces improved results for many specific packages
-(such as QT and XFree86), and may make subsequent packages more likely to
-build, but it can sometimes break things (usually in a straightforward
-way), or it may be undesirable for other reasons.  If B<reconfigure> is
-disabled, B<toast build> does not try to do anything beyond the minimum
-steps required to correctly build and install whatever files the package
-includes by default.  Default: enabled.
+extra files that the package itself might not build or install by default.
+This produces improved results for many specific packages (such as QT
+and XFree86), and may make subsequent packages more likely to build, but
+it can sometimes break things (usually in a straightforward way), or it
+may be undesirable for other reasons.  If B<reconfigure> is disabled,
+B<toast build> does not try to do anything beyond the minimum steps
+required to correctly build and install whatever files the package builds
+and installs by default.  Default: enabled.
 
 =item S<B<--stoponerror> | B<--nostoponerror>>
 
@@ -5287,16 +5292,16 @@ Known bugs:
   - toast arm/disarm can leave info.dir in the wrong state
   - gimp will load plugins from other armed versions despite .off suffix
   - "toast upgrade gcc" doesn't work (ftp site has a subdir per version)
-  - build overrides LD_PRELOAD instead of appending [space-separated]
   - autofind fails for: sleepycat db, gcc, latex, gv, GNU arch (?), ogle
   - build fails for: jikes, sirc, netcat, lcab, busybox (ow!), gv
   - "toast --autoremove --crossversion upgrade toast" breaks everything
   - if x/1/1 is armed and x/1/2 is built, "toast arm x" does nothing
   - various unquoted arguments to 2-arg open()
+  - "toast help verbose" works but "toast help noverbose" doesn't
 
 Wish list:
 
-  - work around lack of getenv() in microperl
+  - work around lack of getenv(), mkdir(), etc. in microperl...?
   - "toast upgrade" w/o args should imply --nostoponerror or something
   - "toast arm" should move armed packages to top of stacking order
   - "toast status" should give information about stacking order
