@@ -2242,7 +2242,7 @@ sub configure($$)
 
   # Maybe there's just an install script of some kind that we need to run.
   # Create an appropriate Makefile.
-  for(qw[install.sh INSTALL])
+  for(qw[install.sh INSTALL install.pl])
   {
     my($script) = path($dir, $_);
     if(-x($script))
