@@ -3357,11 +3357,12 @@ sub make($)
   my($abort) = false;
   my($ok) = true;
   my($systype) = false;
-  my($lk) = false; # blatant special case for the Linux kernel
+  my($lk) = false; # blatant special case for older Linux kernels
   my($xf86) = false; # blatant special case for XFree86
   my($please) = ""; # blatant special case for xdaliclock
   my($figlet, $ocaml); # further eponymous special case
   my($menuconfig); # busybox, uClibc
+  my($silentoldconfig); # newer linux kernels
 
   explain("examining $mf...");
   patch
@@ -3377,6 +3378,7 @@ sub make($)
     s/^DEFAULTFONTDIR = fonts$/# $&/ if $figlet;
     $figlet ||= m!^DEFAULTFONTDIR = /usr.*/figlet$!;
     $menuconfig ||= m!^all: menuconfig$!;
+    $silentoldconfig ||= /Makefile silentoldconfig$/;
   } $mf;
 
   return false if $abort;
@@ -3384,12 +3386,12 @@ sub make($)
   my(@targets);
   @targets = $^O if $systype;
   @targets = qw[oldconfig dep bzImage] if $lk;
-  @targets = qw[oldconfig all] if $menuconfig;
+  @targets = qw[oldconfig all] if $menuconfig || $silentoldconfig;
   @targets = "World" if $xf86;
   @targets = qw[world opt] if $ocaml;
   @targets = $please if $please;
 
-  if($lk && reconfigure)
+  if(($lk || $silentoldconfig) && reconfigure)
   {
     my($in) = path("/proc", "config.gz");
     my($out) = path($dir, ".config");
@@ -3416,7 +3418,7 @@ sub install($$)
   announce("export", "$_=$ENV{$_}") for (qw[ROOT DESTDIR install_root PREFIX]);
   my(@targets) = "install";
   my($man, $subdir, $netpbm, $usedestdir, $nodestdir, $useinstallprefix,
-      $cdrtools, $e2fsprogs);
+      $cdrtools, $e2fsprogs, $modules);
   whilefile
   {
     $man ||= /^install\.man:/;
@@ -3427,6 +3429,7 @@ sub install($$)
     $useinstallprefix ||= m!INSTALL_PREFIX is for package builders!; # openssl
     $cdrtools ||= / Due to a bug in SunPRO make we need special rules /;
     $e2fsprogs ||= /^\t.* e2fsck .* ; then \$\(MAKE\) install-libs ; fi/;
+    $modules ||= /^modules_install: _modinst_/; # linux 2.6.x
     true
   } $mf;
   $netpbm &&= -x(path($makedir, "installnetpbm")) && path($makedir, "pkg");
@@ -3442,6 +3445,7 @@ sub install($$)
   push(@targets, "INS_BASE=$rootdir") if $cdrtools;
   push(@targets, "RUN_QUERY_LOADER_TEST=true", "RUN_QUERY_IMMODULES_TEST=true")
       if -d(path($makedir, "gdk-pixbuf")); # gtk+
+  push(@targets, "modules_install", "INSTALL_MOD_PATH=$rootdir") if $modules;
   cdrun($makedir, @trace, "make", @targets);
   run(@trace, "sh", "-c", "cp -R '$netpbm'/*/ '$rootdir'") if $netpbm;
   error("trace complete; aborting") if debugrewrite;
