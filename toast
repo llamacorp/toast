@@ -2357,7 +2357,13 @@ sub stddirs()
 
 sub stdlinks()
 {
-  ("usr" => ".", "local" => ".", "X11R6" => ".", "share/man" => "../man");
+  (
+    "usr" => ".",
+    "local" => ".",
+    "X11R6" => ".",
+    "games" => "bin",
+    "share/man" => "../man",
+  );
 }
 
 sub rootlinks()
