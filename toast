@@ -1444,44 +1444,52 @@ sub add(@)
 
 sub smartgeturl($$)
 {
-  my($url, $dir, $ttl) = @_;
-  $ttl = 5 unless defined($ttl);
-  error("too many links: $url") unless $ttl;
+  my($url, $dir) = @_;
 
-  my($basename) = basename(stripquery($url));
-  $basename = "index" if $basename eq "";
-  my($file) = path($dir, $basename);
-
-  geturl($url, $file);
-
-  local(*FILE);
-  open(FILE, "<$file") || error("open $file: $!");
-  my($header);
-  read(FILE, $header, 128) || error("read $file: $!");
-  my($redir);
-  if($header =~ /^\<.*\bHTML\b/i)
+  my(%visited);
+  for(1..5)
   {
-    seek(FILE, 0, 0) || error("rewind $file: $!");
-    my(@links) = reverse(sort cmpab linksfromstream(*FILE, $url));
-    for (@links)
+    my($basename) = basename(stripquery($url));
+    $basename = "index" if $basename eq "";
+    my($file) = path($dir, $basename);
+
+    geturl($url, $file);
+    $visited{$url} = 1;
+
+    local(*FILE);
+    open(FILE, "<$file") || error("open $file: $!");
+    my($header);
+    read(FILE, $header, 128) || error("read $file: $!");
+    my($redir);
+    if($header =~ /^\<.*\bHTML\b/i)
     {
-      $redir = $_ if !$redir && basename(stripquery($_)) eq $basename;
-    }
-    my($ext);
-    for $ext (qw[.tar.bz2 .tar.gz .tgz .zip .rpm])
-    {
+      seek(FILE, 0, 0) || error("rewind $file: $!");
+      my(@links) = reverse(sort cmpab linksfromstream(*FILE, $url));
       for (@links)
       {
-        $redir = $_ if !$redir && stripquery($_) =~ /\Q$ext\E$/i;
+        $redir = $_ if !$redir && basename(stripquery($_)) eq $basename
+            && !$visited{$_};
+      }
+      my($ext);
+      for $ext (qw[.tar.bz2 .tar.gz .tgz .zip .rpm])
+      {
+        for (@links)
+        {
+          $redir = $_ if !$redir && stripquery($_) =~ /\Q$ext\E$/i
+              && !$visited{$_};
+        }
       }
     }
+    close(FILE) || error("close $file: $!");
+
+    return true unless $redir;
+
+    rm($file);
+    $url = $redir;
+    error if $visited{$url};
   }
-  close(FILE) || error("close $file: $!");
 
-  return true unless $redir;
-
-  rm($file);
-  return &smartgeturl($redir, $dir, $ttl - 1);
+  error("too many links: $url");
 }
 
 sub autorenamepkg($$)
