@@ -2188,14 +2188,22 @@ sub configure($$)
 
   # Maybe there's just an install script of some kind that we need to run.
   # Create an appropriate Makefile.
-  for(qw[install.sh])
+  for(qw[install.sh INSTALL])
   {
     my($script) = path($dir, $_);
     if(-x($script))
     {
       my(@cmd) = "./$_";
-      my($useprefix);
-      whilefile { !($useprefix ||= /--prefix=/) } $script;
+      my($isscript, $useprefix, $prefixenvvar);
+      patch
+      {
+        $isscript ||= /^#!/;
+        $useprefix ||= /--prefix=/;
+        s/\bOutputLicense\b/true/g unless /\(/; # acroread
+        $prefixenvvar = $1 if /\b(InstallDir)\b/; # acroread
+      } $script;
+      next unless $isscript;
+      unshift(@cmd, "$prefixenvvar=$prefix") if defined($prefixenvvar);
       push(@cmd, "--prefix=$prefix") if $useprefix;
       writefile(path($dir, "Makefile"),
           "# $genby\n\nall:\n\ttrue\n\ninstall:\n\t@cmd\n");
