@@ -288,7 +288,7 @@ BEGIN
     my($name) = @_;
     return false unless isopt($name);
     my($def) = $optdefault{$name};
-    return !defined($def) || $def eq true;
+    return defined($def) && ($def eq true || $def eq false);
   }
 
   sub checkoptname($)
@@ -2776,6 +2776,7 @@ sub stddirs()
   my(@result) =
       (qw[bin boot etc include info lib libexec man sbin share src var],
       map(path("man", "man$_"), 1..9), path(qw[var spool]),
+      path(qw[var run]), # hotplug/2004_01_05
       path(qw[share aclocal])); # librep/0.16.1
   sort(@result);
 }
