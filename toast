@@ -30,7 +30,7 @@ if($^V) # 5.0 emits spurious message
 
 ##############################################################################
 
-my($rcsid) = q$Id: toast,v 1.217 2003/10/13 05:35:37 zaphod Exp $;
+my($rcsid) = q$Id: toast,v 1.245 2003/11/24 00:46:28 zaphod Exp $;
 $rcsid =~ /^Id: (.+),v (\S+) (\S+ \S+) (\S+) Exp (\S+ )?$/ || die;
 my($myname, $myversion, $mytimestamp, $myauthor) = ($1, $2, $3, $4);
 $myversion .= "+" if $5; # if this version may contain changes not in RCS
@@ -4512,8 +4512,8 @@ To have the latest version of B<toast> download and install itself,
 run one of the following commands.  The first requires GNU wget; the
 second relies on the GET utility that comes with the LWP Perl module.
 
-  sh -c 'u=http://toastball.net/toast;wget -O- $u/toast|perl - arm $u/'
-  sh -c 'u=http://toastball.net/toast;GET $u/toast|perl - arm $u/'
+  sh -c 'u=ttp://toastball.net/toast;wget -O- h$u/toast|perl - arm h$u/'
+  sh -c 'u=ttp://toastball.net/toast;GET h$u/toast|perl - arm h$u/'
 
 If you ran either of the above commands as root, B<toast> should
 now be installed in C</toast> with appropriate symlinks under
@@ -5162,9 +5162,11 @@ Known bugs:
   - build overrides LD_PRELOAD instead of appending [space-separated]
   - autofind fails for: sleepycat db, gcc, latex, gv, GNU arch (?)
   - build fails for: jikes, sirc, netcat, lcab, busybox (ow!), gv
+  - "toast --autoremove --crossversion upgrade toast" fails w/ NFS
 
 Wish list:
 
+  - "toast upgrade" w/o args should imply --nostoponerror or something
   - "toast arm" should move armed packages to top of stacking order
   - "toast status" should give information about stacking order
   - "toast rename" should rename armed packages by rewriting symlinks
