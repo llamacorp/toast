@@ -2564,9 +2564,9 @@ sub make($)
   my($systype) = false;
   my($lk) = false; # blatant special case for the Linux kernel
   my($xf86) = false; # blatant special case for XFree86
-  my($ocaml) = false; # ditto ocaml
   my($please) = ""; # blatant special case for xdaliclock
-  my($figlet, $busybox); # further eponymous special cases
+  my($figlet, $ocaml); # further eponymous special case
+  my($menuconfig); # busybox, uClibc
 
   explain("examining $mf...");
   patch
@@ -2581,7 +2581,7 @@ sub make($)
     $abort ||= /^all:[^\#]*\binstall\b/; # all implies install (e.g. man-pages)
     s/^DEFAULTFONTDIR = fonts$/# $&/ if $figlet;
     $figlet ||= m!^DEFAULTFONTDIR = /usr.*/figlet$!;
-    $busybox ||= m!^all: menuconfig$!;
+    $menuconfig ||= m!^all: menuconfig$!;
   } $mf;
 
   return false if $abort;
@@ -2589,7 +2589,7 @@ sub make($)
   my(@targets);
   @targets = $^O if $systype;
   @targets = qw[oldconfig dep bzImage] if $lk;
-  @targets = qw[oldconfig dep all] if $busybox;
+  @targets = qw[oldconfig all] if $menuconfig;
   @targets = "World" if $xf86;
   @targets = qw[world opt] if $ocaml;
   @targets = $please if $please;
