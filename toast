@@ -4944,7 +4944,7 @@ When B<autodemolish> is enabled, B<toast rebuild> performs an implicit
 B<toast demolish> on every other build belonging to the same package as
 a newly-created, non-broken build.  If B<crossversion> is also enabled,
 other packages with the same name will also be demolished.  Default:
-disabled.
+enabled.
 
 =item S<B<--autoremove> | B<--noautoremove>>
 
@@ -5120,7 +5120,6 @@ the hostname of the toast distribution site, toastball.net.
 Known bugs:
 
   - autofind mishandles http redirects (e.g. http://toastball.net/toast)
-  - "toast --noautoarm build foo" disarms and demolishes old foo builds
   - gtk+ doesn't seem to build properly when it is already armed
   - opera and sleepycat db refuse to build when already armed
   - toast arm/disarm can leave info.dir in the wrong state
