@@ -1412,7 +1412,7 @@ sub newenv()
   my($x) = path(qw(etc xml catalog));
 
   my(@vars);
-  push(@vars, newenvvar("PATH", "sbin:bin"));
+  push(@vars, newenvvar("PATH", "bin"));
   push(@vars, newenvvar("MANPATH", "man", $defaultman));
   push(@vars, newenvvar("INFOPATH", "info", "")) if infodir;
   push(@vars, newenvvar("CPATH", "include"));
@@ -3398,7 +3398,7 @@ sub install($$)
 sub stddirs()
 {
   my(@result) =
-      (qw[bin boot etc include info lib libexec man sbin share src var],
+      (qw[bin boot etc include info lib libexec man share src var],
       map(path("man", "man$_"), 1..9), path(qw[var spool]),
       path(qw[etc rc.d]), map(path("etc", "rc.d", "rc$_.d"), 0..6), # vmware
       path(qw[var run]), # hotplug/2004_01_05
@@ -3412,6 +3412,7 @@ sub stdlinks()
     "usr" => ".",
     "local" => ".",
     "X11R6" => ".",
+    "sbin" => "bin",
     "games" => "bin",
     "share/man" => "../man",
     "share/info" => "../info",
@@ -6070,14 +6071,14 @@ by B<toast build> have not yet been removed by C<toast clean>.
 Prints shell commands to make armed packages usable.  This command is
 normally invoked with C<eval `toast env`> (note the backticks) from a
 shell initialization file such as C<.zshenv> or C<.profile>.  This will
-add C<I<armdir>/sbin> and C<I<armdir>/bin> to the front of C<PATH>, unless
-either directory already appears anywhere in C<PATH>, in which case that
-directory will be left in its current position instead of being moved to
-the front.  Other environment variables are similarly affected: C<MANPATH>
-(used to find man pages), C<INFOPATH> (used by GNU info), C<CPATH> (used
-by gcc to find include files), C<XML_CATALOG_FILES> (used by DocBook and
-other tools to locate XML catalogs), and C<LIBRARY_PATH> (used by GNU ld
-to find libraries; not to be confused with C<LD_LIBRARY_PATH>, which also
+add C<I<armdir>/bin> to the front of C<PATH>, unless either directory
+already appears anywhere in C<PATH>, in which case that directory will
+be left in its current position instead of being moved to the front.
+Other environment variables are similarly affected: C<MANPATH> (used to
+find man pages), C<INFOPATH> (used by GNU info), C<CPATH> (used by gcc
+to find include files), C<XML_CATALOG_FILES> (used by DocBook and other
+tools to locate XML catalogs), and C<LIBRARY_PATH> (used by GNU ld to
+find libraries; not to be confused with C<LD_LIBRARY_PATH>, which also
 affects shared library loading at run time).  Note that if C<MANPATH>
 in particular is unset, B<toast env> will run C<man -w> to try to get
 the default value; if this causes problems, it may help to ensure that
