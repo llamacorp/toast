@@ -1387,12 +1387,14 @@ sub findperl()
     }
   }
   $result = abspath($^X) unless defined($result);
+  $result = abspath($result) unless $result =~ m!^/!;
   return $result if -x($result);
 
   # maybe it moved as a result of arm/disarm or something...?
   for(split(/:/, $ENV{"PATH"}), "/usr/bin", "/usr/local/bin", "/bin")
   {
     my($path) = path($_, "perl");
+    $path = abspath($path) unless $path =~ m!^/!;
     return $path if -x($path);
   }
   return "/usr/bin/perl";
