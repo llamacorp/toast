@@ -1868,6 +1868,8 @@ static const char *rewrite(const char *pathname)
     next unless $_;
     /^(wrap0?|suppress) (int |\w+ \*)(\w+)\((.*)\)$/ || error;
     my($iswrap, $rettype, $basename, $proto) = ($1 ne "suppress", $2, $3, $4);
+    # wrapped dlopen() always fails with "Service not available" in FreeBSD (?)
+    next if $basename eq "dlopen" && $^O eq "freebsd";
     my($iswrap0) = $1 eq "wrap0";
     my($retfailed, $retfmt) = $rettype =~ /\*/ ? (0, '%p') : (-1, '%d');
     my(@alist) = map { /\w+$/ ? $& : error } split(/, /, $proto);
@@ -2237,7 +2239,7 @@ sub install($$)
   my($mf) = makefile($makedir) || error("no Makefile found");
   my(@trace, $man, $subdir);
   @trace = qw[strace -s 256 -f -F -o make.install.strace] if debugrewrite;
-  @trace = qw[ktrace -f make.install.ktrace] if @trace && $^O =~ /bsd/i;
+  @trace = qw[ktrace -i -f make.install.ktrace] if @trace && $^O =~ /bsd/i;
   local($ENV{ROOT}) = $rootdir; # lilo
   local($ENV{DESTDIR}) = $rootdir; # not on command line due to libtiff
   local($ENV{install_root}) = $rootdir;
