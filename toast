@@ -3012,7 +3012,7 @@ sub configure($$)
   {
     my($confprog) = path($dir, $cfg);
     next if -d($confprog);
-    next unless -x($confprog) || $confprog =~ /\.sh$/;
+    next unless -x($confprog) || (-r($confprog) && $confprog =~ /\.sh$/);
 
     my($self) = false;
     my($builddir) = false;
