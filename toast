@@ -2708,7 +2708,7 @@ sub configure($$)
   for $cfg (qw[configure configure.gnu config  Configure pmkcfg.sh])
   {
     my($confprog) = path($dir, $cfg);
-    if(-x($confprog))
+    if(-x($confprog) && !-d($confprog))
     {
       my($self) = false;
       my($builddir) = false;
@@ -3053,7 +3053,7 @@ sub install($$)
 {
   my($makedir, $rootdir) = @_;
   my($mf) = makefile($makedir) || error("no Makefile found");
-  my(@trace, $man, $subdir, $netpbm, $usedestdir, $cdrtools, $e2fsprogs);
+  my(@trace);
   @trace = qw[strace -s 256 -f -F -o make.install.strace] if debugrewrite;
   @trace = qw[ktrace -i -f make.install.ktrace] if @trace && $^O =~ /bsd/i;
   local($ENV{ROOT}) = $rootdir; # lilo
@@ -3062,12 +3062,14 @@ sub install($$)
   local($ENV{PREFIX}) = $rootdir; # airhook v2
   announce("export", "$_=$ENV{$_}") for (qw[ROOT DESTDIR install_root PREFIX]);
   my(@targets) = "install";
+  my($man, $subdir, $netpbm, $usedestdir, $nodestdir, $cdrtools, $e2fsprogs);
   whilefile
   {
     $man ||= /^install\.man:/;
     $subdir = $1 if /  to install the X version: "cd (\w+);/; # xdaliclock
     $netpbm ||= /^\t\@echo "  make package pkgdir=DIR"$/;
     $usedestdir ||= /\b(DESTDIR|Makefile\.in)\b/; # atop, glibc; not libtiff!
+    $nodestdir ||= m!^\s*DESTDIR\s*=[^#]*/bin\s*$!; # figlet
     $cdrtools ||= / Due to a bug in SunPRO make we need special rules /;
     $e2fsprogs ||= /^\t.* e2fsck .* ; then \$\(MAKE\) install-libs ; fi/;
     true
@@ -3078,7 +3080,7 @@ sub install($$)
   push(@targets, "install-libs") if $e2fsprogs && reconfigure;
   @targets = ("package", "pkgdir=$netpbm") if $netpbm;
   @targets = "upgrade" if -r(path($makedir, "postfix-install")); # postfix
-  push(@targets, "DESTDIR=$rootdir") if $usedestdir;
+  push(@targets, "DESTDIR=$rootdir") if $usedestdir && !$nodestdir;
   push(@targets, "install_root=$rootdir") if $usedestdir; # glibc
   push(@targets, "PREFIX=$rootdir") if $usedestdir; # busybox
   push(@targets, "INS_BASE=$rootdir") if $cdrtools;
@@ -6192,6 +6194,7 @@ Known bugs:
 
 Wish list:
 
+  - convenient way to specify storedir, etc. during first time setup
   - work around lack of getenv(), mkdir(), etc. in microperl...?
   - "toast upgrade" w/o args should imply --nostoponerror or something
   - "toast arm" should move armed packages to top of stacking order
