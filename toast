@@ -246,6 +246,7 @@ BEGIN
     "strictpreload" => true,
     "useflock" => $^O !~ /win/i,
     "reconfigure" => true,
+    "fixliblinks" => true,
     "stoponerror" => true,
     "ignorecase" => true,
     "showurls" => true,
@@ -2713,7 +2714,7 @@ sub fixbrokenrootlink($)
   my($link) = @_;
   my($dest) = readlink($link);
   defined($dest) || error("not a link: $link");
-  explain("found broken symlink: $link");
+  explain("found broken symlink: $link -> $dest");
   while($dest =~ s!\.\./!! && !-e($link))
   {
     rm($link);
@@ -2749,6 +2750,32 @@ sub polishrootdir($$)
     sub { $count{$_} < $total ? safechmod(0555, $_) : rd($_) }
   );
   $total || error("no files found in $rootdir");
+
+  # XFree86 4.3.0 libGL.so needs this due to some kind of bug/interaction,
+  # as do some binary packages:
+  my($libdir) = path($rootdir, "lib");
+  if(fixliblinks && -d($libdir))
+  {
+    my(%liblinks);
+    fordir
+    {
+      return unless /^(lib.*\.so)((\.[\d]+)+)$/;
+      my($base, $ext) = ($1, $2);
+      return if exists($liblinks{$base}) && length($liblinks{$base}) > length;
+      $liblinks{$base} = $_;
+      for $ext (split(/\./, $ext))
+      {
+        next unless $ext;
+        $base .= ".$ext";
+        next if $_ eq $base;
+        $liblinks{$base} = $_;
+      }
+    } $libdir;
+    my($mode) = getmode($libdir);
+    safechmod(0777, $libdir) if %liblinks;
+    optln($liblinks{$_}, path($libdir, $_)) for sort(keys(%liblinks));
+    safechmod($mode, $libdir);
+  }
 }
 
 sub compile($$$)
@@ -5326,6 +5353,22 @@ B<toast build> does not try to do anything beyond the minimum steps
 required to correctly build and install whatever files the package builds
 and installs by default.  Default: enabled.
 
+=item S<B<--fixliblinks> | B<--nofixliblinks>>
+
+When B<fixliblinks> is enabled, B<toast build> may create symbolic links
+to shared libraries whose names contain version numbers and follow a
+certain naming convention.  For example, when built under Linux with
+the B<reconfigure> option enabled, zlib version 1.2.1 creates a shared
+library called C<libz.so.1.2.1> along with two symbolic links that
+point back to that file: C<libz.so> (required to link new packages with
+the shared library) and C<libz.so.1> (required to run programs linked
+with the shared library).  When this option is enabled, B<toast build>
+will create a third link called C<libz.so.1.2>, which happens to be
+completely useless, but if the other two links had been missing for
+whatever reason, it would have created them as well.  Binary packages
+that contain shared libraries are especially likely to benefit from
+this behavior.  Default: enabled.
+
 =item S<B<--stoponerror> | B<--nostoponerror>>
 
 When B<stoponerror> is enabled, B<toast> aborts and returns failure as
@@ -5478,6 +5521,7 @@ Known bugs:
   - build fails for: jikes, sirc, netcat, lcab, gv
   - "toast --autoremove --crossversion upgrade toast" breaks everything
   - if x/1/1 is armed and x/1/2 is built, "toast arm x" does nothing
+  - if x/1/1 is armed, "toast --noautodisarm rebuild x" arms then fails
 
 Wish list:
 
