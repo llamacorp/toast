@@ -934,16 +934,27 @@ sub guessnv(@)
 
 ##############################################################################
 
-sub pad40($)
+sub padfactor() { 40 }
+
+sub padsingle($)
 {
   my($arg) = @_;
+  $arg = "" unless defined($arg);
   my($len) = length($arg);
-  $len > 40 ? $arg : (' ' x (40 - $len)) . $arg;
+  $len > padfactor ? $arg : (' ' x (padfactor - $len)) . $arg;
+}
+
+sub padnum($)
+{
+  my($arg) = @_;
+  my(@n) = split(/\./, $arg);
+  join(' ', map(padsingle($_), @n[0..max(padfactor, $#n)]));
 }
 
 sub cmpab()
 {
-  my($na, $nb) = map { my($x) = $_; $x =~ s/\d+/pad40($&)/ge; $x } ($a, $b);
+  my($na, $nb) =
+      map { my($x) = $_; $x =~ s/\d+(\.\d+)*/padnum($&)/ge; $x } ($a, $b);
   my($lca, $lcb) = (lc($na), lc($nb));
   $lca ne $lcb ? $lca cmp $lcb : $na ne $nb ? $na cmp $nb : $a cmp $b;
 }
