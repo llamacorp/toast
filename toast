@@ -2371,8 +2371,8 @@ sub configure($$)
 
   # find a configure script
   my($cfg);
-  #            usual     Perl          elm       nvi
-  for $cfg (qw[configure configure.gnu Configure dist/configure])
+  #            usual     Perl          elm
+  for $cfg (qw[configure configure.gnu Configure])
   {
     my($confprog) = path($dir, $cfg);
     if(-x($confprog))
@@ -2437,7 +2437,8 @@ sub configure($$)
   }
 
   # configure script might be hidden in a "source" subdirectory (e.g. samba)
-  for(qw[source src])
+  # or a "dist" subdirectory (e.g. nvi)
+  for(qw[source src dist])
   {
     my($subdir) = path($dir, $_);
     my($confprog) = path($subdir, "configure");
