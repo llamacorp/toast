@@ -229,34 +229,36 @@ BEGIN
     "storedir" =>
         (superuser || !$ENV{HOME}) ? "/toast" : "$ENV{HOME}/.toast",
     "armdir" => superuser ? "/usr/local" : "armed",
+    "altarmdirs" => "",
     "username" => "toast",
     "postarmprog" => superuser ? "/sbin/ldconfig" : "",
     "editprog" => "",
     "defaultcmd" => "help",
     "httpproxy" => exists($ENV{http_proxy}) ? $ENV{http_proxy} : "",
     "ftpproxy" => exists($ENV{ftp_proxy}) ? $ENV{ftp_proxy} : "",
-    "quiet" => false,
-    "autofind" => true,
-    "autochange" => true,
-    "autorename" => true,
-    "autoclean" => true,
-    "autopurge" => false,
-    "autoarm" => true,
-    "autodisarm" => true,
-    "autodemolish" => true,
-    "autoremove" => false,
-    "crossversion" => false,
-    "strictpreload" => true,
-    "useflock" => $^O !~ /win/i,
-    "reconfigure" => true,
-    "fixliblinks" => true,
-    "stoponerror" => true,
-    "ignorecase" => true,
-    "showurls" => true,
-    "infodir" => true,
-    "protect" => true,
-    "relative" => false,
-    "debugrewrite" => false,
+    "quiet" => "false",
+    "autofind" => "true",
+    "autochange" => "true",
+    "autorename" => "true",
+    "autoclean" => "true",
+    "autopurge" => "false",
+    "autoarm" => "true",
+    "autodisarm" => "true",
+    "autodemolish" => "true",
+    "autoremove" => "false",
+    "crossversion" => "false",
+    "skipmismatched" => "true",
+    "strictpreload" => "true",
+    "useflock" => $^O =~ /win/i ? "false" : "true",
+    "reconfigure" => "true",
+    "fixliblinks" => "true",
+    "stoponerror" => "true",
+    "ignorecase" => "true",
+    "showurls" => "true",
+    "infodir" => "true",
+    "protect" => "true",
+    "relative" => "false",
+    "debugrewrite" => "false",
   );
 
   sub envopt($)
@@ -289,7 +291,7 @@ BEGIN
     my($name) = @_;
     return false unless isopt($name);
     my($def) = $optdefault{$name};
-    return defined($def) && ($def eq true || $def eq false);
+    return defined($def) && ($def eq "true" || $def eq "false");
   }
 
   sub checkoptname($)
@@ -366,6 +368,7 @@ sub pkgdir() { "pkg" }
 sub archivedir() { "archive" }
 sub editdir() { "edit" }
 sub urlfile() { "url" }
+sub armdirlink() { "armdir" }
 sub srcdir() { "src" }
 sub helperdir() { "helpers" }
 sub rootdir() { "root" }
@@ -1598,9 +1601,9 @@ sub latestbuilt($$;$)
   defined($name) || error;
   defined($version) || error;
   return undef unless isversion($name, $version);
-  for $build (allbuilds($name, $version, $build))
+  for $build (reverse(allbuilds($name, $version, $build)))
   {
-    return $build if isbuilt($name, $version, $build);
+    return $build if isbuiltmatch($name, $version, $build);
   }
   return undef;
 }
@@ -1662,30 +1665,92 @@ sub isclean($$$)
   return !-d(path(pkgpath($name, $version, $build), srcdir));
 }
 
+sub isbuildarmedin($$$$)
+{
+  my($armdir, $name, $version, $build) = @_;
+  $build || error;
+  my($rootdir) = path(pkgpath($name, $version, $build), rootdir);
+  return -d($rootdir) && !dfs
+  (
+    $rootdir,
+    sub { true },
+    sub
+    {
+      my($rel) = @_;
+      my($armfile) = path($armdir, $rel);
+      while(-e($armfile) || -l($armfile))
+      {
+        return false if optsamefile($_, $armfile);
+        $armfile = addoff($armfile);
+      }
+      return true;
+    },
+    sub { true }
+  );
+}
+
+sub allarmdirs()
+{
+  my(@armdirs, %seendi);
+  for (armdir, split(/:/, altarmdirs))
+  {
+    my($armdir) = m!^/! ? $_ : path(storedir, $_);
+    my($device, $inode) = stat($armdir);
+    next unless defined($device);
+    next unless -d(_);
+    my($di) = "$device $inode";
+    next if exists($seendi{$di});
+    $seendi{$di} = true;
+    push(@armdirs, $armdir);
+  }
+  return @armdirs;
+}
+
 sub isarmed(@)
 {
   return !whilebuild
   {
     my($name, $version, $build) = @_;
-    my($rootdir) = path(pkgpath($name, $version, $build), rootdir);
-    my($armed) = -d($rootdir) && !dfs
-    (
-      $rootdir,
-      sub { true },
-      sub
-      {
-        my($rel) = @_;
-        my($armfile) = path(armdir, $rel);
-        while(-e($armfile) || -l($armfile))
-        {
-          return false if optsamefile($_, $armfile);
-          $armfile = addoff($armfile);
-        }
-        return true;
-      },
-      sub { true }
-    );
-    !$armed;
+    for (allarmdirs)
+    {
+      return false if isbuildarmedin($_, $name, $version, $build);
+    }
+    return true;
+  } @_;
+}
+
+sub isarmedmatch(@)
+{
+  return isarmed(@_) if !skipmismatched;
+  return !whilebuild
+  {
+    my($name, $version, $build) = @_;
+    return !isbuildarmedin(armdir, $name, $version, $build);
+  };
+}
+
+sub ismismatched($$$)
+{
+  my($name, $version, $build) = @_;
+  $build || error;
+  my($armdirlink) = path(pkgpath($name, $version, $build), armdirlink);
+  my($armdirisdir, $linkisdir) = (-d(armdir), -d($armdirlink));
+  return !samefile($armdirlink, armdir) if $armdirisdir && $linkisdir;
+  return true if $armdirisdir && !$linkisdir;
+  return true if !$armdirisdir && $linkisdir;
+  my($target) = readlink($armdirlink);
+  return false unless defined($target);
+  return $target ne armdir;
+}
+
+sub isbuiltmatch(@)
+{
+  return isbuilt(@_) if !skipmismatched;
+  my($name, $version, $build) = @_;
+  return !whilebuild
+  {
+    my($name, $version, $build) = @_;
+    return !isbuilt(@_) || ismismatched($name, $version, $build);
   } @_;
 }
 
@@ -3114,7 +3179,9 @@ sub rebuild(@)
     my($srcdir) = path($builddir, srcdir);
     my($helperdir) = path($builddir, helperdir);
     my($rootdir) = path($builddir, rootdir);
+    my($armdirlink) = path($builddir, armdirlink);
 
+    ln(armdir, $armdirlink);
     md($srcdir);
     extract($archivedir, $srcdir);
     compile($srcdir, $rootdir, $helperdir);
@@ -3172,19 +3239,29 @@ sub rebuild(@)
 
   clean($name, $version, $build) if autoclean;
   purge($name, $version) if autopurge;
-  arm($name, $version, $build) if autoarm && isarmed($name, $version);
+  arm($name, $version, $build) if autoarm && isarmedmatch($name, $version);
 
   if(autodemolish || autoremove)
   {
     my($aversion, $abuild);
     for $aversion (allversions($name, crossversion ? undef : $version))
     {
-      for $abuild (allbuilds($name, $aversion))
+      if(autodemolish)
       {
-        demolish($name, $aversion, $abuild)
-            if autodemolish && ($aversion ne $version || $abuild != $build);
+        for $abuild (allbuilds($name, $aversion))
+        {
+          next if $aversion eq $version && $abuild == $build;
+          next if skipmismatched && ismismatched($name, $aversion, $abuild);
+          next if !autodisarm && isarmed($name, $aversion, $abuild);
+          demolish($name, $aversion, $abuild);
+        }
       }
-      remove($name, $version) if autoremove && $aversion ne $version;
+      if(autoremove)
+      {
+        next if $aversion eq $version;
+        next if !autodisarm && isarmed($name, $aversion);
+        remove($name, $aversion);
+      }
     }
   }
 
@@ -3265,9 +3342,10 @@ BEGIN
   }
 }
 
-sub rebuildinfodir()
+sub rebuildinfodir($)
 {
-  my($dir) = path(armdir, "info");
+  my($armdir) = @_;
+  my($dir) = path($armdir, "info");
   return true unless -d($dir);
 
   my($dirfile) = path($dir, "dir");
@@ -3304,10 +3382,13 @@ sub rebuildinfodir()
   safechmod($mode, $dir);
 }
 
-sub postarm()
+sub postarm(;$$)
 {
-  rebuildinfodir;
-  run(postarmprog) if postarmprog;
+  my($armdir, $postarmprog) = @_;
+  $armdir = armdir unless defined($armdir);
+  $postarmprog = postarmprog unless defined($postarmprog);
+  rebuildinfodir($armdir);
+  run($postarmprog) if $postarmprog;
   return true;
 }
 
@@ -3394,59 +3475,64 @@ sub arm(@)
 
 sub disarm(@)
 {
-  my($name, $version, $build, @urls) = @_;
+  my($name, $version, $build) = @_;
 
-  lock(armdir);
-
-  whilebuild
+  my(@armdirs) = allarmdirs;
+  my($i, $armdir);
+  for $armdir (@armdirs)
   {
-    my($name, $version, $build) = @_;
-    my($rootdir) = path(pkgpath($name, $version, $build), rootdir);
-    my(@dirmodes);
-    -d($rootdir) && dfs  # ignore broken packages
-    (
-      $rootdir,
-      sub
-      {
-        my($rel) = @_;
-        my($armdir) = optpath(armdir, $rel);
-        if(-d($armdir) && !-l($armdir))
-        {
-          push(@dirmodes, getmode($armdir));
-          safechmod(0777, $armdir);
-        }
-        return true;
-      },
-      sub
-      {
-        my($rel) = @_;
-        my($armfile) = path(armdir, $rel); # BUG: $rel is sometimes undefined?
-        while(-e($armfile) || -l($armfile))
-        {
-          return replace($armfile) if optsamefile($armfile, $_);
-          $armfile = addoff($armfile);
-        }
-        return true;
-      },
-      sub
-      {
-        my($rel) = @_;
-        my($armdir) = optpath(armdir, $rel);
-        if(-d($armdir) && !-l($armdir))
-        {
-          my($mode) = pop(@dirmodes);
-          isempty($armdir) ? rd($armdir) : safechmod($mode, $armdir);
-        }
-        return true;
-      }
-    );
-    error if @dirmodes;
-    true;
-  } @_;
+    lock($armdir);
 
-  postarm;
+    whilebuild
+    {
+      my($name, $version, $build) = @_;
 
-  unlock(armdir);
+      my($rootdir) = path(pkgpath($name, $version, $build), rootdir);
+      my(@dirmodes);
+      -d($rootdir) && dfs  # ignore broken packages
+      (
+        $rootdir,
+        sub
+        {
+          my($rel) = @_;
+          my($armsubdir) = optpath($armdir, $rel);
+          if(-d($armsubdir) && !-l($armsubdir))
+          {
+            push(@dirmodes, getmode($armsubdir));
+            safechmod(0777, $armsubdir);
+          }
+          return true;
+        },
+        sub
+        {
+          my($rel) = @_;
+          my($armfile) = path($armdir, $rel); # BUG: $rel is sometimes undef?
+          while(-e($armfile) || -l($armfile))
+          {
+            return replace($armfile) if optsamefile($armfile, $_);
+            $armfile = addoff($armfile);
+          }
+          return true;
+        },
+        sub
+        {
+          my($rel) = @_;
+          my($armsubdir) = optpath($armdir, $rel);
+          if(-d($armsubdir) && !-l($armsubdir))
+          {
+            my($mode) = pop(@dirmodes);
+            isempty($armsubdir) ? rd($armsubdir) : safechmod($mode, $armsubdir);
+          }
+          return true;
+        }
+      );
+      error if @dirmodes;
+      return true;
+    } ($name, $version, $build);
+
+    postarm($armdir, ++$i == scalar(@armdirs) ? postarmprog : "");
+    unlock($armdir);
+  }
 
   return true;
 }
@@ -3538,11 +3624,11 @@ sub upgrade(@)
   }
 
   my(@cmdargs) = ($name, $newver, undef, @newurls);
-  if(isarmed($name, $version) && autoarm)
+  if(autoarm && isarmedmatch($name, $version))
   {
     return arm(@cmdargs);
   }
-  elsif(isbuilt($name, $version))
+  elsif(isbuiltmatch($name, $version))
   {
     return build(@cmdargs);
   }
@@ -3584,27 +3670,12 @@ sub demolish(@)
 
 ##############################################################################
 
-sub verstatus($$)
-{
-  my($name, $version) = @_;
-  return "stored" if isstored($name, $version);
-  return false;
-}
-
-sub buildstatus($$$)
-{
-  my($name, $version, $build) = @_;
-  return "broken" if isbroken($name, $version, $build);
-  return "building" unless isbuilt($name, $version, $build);
-  my($nc) = isclean($name, $version, $build) ? "" : " (not clean)";
-  return "armed$nc" if isarmed($name, $version, $build);
-  return "built$nc";
-}
-
 sub status(@)
 {
   my($name, $version, $build, @urls) = @_;
   my($result) = true;
+
+  my(@armdirs) = allarmdirs;
 
   for $name (allnames($name))
   {
@@ -3612,8 +3683,8 @@ sub status(@)
 
     for $version (allversions($name, $version))
     {
-      my($vs) = verstatus($name, $version);
-      print("  version $version", $vs ? ": $vs\n" : "\n");
+      print("  version $version",
+          isstored($name, $version) ? ": stored\n" : "\n");
 
       if(showurls || @urls)
       {
@@ -3630,8 +3701,50 @@ sub status(@)
 
       for $build (allbuilds($name, $version, $build))
       {
-        print("    build $build: ",
-            buildstatus($name, $version, $build), "\n");
+        my($status, @notes, @armedin);
+        my($normalarmdir) = armdir;
+        if(isbroken($name, $version, $build))
+        {
+          $status = "broken";
+        }
+        elsif(!isbuilt($name, $version, $build))
+        {
+          $status = "building";
+        }
+        else
+        {
+          push(@notes, "not clean") unless isclean($name, $version, $build);
+          for(@armdirs)
+          {
+            push(@armedin, $_) if isbuildarmedin($_, $name, $version, $build);
+          }
+          if(ismismatched($name, $version, $build))
+          {
+            $status = "mismatched";
+            my($armdirlink) =
+                path(pkgpath($name, $version, $build), armdirlink);
+            my($builtfor) = readlink($armdirlink);
+            push(@notes, "built for $builtfor") if defined($builtfor);
+            push(@notes, "armed") if @armedin;
+            $normalarmdir = $armdirlink;
+          }
+          elsif(@armedin)
+          {
+            $status = "armed";
+          }
+          else
+          {
+            $status = "built";
+          }
+        }
+        my($notetext) = @notes ? " (" . join("; ", @notes) . ")" : "";
+        print("    build $build: $status$notetext\n");
+        if(@armedin && (scalar(@armedin) > 1 ||
+            !optsamefile($armedin[0], $normalarmdir)))
+        {
+          print("      armed in:\n");
+          print("        $_\n") for @armedin;
+        }
       }
     }
   }
@@ -5301,12 +5414,14 @@ will become an implicit B<build> if the B<autoarm> option is disabled.
 
 =item S<B<toast disarm> I<BUILD> | I<PACKAGE> ...>
 
-Deletes symlinks created by B<toast arm>.  This works by removing
-symbolic links to the given build and replacing any links that had
-been moved out of the way.  No error occurs if no such links exist.
-If no build number is given, all C<armed> builds are disarmed.  If the
-package version number is also omitted, all C<armed> builds belonging
-to packages with the given name are disarmed.
+Deletes symlinks created by B<toast arm>.  This works by removing symbolic
+links to the given build and replacing any links that had been moved
+out of the way.  No error occurs if no such links exist.  If no build
+number is given, all C<armed> builds, including C<mismatched> builds
+reported to be C<armed>, are disarmed from all directories specified
+by the B<armdir> and B<altarmdirs> options.  If the package version
+number is also omitted, all C<armed> builds belonging to packages with
+the given name are disarmed.
 
 =item S<B<toast clean> [ I<BUILD> | I<PACKAGE> ...]>
 
@@ -5539,6 +5654,17 @@ to be C</usr> or C</usr/local> if feasible, since some broken packages
 may not work if installed in a different location.  Default: C</usr/local>
 if invoked by root, C<armed> otherwise.
 
+=item B<--altarmdirs=>I<ALTARMDIR>[:I<ALTARMDIR>]...
+
+Specifies an optional colon-separated list of alternate directories to
+search for armed packages after searching I<ARMDIR>.  It is strongly
+recommended that this list include any directory where a package is
+likely to be armed.  is searched to determine whether a package is
+currently armed.  When disarming a package, links will be removed from
+each I<ALTARMDIR> in addition to I<ARMDIR> itself.  If an I<ALTARMDIR>
+is not an absolute path, it is taken to be relative to I<STOREDIR>.
+Default: empty list.
+
 =item B<--username=>I<USER>
 
 When invoked as root, B<toast build> will unpack, compile, and install
@@ -5672,11 +5798,11 @@ enabled.
 
 =item S<B<--autoremove> | B<--noautoremove>>
 
-When both B<autoremove> and B<crossversion> are enabled, B<toast build>
-performs an implicit B<toast remove> on every other package with the
-same name as the package containing a newly-created, non-broken build.
-If B<crossversion> is disabled, this option has no effect.  Default:
-disabled.
+When both B<autoremove> and B<crossversion> are enabled, every time a
+command creates a new non-broken build, it will also perform an implicit
+B<toast remove> on every other package with the same name as the package
+containing a newly-created, non-broken build.  If B<crossversion> is
+disabled, this option has no effect.  Default: disabled.
 
 =item S<B<--crossversion> | B<--nocrossversion>>
 
@@ -5684,6 +5810,22 @@ When B<crossversion> is enabled, the B<autodisarm>, B<autodemolish> and
 B<autoremove> options will extend their effects to other packages with
 the same name when appropriate.  See the descriptions of those options
 for details.  Default: disabled.
+
+=item S<B<--skipmismatched> | B<--noskipmismatched>>
+
+When B<skipmismatched> is enabled, some operations will ignore any
+pre-existing build that was built with a value of B<armdir> different
+than the current one and is therefore reported as C<mismatched> by
+B<toast status>.  Specifically, B<toast build> will ignore mismatched
+builds when deciding whether or not to create a new build; B<toast
+upgrade> will ignore mismatched builds when deciding whether to build or
+arm the new version; and the B<autodemolish> option will not demolish
+mismatched builds.  All other checks are unaffected by this option.
+For example, B<toast remove> will never remove an armed build without
+completely disarming it first, even if thie build is mismatched and this
+option is enabled.  When B<skipmismatched> is disabled, mismatched builds
+are never treated specially.  See also the B<disarmmismatched> option.
+Default: enabled.
 
 =item S<B<--strictpreload> | B<--nostrictpreload>>
 
@@ -5905,11 +6047,10 @@ Known bugs:
       wxpython
   - autofind chooses Linux binaries over source for doxygen
   - build fails for: jikes, sirc, netcat, lcab, gv, bittorrent
-  - "toast --autoremove --crossversion upgrade toast" breaks everything
-  - if x/1/1 is armed and x/1/2 is built, "toast arm x" does nothing
-  - if x/1/1 is armed, "toast --noautodisarm rebuild x" arms then fails
   - "toast add foo/bar-1.2.tar.gz" guesses "foo version bar-1.2.tar.gz"
   - openprog() still emits redundant exec() warnings
+  - toast build hangs in md5sum if a package has no archives or urls
+  - in some environments, toast env spews warnings if MANPATH is unset
 
 Wish list:
 
