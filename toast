@@ -2285,7 +2285,7 @@ sub install($$)
 {
   my($makedir, $rootdir) = @_;
   my($mf) = makefile($makedir) || error("no Makefile found");
-  my(@trace, $man, $subdir);
+  my(@trace, $man, $subdir, $netpbm);
   @trace = qw[strace -s 256 -f -F -o make.install.strace] if debugrewrite;
   @trace = qw[ktrace -i -f make.install.ktrace] if @trace && $^O =~ /bsd/i;
   local($ENV{ROOT}) = $rootdir; # lilo
@@ -2297,12 +2297,16 @@ sub install($$)
   {
     $man ||= /^install\.man:/;
     $subdir = $1 if /  to install the X version: "cd (\w+);/; # xdaliclock
+    $netpbm ||= /^\t\@echo "  make package pkgdir=DIR"$/;
     true
   } $mf;
+  $netpbm &&= -x(path($makedir, "installnetpbm")) && path($makedir, "pkg");
   return &install(path($makedir, $subdir), $rootdir) if $subdir;
   push(@targets, "install.man") if $man && reconfigure; # e.g. XFree86
+  @targets = ("package", "pkgdir=$netpbm") if $netpbm;
   @targets = "upgrade" if -r(path($makedir, "postfix-install")); # postfix
   cdrun($makedir, @trace, "make", @targets);
+  run(@trace, qw[cp -R], glob("$netpbm/*/"), $rootdir) if $netpbm;
   error("trace complete; aborting") if debugrewrite;
 }
 
