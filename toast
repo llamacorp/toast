@@ -2829,7 +2829,7 @@ sub upgrade(@)
       my(%vermap);
       for(@links)
       {
-        if(/^\Q$dirname$pre\E($verpat)\Q$post\E(\?.*)?$/)
+        if(m!/\Q$pre\E($verpat)\Q$post\E(\?.*)?$!)
         {
           $vermap{$1} = $_;
           $candidates{$1} = 1;
