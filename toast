@@ -4383,10 +4383,10 @@ sub cmd_tarself(@)
   local(*TAR2GZIP);
   my($pid) = open(TAR2GZIP, "|-");
   defined($pid) || error("fork: $!");
-  binmode(TAR2GZIP) || error("binmode: $!"); # perl 5.8.0 utf8 bug
   if($pid)
   {
     my($contents) = join('', (<STDIN>));
+    binmode(TAR2GZIP) || error("binmode: $!"); # perl 5.8.0 utf8 bug
     print TAR2GZIP
         tar("$namever/"),
         tar("$namever/$myname*", $contents),
