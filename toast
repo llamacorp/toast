@@ -1317,7 +1317,7 @@ sub findnewpkg($$)
 {
   my($name, $version) = @_;
   defined($name) || error;
-  $name =~ /^\w+$/ || error("invalid package name: $name");
+  $name =~ /^[\w-]+$/ || error("invalid package name: $name");
   my($lcname) = lc($name);
 
   local(*XML, $_);
