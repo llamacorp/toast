@@ -974,14 +974,19 @@ sub padsingle($)
 sub padnum($)
 {
   my($arg) = @_;
+  my(@post) = $arg =~ s/-?([a-z]+)(\d+)$//i ? ($1, $2) : ("z" x padfactor, 0);
   my(@n) = split(/\./, $arg);
-  join(' ', map(padsingle($_), @n[0..max(padfactor, $#n)]));
+  join(' ', map(padsingle($_), @n[0..max(padfactor, $#n)], @post));
 }
 
 sub cmpab()
 {
-  my($na, $nb) =
-      map { my($x) = $_; $x =~ s/\d+(\.\d+)*/padnum($&)/ge; $x } ($a, $b);
+  my($na, $nb) = map
+  {
+    my($x) = $_;
+    $x =~ s/\d+(\.\d+)*(-?(pre|rc|test)\d+)?/padnum($&)/gie;
+    $x;
+  } ($a, $b);
   my($lca, $lcb) = (lc($na), lc($nb));
   $lca ne $lcb ? $lca cmp $lcb : $na ne $nb ? $na cmp $nb : $a cmp $b;
 }
@@ -5125,7 +5130,6 @@ Known bugs:
   - build overrides LD_PRELOAD instead of appending [space-separated]
   - autofind fails for: sleepycat db, gcc, latex, gv, GNU arch (?)
   - build fails for: jikes, sirc, netcat, lcab, busybox (ow!), gv
-  - version 1.2.3rc4 should precede 1.2.3; also 1.2.3-{rc,test,pre}4
 
 Wish list:
 
