@@ -724,8 +724,8 @@ sub shellescape(@)
   for(@words)
   {
     error unless defined($_);
-    next unless m![^0-9a-z\+,\./:\@_-]!;
-    /'/ ? s!([^0-9a-z\+,\./:\@_-])!\\$1!g : ($_ = "'$_'");
+    next unless m![^\w\+,\./:\@-]!;
+    /'/ ? s!([^\w\+,\./:\@-])!\\$1!g : ($_ = "'$_'");
   }
   return @words;
 }
