@@ -2582,7 +2582,7 @@ sub inithelpers($$$)
       "[");
   helprewrite($srcdir, $rootdir, $helperdir, $_, true)
       foreach (qw[mv]);
-  helpnop($helperdir, $_) foreach (qw[chown ldconfig install-info]);
+  helpnop($helperdir, $_) foreach (qw[chown chgrp ldconfig install-info]);
   $env{PATH} = "$helperdir:$env{PATH}";
 
   my($preload) = helplib($srcdir, $rootdir, $helperdir);
