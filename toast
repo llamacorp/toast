@@ -3623,8 +3623,9 @@ sub arm(@)
     },
     sub
     {
-      my($target) = displace(optpath(armdir, $_[0]));
+      my($target) = optpath(armdir, $_[0]);
       safechmod(0777, dirname($target));
+      displace($target);
       relative ? relln($_, $target) : ln($_, $target);
     },
     sub { safechmod($mode, optpath(armdir, $_[0])) }
