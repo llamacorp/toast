@@ -1168,6 +1168,7 @@ sub magicstring($)
   return ".bz2" if /^BZ/;
   return ".zip" if /^PK\x03\x04/;
   return ".rpm" if /^\xed\xab\xee\xdb/;
+  return ".deb" if /^\!\<arch\>\n/;
   return ".cpio" if /^07070[a-f\d]{30}/i;
   return ".tar" if /^[^\x00]+(..)?\x00{5,}[\x00\s\d]{30}/
       || /\x00ustar[ \x00]/;
@@ -1262,6 +1263,24 @@ sub rpmextractstdin()
   error;
 }
 
+sub debextractstdin()
+{
+  my($magic) = readstdin(8);
+  error("bad deb magic: " . unpack("H*", $magic)) unless $magic eq "!<arch>\n";
+
+  for(;;)
+  {
+    my($hdr) = readstdin(60);
+    error("bad deb hdr: " . unpack("H*", $hdr)) unless $hdr =~ / (\d+) +\`$/;
+    my($len) = $1;
+    skipstdin(1) if $hdr =~ s/^\n//;
+    autoextractstdin if $hdr =~ /^data\./; # autoextractstdin doesn't return
+    skipstdin($len);
+  }
+
+  error;
+}
+
 sub extractstdin($)
 {
   my($type) = @_;
@@ -1272,6 +1291,7 @@ sub extractstdin($)
   exec("patch", "-p0") || error("patch: $!") if $type eq ".patch";
 
   rpmextractstdin if $type eq ".rpm";
+  debextractstdin if $type eq ".deb";
 
   if($type =~ /^\.(Z|gz|bz2)$/)
   {
@@ -1529,7 +1549,7 @@ sub findnewpkg($$)
     error("no listing for package $name on $sitename") if $notfound;
 
     my($redirurl);
-    $redirurl ||= $fmurl{$_} for qw(bz2 tgz zip rpm homepage);
+    $redirurl ||= $fmurl{$_} for qw(bz2 tgz zip deb rpm homepage);
     $redirurl || error("no suitable URL for package $name on $sitename");
 
     my($redirhead) = httphead($redirurl);
@@ -1551,7 +1571,7 @@ sub findnewpkg($$)
     my(@links) = linksfromurl($url);
     my(@urls) = grep(lookslikepkgurl($_, $name, $version), @links);
     my($ext);
-    for $ext qw[.tar.bz2 .tar.gz .tgz .zip .rpm]
+    for $ext qw[.tar.bz2 .tar.gz .tgz .zip .deb .rpm]
     {
       my(@matches) = grep(stripquery($_) =~ /\Q$ext\E$/i, @urls);
 
@@ -1711,7 +1731,7 @@ sub smartgeturl($$)
             && !$visited{$_};
       }
       my($ext);
-      for $ext (qw[.tar.bz2 .tar.gz .tgz .zip .rpm])
+      for $ext (qw[.tar.bz2 .tar.gz .tgz .zip .deb .rpm])
       {
         for (@links)
         {
@@ -4924,15 +4944,18 @@ an error; use B<toast rebuild> to force such packages to be rebuilt.
 Building may involve implicitly invoking B<toast get>, decompressing
 and extracting archives, applying patch files, compiling a new build
 of the package and installing it in a build-specific directory tree.
-Supported archive formats include compress, gzip, bzip2, zip, rpm, cpio,
-tar, shar, patch, and most combinations of the above.  You don't need to
-have RPM installed to extract .rpm files; gzip and cpio usually suffice.
-Archives should contain either precompiled binaries or source code, which
-will be identified and/or built according to heuristics too mind-numbing
-to describe completely; in the case of source files, a C<configure>
-script, C<Makefile> or similar is often required.  Many options can
-influence this command's behavior; see the options reference for full
-details.
+Supported archive formats include compress, gzip, bzip2, zip, rpm,
+deb, cpio, tar, shar, patch, and most combinations of the above.
+You don't need to have RPM installed to extract .rpm files; gzip and
+cpio usually suffice.  Similarly, only gzip and tar should be required
+to extract .deb files.  Note that toast completely ignores dependencies
+and other meta-information in .rpm and .deb files; only the raw binaries
+are extracted and used.  Archives should contain either precompiled
+binaries or source code, which will be identified and/or built according
+to heuristics too mind-numbing to describe completely; in the case of
+source files, a C<configure> script, C<Makefile> or similar is often
+required.  Many options can influence this command's behavior; see the
+options reference for full details.
 
 =item S<B<toast arm> [ I<BUILD> | I<PACKAGE> ...]>
 
