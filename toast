@@ -2742,13 +2742,12 @@ sub upgrade(@)
   @urls = pkgurls($name, $version) unless @urls;
   error unless @urls;
 
-  my($pkgname) = pkgname($name, $version);
-
   my(%linkmap);
   my($verpat) = $version =~ /^\d/ ? '\d.*' : '.+';
 
   my(%candidates);
   my(@newurls);
+  my($hasver) = false;
   for(@urls)
   {
     m!^((http|ftp)://[^\?]+/)([^\?/]*)(\?.*)?$!i ||
@@ -2760,6 +2759,7 @@ sub upgrade(@)
     }
     else
     {
+      $hasver = true;
       my($pre, $post) = ($1, $2);
       $linkmap{$dirname} = [linksfromurl($dirname)]
           unless exists($linkmap{$dirname});
@@ -2799,23 +2799,19 @@ sub upgrade(@)
     }
   }
 
-  error("URLs for $pkgname all seem version-neutral and " .
-      "autorename is off; aborting") if !defined($version) && !autorename;
+  my($pkgname) = pkgname($name, $version);
+  error("URLs for $pkgname don't look version-specific") unless $hasver;
+  error("can't find consistent URLs for $pkgname") unless defined($newver);
+  error("$pkgname appears to be the latest available version")
+      if $version eq $newver;
+  my(@sortvers) = sort cmpab ($version, $newver);
+  error("only found older versions of $pkgname") if $sortvers[1] eq $version;
 
   for(@newurls)
   {
     next unless ref;
-    error("can't find alternate version for $pkgname") unless defined($newver);
     my(%vermap) = %$_;
     $_ = $vermap{$newver};
-  }
-
-  if(defined($newver))
-  {
-    error("$pkgname appears to be the latest available version")
-        if $version eq $newver;
-    my(@vers) = sort cmpab ($version, $newver);
-    error("only found older versions of $pkgname") if $vers[1] eq $version;
   }
 
   my(@cmdargs) = ($name, $newver, undef, @newurls);
@@ -2831,10 +2827,8 @@ sub upgrade(@)
   {
     return get(@cmdargs);
   }
-  else # not eligible for autorename
+  else
   {
-    error("URLs for unstored package $pkgname seem version-neutral; aborting")
-        unless defined($newver);
     return add(@cmdargs);
   }
 }
@@ -3860,18 +3854,19 @@ probably meant to invoke B<toast build> with the C<autoarm> option set.
 
 =item S<B<toast upgrade> I<PACKAGE> ...>
 
-Checks for a later version of an existing package.  The existing package's
-URLs are used as a starting point to locate the new version.  If the
-filename component of a given URL doesn't appear to contain the package's
-version number, that URL will be left unmodified for the new version;
-otherwise, the directory portion of the URL will be immediately downloaded
-and searched for a similar URL containing a higher version number.
-The command fails if a single newer version for all version-containing
-URLs cannot be found; otherwise, the highest eligible version is used
-for all modified URLs and the package itself.  The command performs an
-implicit <add>, B<get>, B<build> or B<arm> on the extrapolated URLs so
-as to match the state of the given existing version, except that the
-new package will never be armed if the B<autoarm> option is disabled.
+Checks for a later version of an existing package.  The existing
+package's URLs are used as a starting point to locate the new version.
+If the filename component of a given URL doesn't appear to contain the
+package's version number, that URL will be left unmodified for the new
+version; otherwise, the directory portion of the URL will be immediately
+downloaded and searched for a similar URL containing a higher version
+number.  The command fails if no URLs would change or if no single
+consistent newer version for all version-containing URLs can be found;
+otherwise, the highest eligible version is used for all modified URLs
+and the package itself.  The command performs an implicit <add>, B<get>,
+B<build> or B<arm> on the extrapolated URLs so as to match the state of
+the given existing version, except that the new package will never be
+armed if the B<autoarm> option is disabled.
 
 =item S<B<toast disarm> I<BUILD> | I<PACKAGE> ...>
 
