@@ -2910,6 +2910,14 @@ sub make($)
   @targets = qw[world opt] if $ocaml;
   @targets = $please if $please;
 
+  if($lk && reconfigure)
+  {
+    my($in) = path("/proc", "config.gz");
+    my($out) = path($dir, ".config");
+    optrun("gzip -cd < " . shellescape($in) . " > " . shellescape($out))
+        if -r($in) && !-e($out)
+  }
+
   return cdrun($dir, @prog) unless @targets;
   cdrun($dir, @prog, $_) foreach @targets;
   return true;
@@ -4674,7 +4682,6 @@ sub main(@)
 {
   $| = 1;
   my($result) = cmdline(@_) ? 0 : 1;
-warning("$myname: returning failure ($result)") if $result != 0;
   close(STDOUT) || error("close stdout: $!");
   exit($result);
 }
@@ -6062,7 +6069,6 @@ Known bugs:
 
 Wish list:
 
-  - when building linux, default to using /proc/kconfig.gz if present?
   - work around lack of getenv(), mkdir(), etc. in microperl...?
   - "toast upgrade" w/o args should imply --nostoponerror or something
   - "toast arm" should move armed packages to top of stacking order
