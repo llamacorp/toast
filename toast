@@ -241,6 +241,7 @@ BEGIN
     "ignorecase" => true,
     "showurls" => true,
     "infodir" => true,
+    "protect" => true,
     "debugrewrite" => false,
   );
 
@@ -274,7 +275,7 @@ BEGIN
     my($name) = @_;
     return isopt($name) && isboolean($optdefault{$name});
   }
-  
+
   sub checkoptname($)
   {
     my($name) = @_;
@@ -465,47 +466,6 @@ sub optmd(@)
 
 ##############################################################################
 
-sub silentrm(@)
-{
-  unlink || error("rm $_: $!") foreach @_;
-  true;
-}
-
-sub rm(@)
-{
-  announce("rm", @_);
-  silentrm(@_);
-}
-
-sub silentrd(@)
-{
-  rmdir || error("rmdir $_: $!") foreach @_;
-  true;
-}
-
-sub rd(@)
-{
-  announce("rmdir", @_);
-  silentrd(@_);
-}
-
-sub rmall(@)
-{
-  @_ || error;
-  announce("rm", "-r", @_);
-  dfs($_, sub { true }, sub { silentrm($_) }, sub { silentrd($_) }) foreach @_;
-  true;
-}
-
-sub rmexisting(@)
-{
-  my(@existing) = grep(-e || -l, @_);
-  rmall(@existing) if @existing;
-  true;
-}
-
-##############################################################################
-
 sub mv($$)
 {
   my($source, $dest) = @_;
@@ -528,15 +488,37 @@ sub optln($$)
 
 ##############################################################################
 
+sub safestat($)
+{
+  my($file) = @_;
+  my(@result) = stat($file);
+  @result || error("stat $file: $!");
+  @result;
+}
+
+sub getmode($) { (safestat($_[0]))[2] & 07777 }
+
+sub chmodimpl($$@)
+{
+  my($mode, $announce, @files) = @_;
+  $mode &= 01777 & ~umask;
+  my($txtmode) = sprintf("%lo", $mode);
+  @files = grep { getmode($_) != $mode } @files;
+  announce("chmod", $txtmode, @files) if @files && $announce;
+  chmod($mode, $_) || error("chmod $txtmode $_: $!") for @files;
+  true;
+}
+
 sub safechmod($@)
 {
   my($mode, @files) = @_;
-  $mode = $mode & ~umask;
-  my($txtmode) = sprintf("%lo", $mode);
-  (($mode | 01777) == 01777) || error("unsafe mode: $txtmode");
-  announce("chmod", $txtmode, @files);
-  chmod($mode, $_) || error("chmod $txtmode $_: $!") foreach @files;
-  true;
+  chmodimpl($mode, true, @files);
+}
+
+sub silentchmod($@)
+{
+  my($mode, @files) = @_;
+  chmodimpl($mode, false, @files);
 }
 
 sub writefilemode($$@)
@@ -561,16 +543,6 @@ sub writescript($@)
   my($name, @contents) = @_;
   writefilemode($name, 0777, @contents);
 }
-
-sub safestat($)
-{
-  my($file) = @_;
-  my(@result) = stat($file);
-  @result || error("stat $file: $!");
-  @result;
-}
-
-sub getmode($) { (safestat($_[0]))[2] & 0x1777; }
 
 sub samefile($$)
 {
@@ -618,6 +590,48 @@ sub optpatch(&$)
   my($sub, $file) = @_;
   return -e($file) ? &patch($sub, $file) : false;
 }
+
+##############################################################################
+
+sub silentrm(@)
+{
+  unlink || error("rm $_: $!") for @_;
+  true;
+}
+
+sub rm(@)
+{
+  announce("rm", "-f", @_) if @_;
+  silentrm(@_);
+}
+
+sub silentrd(@)
+{
+  rmdir || error("rmdir $_: $!") for @_;
+  true;
+}
+
+sub rd(@)
+{
+  announce("rmdir", @_) if @_;
+  silentrd(@_);
+}
+
+sub rmall(@)
+{
+  announce("rm", "-rf", @_) if @_;
+  dfs
+  (
+    $_,
+    sub { -w($_) ? true : silentchmod(0777, $_) },
+    sub { silentrm($_) },
+    sub { silentrd($_) }
+  ) for @_;
+  true;
+}
+
+sub optrm(@) { rm(grep(-e || -l, @_)) }
+sub optrmall(@) { rmall(grep(-e || -l, @_)) }
 
 ##############################################################################
 
@@ -1505,7 +1519,7 @@ sub findnewpkg($$)
     $redirhead =~ /^Location: ([^\r\n]+)/m ||
         error("unexpected response from $redirurl");
     $url = $1;
-    # wget can't always get FTP directory listing correctly w/o trailing slash 
+    # wget can't always get FTP directory listing correctly w/o trailing slash
     $url .= "/" unless basename(stripquery($url)) =~ /\./; # e.g. atop
   }
 
@@ -2684,15 +2698,7 @@ sub compilehelp($$$)
   return true;
 }
 
-sub fixrootsubdir($)
-{
-  my($dir) = @_;
-  my(undef, undef, $mode) = safestat($dir);
-  safechmod(0755, $dir) unless ($mode & 07777) == 0755;
-  return true;
-}
-
-sub fixrootlink($)
+sub fixbrokenrootlink($)
 {
   # stdlinks fool XFree86 and busybox into creating broken symlinks; fix them!
   my($link) = @_;
@@ -2708,6 +2714,13 @@ sub fixrootlink($)
   true;
 }
 
+sub fixrootfile($)
+{
+  my($file) = @_;
+  return -e($file) ? true : fixbrokenrootlink($file) if -l($file);
+  safechmod(-x($file) ? 0555 : 0444, $file);
+}
+
 sub polishrootdir($$)
 {
   my($rootdir, $armdir) = @_;
@@ -2716,15 +2729,15 @@ sub polishrootdir($$)
   -l && rm($_) foreach map { path($rootdir, $_) }
       (keys(%link), unpath($rootdir), unpath($armdir));
 
-  rmexisting(path($rootdir, "info", "dir"));
+  optrmall(path($rootdir, "info", "dir"));
 
   my($total, %count) = 0;
   dfs
   (
     $rootdir,
-    sub { $count{$_} = $total; fixrootsubdir($_) },
-    sub { fixrootlink($_) if -l && !-e; ++$total },
-    sub { $count{$_} < $total || rd($_) }
+    sub { $count{$_} = $total; true },
+    sub { fixrootfile($_); ++$total },
+    sub { $count{$_} < $total ? safechmod(0555, $_) : rd($_) }
   );
   $total || error("no files found in $rootdir");
 }
@@ -2746,7 +2759,7 @@ sub clean(@)
     return true unless isbuilt($name, $version, $build);
     my($srcdir) = path($builddir, srcdir);
     my($helperdir) = path($builddir, helperdir);
-    rmexisting($srcdir, $helperdir);
+    optrmall($srcdir, $helperdir);
   } @_;
 
   return true;
@@ -2762,7 +2775,7 @@ sub purge(@)
     for $version (allversions($name, $version))
     {
       my($archivedir) = path(pkgpath($name, $version), archivedir);
-      rmexisting($archivedir);
+      optrmall($archivedir);
     }
   }
 
@@ -2853,16 +2866,17 @@ sub rebuild(@)
       sub { chown(0, 0, $_) || ($success = !($msg = "chown $_: $!")) },
       sub
       {
-        if(-l)
+        if(!-l)
         {
-          my($source) = readlink;
-          return (unlink || ($success = !($msg = "unlink $_: $!"))) &&
-              (symlink($source, $_) ||
-              ($success = !($msg = "symlink $source $_: $!")));
+          return chown(0, 0, $_) || ($success = !($msg = "chown $_: $!"))
         }
         else
         {
-          return chown(0, 0, $_) || ($success = !($msg = "chown $_: $!"))
+          my($source) = readlink;
+          error("readlink $_: $!") unless defined($source);
+          return (unlink || ($success = !($msg = "unlink $_: $!"))) &&
+              (symlink($source, $_) ||
+              ($success = !($msg = "symlink $source $_: $!")));
         }
       },
       sub { true }
@@ -2983,14 +2997,17 @@ sub rebuildinfodir()
     $oldfile = addoff($oldfile);
   }
 
+  my($mode) = getmode($dir);
+  safechmod(0777, $dir);
+
   if(!infodir)
   {
-    rmexisting($dirfile);
+    optrm($dirfile);
   }
   else
   {
     my($tmpfile) = addtmp($dirfile);
-    rmexisting($tmpfile);
+    optrm($tmpfile);
     my($tmpsuffix) = tmpsuffix;
     my($offsuffix) = offsuffix;
     abswhiledir
@@ -3000,6 +3017,8 @@ sub rebuildinfodir()
     } $dir;
     mv($tmpfile, $dirfile) if -e($tmpfile);
   }
+
+  safechmod($mode, $dir);
 }
 
 sub postarm()
@@ -3019,6 +3038,18 @@ sub arm(@)
   optmd(armdir);
   lock(armdir);
 
+  my($mode) = (protect ? 0555 : 0777) & ~umask;
+  if(getmode(armdir) != $mode)
+  {
+    dfs
+    (
+      armdir,
+      sub { safechmod($mode, $_) },
+      sub { true },
+      sub { true }
+    );
+  }
+
   my(%link) = stdlinks;
   for(keys(%link))
   {
@@ -3026,8 +3057,16 @@ sub arm(@)
     if(!-e($abs) && !-l($abs))
     {
       my($dir) = dirname($abs);
-      -d($dir) || md($dir);
+      if(!-d($dir))
+      {
+        my($parent) = dirname($dir);
+        safechmod(755, $parent);
+        md($dir);
+        safechmod($mode, $parent);
+      }
+      safechmod(0777, $dir);
       ln($link{$_}, $abs);
+      safechmod($mode, $dir);
     }
   }
 
@@ -3036,9 +3075,14 @@ sub arm(@)
   dfs
   (
     $rootdir,
-    sub { optmd(optpath(armdir, $_[0])) },
+    sub
+    {
+      my($dir) = optpath(armdir, $_[0]);
+      optmd($dir);
+      safechmod(0777, $dir);
+    },
     sub { ln($_, displace(optpath(armdir, $_[0]))) },
-    sub { true }
+    sub { safechmod($mode, optpath(armdir, $_[0])) }
   );
 
   postarm;
@@ -3071,10 +3115,21 @@ sub disarm(@)
   {
     my($name, $version, $build) = @_;
     my($rootdir) = path(pkgpath($name, $version, $build), rootdir);
+    my(@dirmodes);
     -d($rootdir) && dfs  # ignore broken packages
     (
       $rootdir,
-      sub { true },
+      sub
+      {
+        my($rel) = @_;
+        my($armdir) = optpath(armdir, $rel);
+        if(-d($armdir) && !-l($armdir))
+        {
+          push(@dirmodes, getmode($armdir));
+          safechmod(0777, $armdir);
+        }
+        return true;
+      },
       sub
       {
         my($rel) = @_;
@@ -3091,10 +3146,15 @@ sub disarm(@)
       {
         my($rel) = @_;
         my($armdir) = optpath(armdir, $rel);
-        rd($armdir) if -d($armdir) && isempty($armdir);
+        if(-d($armdir) && !-l($armdir))
+        {
+          my($mode) = pop(@dirmodes);
+          isempty($armdir) ? rd($armdir) : safechmod($mode, $armdir);
+        }
         return true;
       }
     );
+    error if @dirmodes;
   } @_;
 
   postarm;
@@ -3638,7 +3698,7 @@ EOF
       "  $myname help *COMMAND*\n";
   $body{"commands"} .= "For a list of available options:" .
       "  $myname help options\n\n";
-  
+
   $head{"options"} = "${usage}where *OPTION* is one of the following:\n\n";
   for(@opts)
   {
@@ -4273,7 +4333,7 @@ sub tar(;$$)
 sub cmd_tarself(@)
 {
   error('try "make dist" instead') if @_ || -t(STDIN) || -t(STDOUT);
-  
+
   my($namever) = "$myname-$myversion";
   my($tarfile) = "$namever.tar";
 
@@ -5299,6 +5359,14 @@ file in B<armdir>; all the other files are symbolic links.  If B<infodir>
 is disabled, B<toast arm> and B<toast disarm> will delete the C<info/dir>
 file, if present, instead of rebuilding it.  Default: enabled.
 
+=item S<B<--protect> | B<--noprotect>>
+
+If B<protect> is enabled, B<toast arm> will attempt to ensure that
+armdir and its subdirectories are read-only, changing existing modes if
+necessary.  If B<protect> is disabled, B<toast arm> will make B<armdir>
+and its subdirectories read-write, assuming the current umask allows it.
+This option never affects the permissions of files or symbolic links.
+
 =item S<B<--debugrewrite> | B<--nodebugrewrite>>
 
 If B<debugrewrite> is enabled, B<toast build> will always generate broken
@@ -5411,7 +5479,6 @@ Wish list:
   - "toast status" should give information about stacking order
   - "toast rename" should rename armed packages by rewriting symlinks
   - "toast clean" should optionally remove old versions/builds
-  - directories in armdir should be read-only (mode 0555) by default
   - "toast build" should be able to deal with perl modules
   - add "toast check": verify storedir and armdir integrity (and fix?)
   - toast get could be more robust w/r/t failures and concurrency
