@@ -1260,6 +1260,7 @@ sub latestbuilt($$;$)
   my($name, $version, $build) = @_;
   defined($name) || error;
   defined($version) || error;
+  return undef unless isversion($name, $version);
   for $build (allbuilds($name, $version, $build))
   {
     return $build if isbuilt($name, $version, $build);
@@ -5034,7 +5035,7 @@ Known bugs:
   - "toast --noautoarm build foo" disarms and demolishes old foo builds
   - __END__ causes trouble when piping toast to perl for bootstrapping
   - gtk+ doesn't seem to build properly when it is already armed
-  - sleepycat db utterly fails to build when already armed
+  - opera and sleepycat db refuse to build when already armed
   - toast arm/disarm can leave info.dir in the wrong state
   - gimp will load plugins from other armed versions despite .off suffix
   - "toast upgrade gcc" doesn't work (ftp site has a subdir per version)
