@@ -2133,7 +2133,15 @@ sub makedir($)
 {
   my($dir) = @_;
   my($subdir);
-  my($ok) = abswhiledir { -d && !defined($subdir) && ($subdir = $_) } $dir;
+  my($ok) = whiledir
+  {
+    my($abs) = path($dir, $_);
+    return false unless -d($abs);
+    return true if $_ eq "CVS";
+    return false if defined($subdir);
+    $subdir = $abs;
+    return true;
+  } $dir;
   error("empty directory: $dir") if $ok && !defined($subdir);
   return $ok ? &makedir($subdir) : $dir;
 }
@@ -2754,7 +2762,8 @@ sub configure($$)
     my($emdir) = shellescape($makedir);
     my($ehdir) = defined($hdrdir) ? (shellescape($hdrdir)) : ();
     my($mftext) = "# $genby\n\nall:\n\t\$(MAKE) -C $emdir\n\n" .
-        "install:\n\t\$(MAKE) -C $emdir install\n";
+        "install:\n\t\$(MAKE) -C $emdir install\n" .
+        "\tyes '' | make -C $ehdir oldconfig dep\n"; # e.g. mtools expects this
     my($inclist) = "include/linux include/asm/. include/asm-generic";
     $mftext .= "\t\(cd $ehdir && tar c $inclist) | (cd \$(DESTDIR) && tar x)\n"
         if $ehdir;
