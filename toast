@@ -248,6 +248,7 @@ BEGIN
     "autoremove" => "false",
     "crossversion" => "false",
     "skipmismatched" => "true",
+    "preload" => "true",
     "strictpreload" => "true",
     "useflock" => $^O =~ /win/i ? "false" : "true",
     "reconfigure" => "true",
@@ -2245,6 +2246,8 @@ die("exec $cmd: $!");
 sub helplib($$$)
 {
   my($srcdir, $rootdir, $helperdir) = @_;
+
+  return undef unless preload;
 
   my($defdebug) = "#define DEBUG stderr";
   $defdebug = "/* $defdebug */" unless debugrewrite;
@@ -5875,15 +5878,26 @@ option is enabled.  When B<skipmismatched> is disabled, mismatched builds
 are never treated specially.  See also the B<disarmmismatched> option.
 Default: enabled.
 
+=item S<B<--preload> | B<--nopreload>>
+
+When B<preload> is enabled, B<toast build> will attempt to compile a
+shared library for use with C<LD_PRELOAD> during the C<make install>
+phase.  This library may help some packages install themselves into the
+correct location.  If B<preload> is disabled, B<toast build> will skip
+this step.  Note that this may cause some packages to build incorrectly
+in some situations.  To build the shared library only if a suitable
+C compiler is present, leave this option enabled, but disable the
+B<strictpreload> option.  Default: enabled.
+
 =item S<B<--strictpreload> | B<--nostrictpreload>>
 
-When B<strictpreload> is enabled, B<toast build> will fail unless it
-can successfully compile a shared library for use with C<LD_PRELOAD>
-during the C<make install> phase.  If B<strictpreload> is disabled,
-B<toast build> still tries to build and use the shared library, but will
-do the best it can otherwise.  This may allow B<toast build> to succeed
-in the absence of a suitable C compiler, but it may allow some packages
-to build incorrectly in some situations.  Default: enabled.
+When B<strictpreload> is enabled, failure to build the shared library
+described under the B<preload> option is treated as a fatal error.
+When B<strictpreload> is disabled, a compile error while attempting
+to build the shared library causes B<toast build> to behave as if
+the B<preload> option were disabled.  This may allow B<toast build>
+to succeed in the absence of a suitable C compiler, but it may allow
+some packages to build incorrectly in some situations.  Default: enabled.
 
 =item S<B<--useflock> | B<--nouseflock>>
 
