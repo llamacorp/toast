@@ -1431,6 +1431,14 @@ sub autoextractstdin(;$)
   forkstdin ? extractstdin($type) : dumpstdin($buf);
 }
 
+sub applypatchfromstdin()
+{
+  my($subdir);
+  my($ok) = whiledir { !defined($subdir) && ($subdir = $_) } ".";
+  safeexec(qw[patch -p1 -d], $subdir) if $ok && $subdir;
+  safeexec(qw[patch -p0]);
+}
+
 sub rpmextractstdin()
 {
   my($lead) = readstdin(96);
@@ -1476,7 +1484,8 @@ sub extractstdin($)
   safeexec("tar", "xf", "-") if $type eq ".tar";
   safeexec("cpio", "-di") if $type eq ".cpio";
   safeexec("/bin/sh") if $type eq ".shar";
-  safeexec("patch", "-p0") if $type eq ".patch";
+
+  applypatchfromstdin if $type eq ".patch";
 
   rpmextractstdin if $type eq ".rpm";
   debextractstdin if $type eq ".deb";
