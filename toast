@@ -758,7 +758,7 @@ sub linksfromstring($$)
     $link = $proto . $link if $link =~ m!^//!;
     $link = $host . $link if $link =~ m!^/!;
     $link = $parent . $link unless $link =~ m!^(\w+)://!;
-    push(@links, $link);
+    push(@links, cleanurl($link));
   }
   return @links;
 }
@@ -1368,38 +1368,46 @@ sub findnewpkg($$)
       error("unexpected response from $redirurl");
   my($url) = $1;
 
-  if(lookslikepkgurl($url))
+  for(1..3)
   {
-    (undef, $version) = guessnv($url) unless defined($version);
-    return ($name, $version, $url);
-  }
-
-  my(@urls) = grep(lookslikepkgurl($_, $name, $version), linksfromurl($url));
-  my(@exts) = (qw[.tar.bz2 .tar.gz .tgz .zip .rpm]);
-  my($extpat) = '(' . join('|', map(quotemeta($_), @exts)) . ')$';
-  @urls = grep(/$extpat/, @urls);
-
-  if(!defined($version))
-  {
-    my(@versions) = map { my(undef, $v) = guessnv($_); $v } @urls;
-    @versions = grep(defined($_), @versions);
-    if(@versions)
+    if(lookslikepkgurl($url))
     {
-      @versions = reverse sort cmpab @versions;
-      $version = $versions[0];
-      @urls = grep
-      {
-        my(undef, $v) = guessnv($_);
-        defined($v) && $v eq $version;
-      } @urls;
+      (undef, $version) = guessnv($url) unless defined($version);
+      return ($name, $version, $url);
     }
-  }
 
-  my($ext);
-  for $ext (@exts)
-  {
-    my(@matches) = grep(stripquery($_) =~ /\Q$ext\E$/i, @urls);
-    return ($name, $version, $matches[0]) if @matches;
+    my(@links) = linksfromurl($url);
+    my(@urls) = grep(lookslikepkgurl($_, $name, $version), @links);
+    my(@exts) = (qw[.tar.bz2 .tar.gz .tgz .zip .rpm]);
+    my($extpat) = '(' . join('|', map(quotemeta($_), @exts)) . ')$';
+    @urls = grep(/$extpat/, @urls);
+
+    if(!defined($version))
+    {
+      my(@versions) = map { my(undef, $v) = guessnv($_); $v } @urls;
+      @versions = grep(defined($_), @versions);
+      if(@versions)
+      {
+        @versions = reverse sort cmpab @versions;
+        $version = $versions[0];
+        @urls = grep
+        {
+          my(undef, $v) = guessnv($_);
+          defined($v) && $v eq $version;
+        } @urls;
+      }
+    }
+
+    my($ext);
+    for $ext (@exts)
+    {
+      my(@matches) = grep(stripquery($_) =~ /\Q$ext\E$/i, @urls);
+      return ($name, $version, $matches[0]) if @matches;
+    }
+
+    @links = grep(/^\Q$url\E/, @links);
+    last unless @links;
+    $url = pop(@links);
   }
 
   error("can't find URLs for " . pkgname($name, $version) . " at $url");
@@ -3436,6 +3444,7 @@ sub cleanurl($)
   local($_) = @_;
   s/ /\+/g;
   s/[^\!-\~]/urlescapechar($&)/ge;
+  s!^(ftp://[^/:]+):21(/|$)!$1$2!; # wget likes to emit redundant ftp port no.
   $_;
 }
 
