@@ -448,16 +448,16 @@ sub unbuffer(*)
 sub whiledir(&$)
 {
   my($sub, $dir) = @_;
-  local(*DIR, $_);
+  local(*DIR);
   opendir(DIR, $dir) || error("opendir $dir: $!");
-  while(defined($_ = readdir(DIR)))
-  {
-    next if $_ eq ".";
-    next if $_ eq "..";
-    last unless &$sub($_);
-  }
+  my(@list) = sort(grep($_ ne "." && $_ ne "..", readdir(DIR)));
   closedir(DIR);
-  !defined($_);
+  my($result) = true;
+  for(@list)
+  {
+    last unless $result = &$sub($_);
+  }
+  return !!$result;
 }
 
 sub fordir(&@)
