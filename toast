@@ -1794,9 +1794,11 @@ $rettype$name($proto)
   cdrun($helperdir, @socc, qw[dummy.c -o rewrite.so]);
 
   push(@socc, qw[-Werror]) if strictpreload;
+  push(@socc, qw[rewrite.c -o rewrite.so.helper]);
+  push(@socc, "-ldl") if $^O =~ /linux/i;
 
   writefile(path($helperdir, "rewrite.c"), $code);
-  if(optcdrun($helperdir, @socc, qw[rewrite.c -ldl -o rewrite.so.helper]))
+  if(optcdrun($helperdir, @socc))
   {
     return path($helperdir, "rewrite.so");
   }
@@ -2246,7 +2248,7 @@ sub build(@)
   $name || error;
   $build && error;
 
-  ($name, $version) = get(@_) if @urls || !isstored($name, $version);
+  ($name, $version) = get(@_) if !isstored($name, $version);
   $name || error;
   $version || error;
 
