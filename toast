@@ -20,6 +20,8 @@ exit 1
 ##############################################################################
 
 #!perl
+&the_correct_line_number_for_this_line_is(23); # perl thinks this is line 2...
+
 use 5; # oldest version that actually works might be 5.003; not sure....
 
 # allow script to run even in the absence of strict.pm, etc.
@@ -47,20 +49,41 @@ $myname eq "toast" && $myauthor eq "zaphod" || die; # avoid accidents w/ CVS
 
 ##############################################################################
 
-sub trace(;$)
+BEGIN
 {
-  my($i, $out, $prev) = (shift || 1, "", "");
-  while(my($package, $file, $line) = caller($i++))
+  my($linedelta, $filedelta);
+
+  sub the_correct_line_number_for_this_line_is($)
   {
-    $out .= ($prev eq $file ? "/" : $out ? "; $file: " : "$file: ") . $line;
-    $prev = $file;
+    my($realline) = @_;
+    my($package, $file, $line) = caller(0);
+    $linedelta = $realline - $line;
+    $filedelta = $file;
   }
-  $out;
+
+  sub trace(;$)
+  {
+    my($i, $out, $prev) = (shift || 1, "", "");
+    while(my($package, $file, $line) = caller($i++))
+    {
+      $line += $linedelta if defined($linedelta) && $file eq $filedelta;
+      $out .= ($prev eq $file ? "/" : $out ? "; $file: " : "$file: ") . $line;
+      $prev = $file;
+    }
+    $out .= " (from #!perl line)" unless defined($linedelta);
+    $out .= " v$myversion";
+    return $out;
+  }
 }
 
 sub error(@)
 {
-  die(join('', @_) || "assertion failed", "\n[" . trace . " v$myversion]\n");
+  die(join('', @_) || "assertion failed", "\n[" . trace . "]\n");
+}
+
+sub warning(@)
+{
+  warn(join('', @_) || "warning", "\n[" . trace . "]\n");
 }
 
 ##############################################################################
@@ -4082,7 +4105,7 @@ sub main(@)
 {
   $| = 1;
   my($result) = cmdline(@_) ? 0 : 1;
-warn("$myname: returning failure ($result)") if $result != 0;
+warning("$myname: returning failure ($result)") if $result != 0;
   close(STDOUT) || error("close stdout: $!");
   exit($result);
 }
@@ -5315,7 +5338,6 @@ Known bugs:
   - "toast --autoremove --crossversion upgrade toast" breaks everything
   - if x/1/1 is armed and x/1/2 is built, "toast arm x" does nothing
   - various unquoted arguments to 2-arg open()
-  - error message line numbers are too low by 19 or so due to perl -x
 
 Wish list:
 
