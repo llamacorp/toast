@@ -2326,26 +2326,27 @@ sub make($)
   my($mf) = makefile($dir) || error("no Makefile found");
 
   my($ok) = true;
+  my($systype) = false;
   my($lk) = false; # blatant special case for the Linux kernel
   my($xf86) = false; # blatant special case for XFree86
-  my($unzip) = false; # blatant special case for unzip
   my($please) = ""; # blatant special case for xdaliclock
 
   explain("examining $mf...");
   return false unless whilefile
   {
+    $systype ||= /You must specify the system which you want to compil/;#mpg123
+    $systype ||= /If you're not sure about the characteristics of your /;#unzip
     $lk ||= /^do-it-all:.*\bvmlinux\b/;
     $xf86 ||= /Please use make World/i;
-    $unzip ||= /If you're not sure about the characteristics of your system/;
     $please = $1 if /  please make one of: "([^"]+)"/;
     !/^all:[^\#]*\binstall\b/; # abort if all implies install (e.g. man-pages)
   } $mf;
 
   my(@prog) = "make";
   my(@targets);
+  @targets = $^O if $systype;
   @targets = qw[oldconfig dep bzImage] if $lk;
   @targets = "World" if $xf86;
-  @targets = $^O if $unzip;
   @targets = $please if $please;
 
   return cdrun($dir, @prog) unless @targets;
