@@ -3001,7 +3001,10 @@ sub configure($$)
         {
           s/^\s*AUTOTHREAD=no\s+\#+ leave off for now/\#$&/; # qt multithreaded
           my($opt); # glibc; libjpeg; tetex; others?
-          for $opt (qw[enable-add-ons enable-shared disable-multiplatform])
+          for $opt ("enable-add-ons", # glibc
+              "enable-shared", # various
+              "with-shared", # ncurses
+              "disable-multiplatform") # tetex
           {
             $confopts{"--$opt"} ||= / \Q--$opt\E\b($|[^-])/;
           }
