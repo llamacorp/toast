@@ -2345,6 +2345,7 @@ sub configure($$)
       {
         $self ||= /this is toast 89a72ef9c34e1fd4927afa36c9be8b15/;
         $twowordprefix ||= /^\s*prefix=\$2; shift;;$/; # ocaml
+        $twowordprefix ||= /  --prefix dir  /; # doxygen
         $builddir ||= /error: you must configure in a separate build/; # glibc
         $builddir||=m!\. \$srcdir/build-tools/scripts/configure-top !;#arch/tla
         $bogus ||= /There is no .+configure.+ script .+Instead/i; # libpng
@@ -5527,6 +5528,7 @@ Known bugs:
   - gimp will load plugins from other armed versions despite .off suffix
   - "toast upgrade gcc" doesn't work (ftp site has a subdir per version)
   - autofind fails for: sleepycat db, gcc, latex, gv, GNU arch (?), ogle
+  - autofind chooses Linux binaries over source for doxygen
   - build fails for: jikes, sirc, netcat, lcab, gv
   - "toast --autoremove --crossversion upgrade toast" breaks everything
   - if x/1/1 is armed and x/1/2 is built, "toast arm x" does nothing
