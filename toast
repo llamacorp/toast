@@ -35,7 +35,7 @@ sub error(@)
 
 ##############################################################################
 
-my($rcsid) = q$Id: toast,v 1.214 2003/10/13 04:34:23 zaphod Exp $;
+my($rcsid) = q$Id: toast,v 1.215 2003/10/13 04:55:05 zaphod Exp $;
 $rcsid =~ /^Id: (.+),v (\S+) (\S+ \S+) (\S+) Exp (\S+ )?$/ || error;
 my($myname, $myversion, $mytimestamp, $myauthor) = ($1, $2, $3, $4);
 $myversion .= "+" if $5; # if this version may contain changes not in RCS
@@ -2143,15 +2143,16 @@ sub configure($$)
     my($confprog) = path($dir, $cfg);
     if(-x($confprog))
     {
-      my(@confcmd) = ("./$cfg", "--prefix=$prefix");
       my($self) = false;
       my($builddir) = false;
       my($bogus) = false;
+      my($twowordprefix) = false;
       my(%confopts);
 
       patch
       {
         $self ||= /this is toast 89a72ef9c34e1fd4927afa36c9be8b15/;
+        $twowordprefix ||= /^\s*prefix=\$2; shift;;$/; # ocaml
         $builddir ||= /error: you must configure in a separate build/; # glibc
         $bogus ||= /There is no .+configure.+ script .+Instead/i; # libpng
         s/(^\s*)read\s+(acceptance)(\s*$)/$1$2=yes$3/; # qt license
@@ -2166,9 +2167,11 @@ sub configure($$)
         }
       } $confprog;
 
+      my(@confcmd) = ("./$cfg", "--prefix=$prefix");
       if(!$self)
       {
         next if $bogus;
+        @confcmd = ("./$cfg", "--prefix", $prefix) if $twowordprefix;
         push(@confcmd, sort(grep($confopts{$_}, keys(%confopts))));
         if($builddir)
         {
@@ -2331,6 +2334,7 @@ sub make($)
   my($systype) = false;
   my($lk) = false; # blatant special case for the Linux kernel
   my($xf86) = false; # blatant special case for XFree86
+  my($ocaml) = false; # ditto ocaml
   my($please) = ""; # blatant special case for xdaliclock
 
   explain("examining $mf...");
@@ -2340,6 +2344,7 @@ sub make($)
     $systype ||= /If you're not sure about the characteristics of your /;#unzip
     $lk ||= /^do-it-all:.*\bvmlinux\b/;
     $xf86 ||= /Please use make World/i;
+    $ocaml ||= /^\# For users who don't read the INSTALL file$/; #thanks ocaml!
     $please = $1 if /  please make one of: "([^"]+)"/;
     !/^all:[^\#]*\binstall\b/; # abort if all implies install (e.g. man-pages)
   } $mf;
@@ -2349,6 +2354,7 @@ sub make($)
   @targets = $^O if $systype;
   @targets = qw[oldconfig dep bzImage] if $lk;
   @targets = "World" if $xf86;
+  @targets = qw[world opt] if $ocaml;
   @targets = $please if $please;
 
   return cdrun($dir, @prog) unless @targets;
