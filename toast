@@ -158,6 +158,7 @@ BEGIN
     "armdir" => superuser ? "/usr/local" : "armed",
     "username" => "toast",
     "postarmprog" => superuser ? "/sbin/ldconfig" : "",
+    "editprog" => "",
     "defaultcmd" => "help",
     "verbose" => true,
     "autofind" => true,
@@ -283,6 +284,7 @@ BEGIN
 
 sub pkgdir() { "pkg" }
 sub archivedir() { "archive" }
+sub editdir() { "edit" }
 sub urlfile() { "url" }
 sub srcdir() { "src" }
 sub helperdir() { "helpers" }
@@ -3000,6 +3002,111 @@ sub status(@)
 
 ##############################################################################
 
+sub edit(@)
+{
+  my($name, $version, $build, @urls) = @_;
+  error unless defined($name);
+  error if defined($build);
+
+  ($name, $version) = get($name, $version, $build, @urls)
+      unless defined($version) && isstored($name, $version);
+  error unless defined($name);
+  error unless defined($version);
+
+  my($suffix) = "-$myname";
+  my($oldversion) = $version =~ /^(.*)(\Q$suffix\E\d+)$/ ? $1 : $version;
+  error unless defined($oldversion);
+  error(pkgname($name, $oldversion) . " is no longer stored")
+      unless isstored($name, $oldversion);
+
+  my($oldverdir) = pkgpath($name, $oldversion);
+  my($oldarchivedir) = path($oldverdir, archivedir);
+
+  my($verdir) = pkgpath($name, $version);
+  my($archivedir) = path($verdir, archivedir);
+
+  my($num) = 1;
+  my($newversion, $newverdir);
+  while(true)
+  {
+    $newversion = $oldversion . $suffix . $num;
+    $newverdir = pkgpath($name, $newversion);
+    last if mkdir($newverdir);
+    error("mkdir $newverdir: $!") unless -d($newverdir);
+    $num++;
+  }
+  announce("mkdir", $newverdir);
+
+  my($newarchivedir) = path($newverdir, archivedir);
+  my($editdir) = path($newverdir, editdir);
+  my($olddir) = path($editdir, "old");
+  my($newdir) = path($editdir, "new");
+  my($patchfilename) = "edit.patch";
+  my($patchfile) = path($editdir, $patchfilename);
+  md($editdir, $olddir, $newdir);
+
+  if(superuser)
+  {
+    my($uid, $gid) = getuidgid;
+    announce("chown", username, $olddir, $newdir);
+    chown($uid, $gid, $olddir, $newdir) ||
+        error("chown $uid:$gid $olddir $newdir: $!");
+  }
+
+  local(*PATCH);
+  open(PATCH, ">$patchfile") or error("open $patchfile: $!");
+  my($pid) = fork;
+  error("fork: $!") unless defined($pid);
+
+  if(!$pid) # child
+  {
+    dropprivs;
+    extract($oldarchivedir, $olddir);
+    extract($archivedir, $newdir);
+    my($prog) = length(editprog) ? editprog :
+        exists($ENV{SHELL}) ? $ENV{SHELL} : "/bin/sh";
+    cdrun(makedir($newdir), $prog);
+
+    local(*DIFF, $_);
+    openprog(*DIFF, "diff", "-urN", $olddir, $newdir);
+    while(<DIFF>)
+    {
+      s!^(\+\+\+|---) (\Q$olddir\E|\Q$newdir\E)/!$1 !;
+      print PATCH $_;
+    }
+    close(DIFF); # ignore error
+    close(PATCH) or error("close $patchfile: $!");
+
+    exit(0);
+    error;
+  }
+
+  my($errmsg);
+  waitpid($pid, 0) or error("waitpid $pid: $!");
+  $errmsg ||= "subprocess returned $?" unless $? == 0;
+  close(PATCH) or error("close $patchfile: $!");
+  $errmsg ||= "no changes found" unless -s($patchfile);
+  if($errmsg)
+  {
+    rmall($newverdir);
+    error($errmsg);
+  }
+  rmall($olddir, $newdir);
+
+  my(@newurls) = pkgurls($name, $oldversion);
+  push(@newurls, fileurl($patchfile));
+  setpkgurls($name, $newversion, @newurls);
+
+  md($newarchivedir);
+  fordir { ln(path($oldarchivedir, $_), path($newarchivedir, $_)) }
+      $oldarchivedir;
+  ln($patchfile, path($newarchivedir, $patchfilename));
+
+  return build($name, $newversion, undef, @newurls);
+}
+
+##############################################################################
+
 sub rename(@)
 {
   my($sname, $sversion, $sbuild, $dname, $dversion, $dbuild) = @_;
@@ -3560,6 +3667,7 @@ sub parse_disarm(@) { rejectempty(rejectmissing(parse(@_))); }
 sub parse_demolish(@) { rejectempty(rejectmissing(parse(@_))); }
 sub parse_purge(@) { rejectempty(rejectmissing(rejectbuilds(parse(@_)))); }
 sub parse_remove(@) { rejectempty(rejectmissing(parse(@_))); }
+sub parse_edit(@) { rejectempty(uselatestversion(rejectbuilds(parse(@_)))); }
 sub parse_rename(@);
 sub parse_change(@) { requireurls(rejectempty(rejectmissing(uselatestversion(rejectbuilds(parse(@_)))))); }
 sub parse_status(@) { allowempty(rejectmissing(parse(@_))); }
