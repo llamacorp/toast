@@ -186,7 +186,8 @@ sub safeopen(*$$)
   my($mode, $file) = @_;
   my($escaped) = "$file\x00";
   $escaped = "./$escaped" unless $escaped =~ m!^/!;
-  open(HANDLE, "$mode$escaped") or error("open $file: $!");
+  open(HANDLE, "$mode$escaped") || error("open $file: $!");
+  binmode(HANDLE) || error("binmode $file: $!"); # perl 5.8.0 utf8 bug
 }
 
 sub whilefile(&$)
@@ -705,9 +706,12 @@ sub openprog(*$@)
   local(*HANDLE) = shift;
   my($prog, @args) = @_;
   announce($prog, @args);
-  return true if open(HANDLE, "$prog @args |");
-  explain("failed to exec $prog: $!");
-  return false;
+  if(!open(HANDLE, "$prog @args |"))
+  {
+    explain("failed to exec $prog: $!");
+    return false;
+  }
+  binmode(HANDLE) || error("binmode: $!"); # perl 5.8.0 utf8 bug
 }
 
 ##############################################################################
@@ -1214,12 +1218,14 @@ sub forkstdin()
 {
   my($pid) = open(STDIN, "-|");
   defined($pid) || error("fork stdin: $!");
+  binmode(STDIN) || error("binmode stdin: $!"); # perl 5.8.0 utf8 bug
   return $pid;
 }
 
 sub dumpstdin($)
 {
   my($buf) = @_;
+  binmode(STDOUT) || error("binmode stdout: $!"); # perl 5.8.0 utf8 bug
   print($buf);
   print($buf) while sysread(STDIN, $buf = "", 8192, 0);
   exit(0);
@@ -1271,6 +1277,7 @@ sub extractstdin($)
   {
     my($prog) = $type eq ".bz2" ? "bzip2" : "gzip";
     open(STDIN, "$prog -cd |") || error("$prog: $!");
+    binmode(STDIN) || error("binmode stdin: $!"); # perl 5.8.0 utf8 bug
     autoextractstdin;
     error;
   }
@@ -4376,6 +4383,7 @@ sub cmd_tarself(@)
   local(*TAR2GZIP);
   my($pid) = open(TAR2GZIP, "|-");
   defined($pid) || error("fork: $!");
+  binmode(TAR2GZIP) || error("binmode: $!"); # perl 5.8.0 utf8 bug
   if($pid)
   {
     my($contents) = join('', (<STDIN>));
@@ -4391,6 +4399,7 @@ sub cmd_tarself(@)
   {
     local(*GZIP);
     open(GZIP, "gzip -c -9 |") || error("spawn gzip: $!");
+    binmode(GZIP) || error("binmode: $!"); # perl 5.8.0 utf8 bug
     my($header);
     read(GZIP, $header, 10) == 10 || error;
     my($id, $cm, $flg, $mtime, $xfl, $os) = unpack("a2 C C L C C", $header);
