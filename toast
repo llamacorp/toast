@@ -1608,6 +1608,12 @@ sub excmp($$)
 
 sub extract($$)
 {
+  if($0 eq "-") # e.g. "perl - arm foo < toast"
+  {
+    close(STDIN); # this step apparently matters; ignore spurious error
+    open(STDIN, "</dev/null") || error("open stdin: $!");
+  }
+
   my($indir, $outdir) = @_;
   my(@infiles) = absls($indir);
   @infiles || error("$indir is empty");
