@@ -2634,8 +2634,8 @@ sub configure($$)
 
   # find a configure script
   my($cfg);
-  #            autoconf  Perl          elm       pmk (bootstrap)
-  for $cfg (qw[configure configure.gnu Configure pmkcfg.sh])
+  #            autoconf  Perl          openssl elm       pmk (bootstrap)
+  for $cfg (qw[configure configure.gnu config  Configure pmkcfg.sh])
   {
     my($confprog) = path($dir, $cfg);
     if(-x($confprog))
