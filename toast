@@ -2727,6 +2727,10 @@ sub configure($$)
   my($pmkfile) = path($dir, "pmkfile");
   return $dir if -r($pmkfile) && cdrun($dir, "pmk");
 
+  # qmake is a similar tool that comes with Qt
+  my(@profiles) = grep(/\.pro$/i, ls($dir));
+  return $dir if scalar(@profiles) == 1 && cdrun($dir, "qmake", $profiles[0]);
+
   # Write a custom Makefile for glibc with add-ons and/or kernel headers.
   my($glibcdir, $hdrdir, @addons);
   my($glibcok) = whiledir
