@@ -2866,11 +2866,13 @@ sub upgrade(@)
   @urls = pkgurls($name, $version) unless @urls;
   error unless @urls;
 
-  my(%linkmap);
-  my($verpat) = $version =~ /^\d/ ? '\d.*' : '.+';
+  # Look for new version numbers that start with a digit and that don't
+  # contain dashes (as in "zsh-4.0.6-doc.tar.gz"),
+  # unless the original version number lacked those properties.
+  my($verchar) = $version =~ /-/ ? '.' : '[^\-]';
+  my($verpat) = $version =~ /^\d/ ? "\\d$verchar*" : "$verchar+";
 
-  my(%candidates);
-  my(@newurls);
+  my(%linkmap, %candidates, @newurls);
   my($hasver) = false;
   for(@urls)
   {
