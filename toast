@@ -4287,13 +4287,12 @@ for that package was given explicitly on the command line.
 
 =item S<B<--debugrewrite> | B<--nodebugrewrite>>
 
-If B<debugrewrite> is enabled, B<toast build> will always generate
-broken builds.  The builds will contain extra debugging information that
-can be used to help diagnose problems involving packages that build
-correctly outside of B<toast>, but refuse to build or build incorrect
-files due to bugs in B<toast>'s path-rewriting mechanism.  This option
-currently requires that the (for BSD) or C<strace> program be available
-(or C<ktrace> for *BSD).
+If B<debugrewrite> is enabled, B<toast build> will always generate broken
+builds.  The builds will contain extra debugging information that can be
+used to help diagnose problems involving packages that build correctly
+outside of B<toast>, but refuse to build or build incorrect files due
+to bugs in B<toast>'s path-rewriting mechanism.  This option currently
+requires that the C<strace> program be available (or C<ktrace> for *BSD).
 
 =back
 
