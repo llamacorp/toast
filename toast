@@ -287,6 +287,7 @@ BEGIN
     "ignorecase" => "true",
     "showurls" => "true",
     "infodir" => "true",
+    "xmlcatalog" => "true",
     "protect" => "false",
     "relative" => "false",
     "debugrewrite" => "false",
@@ -1381,21 +1382,22 @@ sub findperl()
 
 ##############################################################################
 
-sub newenvvar($$;$)
+sub newenvvar($$;$;$)
 {
-  my($varname, $subdirs, $default) = @_;
-  my(@dirs) = map(path(armdir, $_), split(/:/, $subdirs));
+  my($varname, $subdirs, $default, $delim) = @_;
+  $delim ||= ":";
+  my(@dirs) = map(path(armdir, $_), split(/$delim/, $subdirs));
   my($current) = exists($ENV{$varname}) ? $ENV{$varname} : $default;
 
   if(defined($current))
   {
     my(%have);
-    $have{$_} = 1 for split(/:/, $current);
+    $have{$_} = 1 for split(/$delim/, $current);
     @dirs = grep(!$have{$_}, @dirs);
     push(@dirs, $current);
   }
 
-  return($varname, join(":", @dirs));
+  return($varname, join($delim, @dirs));
 }
 
 sub newenv()
@@ -1407,13 +1409,15 @@ sub newenv()
     chomp($out) if defined($out);
     $defaultman = $out if defined($out) && $out =~ m!^/! && $out !~ /\n/;
   }
+  my($x) = path(qw(etc xml catalog));
 
   my(@vars);
   push(@vars, newenvvar("PATH", "sbin:bin"));
   push(@vars, newenvvar("MANPATH", "man", $defaultman));
-  push(@vars, newenvvar("INFOPATH", "info", ""));
+  push(@vars, newenvvar("INFOPATH", "info", "")) if infodir;
   push(@vars, newenvvar("CPATH", "include"));
   push(@vars, newenvvar("LIBRARY_PATH", "lib"));
+  push(@vars, newenvvar("XML_CATALOG_FILES", $x, "/$x", " ")) if xmlcatalog;
   # there's also a LIBRARY_RUN_PATH or something that affects ld somehow...
   return @vars;
 }
@@ -3425,6 +3429,54 @@ sub mkrootdir($$)
   optrelln($rootdir, $p = path($p, $_)) for unpath($armdir), unpath($rootdir);
 }
 
+sub mkxmlcatalog($@)
+{
+  my($name, @contents) = @_;
+  writefile($name, qq[<?xml version="1.0"?>
+<!DOCTYPE catalog PUBLIC "-//OASIS//DTD Entity Resolution XML Catalog V1.0//EN" "http://www.oasis-open.org/committees/entity/release/1.0/catalog.dtd">
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">\n],
+      map("  $_\n", @contents), "</catalog>\n");
+}
+
+sub compiledata($$)
+{
+  my($srcdir, $rootdir) = @_;
+  my(@installdir);
+
+  # docbook-xml, maybe other things too?
+  my($cat) = path($srcdir, "catalog.xml");
+  if(-r($cat))
+  {
+    my($name, $version);
+    whilefile
+    {
+      ($name, $version) = (lc($1), $2) if m!//DTD (\w+) XML V([\d\.]+)//!i;
+      !$version;
+    } $cat;
+    @installdir = (qw(share xml), $name, $version) if $version;
+  }
+
+  # docbook-xsl
+  my(@ls) = ls($srcdir);
+  if(!@installdir && scalar(@ls) == 1 && $ls[0] =~ /^docbook-xsl-/)
+  {
+    $srcdir = path($srcdir, $ls[0]);
+    @installdir = qw(share xml docbook-xsl);
+    my($cat) = path($srcdir, "catalog.xml");
+    my($rewritePrefix) = path(armdir, @installdir);
+    mkxmlcatalog($cat, qq[<rewriteURI uriStartString="http://docbook.sourceforge.net/release/xsl/current" rewritePrefix="$rewritePrefix"/>]) unless -r($cat);
+  }
+
+  return false unless @installdir;
+  my($dir) = $rootdir;
+  for(@installdir)
+  {
+    md($dir);
+    $dir = path($dir, $_);
+  }
+  return mv($srcdir, $dir);
+}
+
 sub compilebin($$)
 {
   my($srcdir, $rootdir) = @_;
@@ -3548,7 +3600,9 @@ sub polishrootdir($$)
 sub compile($$$)
 {
   my($srcdir, $rootdir, $helperdir) = @_;
-  compilebin($srcdir, $rootdir) || compilehelp($srcdir, $rootdir, $helperdir);
+  compiledata($srcdir, $rootdir) ||
+      compilebin($srcdir, $rootdir) ||
+      compilehelp($srcdir, $rootdir, $helperdir);
   polishrootdir($rootdir, armdir);
 }
 
@@ -3829,6 +3883,50 @@ sub rebuildinfodir($)
   safechmod($mode, $dir);
 }
 
+sub rebuildxmlcatalog(@)
+{
+  return true unless xmlcatalog;
+
+  my($armdir) = @_;
+  my($etcdir) = path($armdir, "etc");
+  my($xmldir) = path($etcdir, "xml");
+  my($master) = path($xmldir, "catalog");
+  return true if -l($master);
+
+  my(@subcats);
+  my($dir) = path($armdir, qw[share xml]);
+  dfs
+  (
+    $dir,
+    sub { true },
+    sub { push(@subcats, $_) if m!/catalog.xml$!; true },
+    sub { true },
+  ) if -d($dir);
+
+  return -e($master) ? rm($master) : true unless @subcats;
+
+  for(grep(!-d, $etcdir, $xmldir))
+  {
+    my($parent) = dirname($_);
+    my($mode) = getmode($parent);
+    safechmod(0777, $parent);
+    md($_);
+    safechmod($mode, $parent);
+  }
+
+  my($mode) = getmode($xmldir);
+  safechmod(0777, $xmldir);
+  safechmod(0666, $master) if -e($master);
+  mkxmlcatalog($master, map(qq[<nextCatalog catalog="$_"/>], sort(@subcats)));
+  safechmod($mode, $xmldir);
+
+  if(protect)
+  {
+    safechmod(0444, $master);
+    safechmod(0555, $_) for($xmldir, $etcdir, $armdir);
+  }
+}
+
 sub arm(@)
 {
   my($name, $version, $build, @urls) = @_;
@@ -3897,6 +3995,7 @@ sub arm(@)
   );
 
   rebuildinfodir(armdir);
+  rebuildxmlcatalog(armdir);
   run(postarmprog) if postarmprog;
 
   unlock(armdir);
@@ -3988,6 +4087,7 @@ sub disarm(@)
     } @nvb; # can't replace @nvb with ($n, $v, $b) due to perl 5.6.1 bug (?)
 
     rebuildinfodir($armdir) if $changed;
+    rebuildxmlcatalog($armdir) if $changed;
     run(postarmprog) if ++$i == scalar(@armdirs) && $anychanged && postarmprog;
     unlock($armdir);
   }
@@ -5965,8 +6065,9 @@ either directory already appears anywhere in C<PATH>, in which case that
 directory will be left in its current position instead of being moved to
 the front.  Other environment variables are similarly affected: C<MANPATH>
 (used to find man pages), C<INFOPATH> (used by GNU info), C<CPATH> (used
-by gcc to find include files), and C<LIBRARY_PATH> (used by GNU ld to
-find libraries; not to be confused with C<LD_LIBRARY_PATH>, which also
+by gcc to find include files), C<XML_CATALOG_FILES> (used by DocBook and
+other tools to locate XML catalogs), and C<LIBRARY_PATH> (used by GNU ld
+to find libraries; not to be confused with C<LD_LIBRARY_PATH>, which also
 affects shared library loading at run time).  Note that if C<MANPATH>
 in particular is unset, B<toast env> will run C<man -w> to try to get
 the default value; if this causes problems, it may help to ensure that
@@ -6410,7 +6511,7 @@ B<toast show> only displays a package's URLs if a different list of URLs
 for that package was given explicitly on the command line.  Default:
 enabled.
 
-=item S<B<--infodir> | B<noinfodir>>
+=item S<B<--infodir> | B<--noinfodir>>
 
 When B<infodir> is enabled, B<toast arm> and B<toast disarm> will create a
 file in B<armdir> called C<info/dir>; if the file already exists, it will
@@ -6419,6 +6520,21 @@ display a list of installed info pages.  This is normally the only regular
 file in B<armdir>; all the other files are symbolic links.  If B<infodir>
 is disabled, B<toast arm> and B<toast disarm> will delete the C<info/dir>
 file, if present, instead of rebuilding it.  Default: enabled.
+
+=item S<B<--xmlcatalog> | B<--noxmlcatalog>>
+
+When B<xmlcatalog> is enabled, B<toast arm> and B<toast disarm> will
+maintain a catalog file in B<armdir> called C<etc/xml/catalog>, whose
+presence and contents depend on the contents of B<armdir>'s C<share/xml>
+subdirectory.  If the catalog already exists, it may be overwritten
+or deleted.  It may be convenient to refer to this catalog from the real
+master XML catalog file (outside of B<armdir>), in order to allow programs
+to locate XML DTDs, XSL style sheets, and perhaps other XMLish things
+in B<armdir>.  This is most likely to come up in the context of DocBook.
+If B<xmlcatalog> is disabled, B<toast arm> and B<toast disarm> will not
+create an XML catalog and will ignore any existing catalog.  Note that
+this option is implicitly disabled if any package installed in B<armdir>
+itself provides an C<etc/xml/catalog> file.  Default: enabled.
 
 =item S<B<--protect> | B<--noprotect>>
 
