@@ -2136,7 +2136,6 @@ sub configure($$)
       my($self) = false;
       my($builddir) = false;
       my($bogus) = false;
-      my($notboth) = false; # mozilla
       my(%confopts);
 
       patch
@@ -2149,25 +2148,17 @@ sub configure($$)
         {
           s/^\s*AUTOTHREAD=no\s+\#+ leave off for now/\#$&/; # qt multithreaded
           my($opt); # glibc; libjpeg; others?
-          for $opt (qw[--enable-add-ons --enable-shared --enable-static])
+          for $opt (qw[--enable-add-ons --enable-shared])
           {
-            $confopts{$opt} ||= / \Q$opt\E\b/;
+            $confopts{$opt} ||= / \Q$opt\E\b($|[^-])/;
           }
-          $notboth ||= /Only one of --enable-shared or --enable-static must /i;
         }
       } $confprog;
 
       if(!$self)
       {
         next if $bogus;
-
-        if($notboth)
-        {
-          delete($confopts{"--enable-static"});
-          delete($confopts{"--enable-shared"});
-        }
         push(@confcmd, sort(grep($confopts{$_}, keys(%confopts))));
-
         if($builddir)
         {
           $confcmd[0] = "../$cfg";
