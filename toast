@@ -503,16 +503,22 @@ sub ln($$)
   symlink($source, $target) || error("ln -s $source $target: $!");
 }
 
+sub relln($$)
+{
+  my($src, $target) = @_;
+  ln($src =~ m|^/| ? findrelpath(dirname($target), $src) : $src, $target);
+}
+
 sub optln($$)
 {
   my($source, $target) = @_;
   ln($source, $target) unless -e($target) || -l($target);
 }
 
-sub relln($$)
+sub optrelln($$)
 {
-  my($src, $target) = @_;
-  ln($src =~ m|^/| ? findrelpath(dirname($target), $src) : $src, $target);
+  my($source, $target) = @_;
+  relln($source, $target) unless -e($target) || -l($target);
 }
 
 ##############################################################################
@@ -3046,7 +3052,8 @@ sub mkrootdir($$)
   md(path($rootdir, $_)) foreach stddirs;
   my(%link) = rootlinks;
   ln($link{$_}, path($rootdir, $_)) foreach keys(%link);
-  optln(".", path($rootdir, $_)) foreach (unpath($armdir), unpath($rootdir));
+  my($p) = $rootdir;
+  optrelln($rootdir, $p = path($p, $_)) for unpath($armdir), unpath($rootdir);
 }
 
 sub compilebin($$)
@@ -6119,7 +6126,6 @@ hostname of the B<toast> distribution site, C<toastball.net>.
 
 Known bugs:
 
-  - "toast arm man" fails due to incorrect DESTDIR symlinks
   - autofind produces URLs with extra slashes, e.g. "toast arm flex"
   - make oldconfig isn't running for linux/2.6.x
   - toast add misguesses device-mapper name/version from URL
