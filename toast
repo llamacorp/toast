@@ -2801,8 +2801,7 @@ sub arm(@)
   my($name, $version, $build, @urls) = @_;
   ($name, $version, $build) = build(@_) unless $build;
 
-  isarmed($name, $version, $build) &&
-      error(pkgname($name, $version, $build) . " is already armed");
+  return ($name, $version, $build) if isarmed($name, $version, $build);
 
   optmd(armdir);
   lock(armdir);
@@ -3747,16 +3746,21 @@ sub uselatestversion(@)
   @result;
 }
 
+sub emptytoall(@)
+{
+  return @_ ? @_ : map([$_], allnames);
+}
+
 ##############################################################################
 
 sub parse_add(@) { rejectempty(parse(@_)); }
-sub parse_get(@) { rejectempty(uselatestversion(rejectbuilds(parse(@_)))); }
-sub parse_build(@) { rejectempty(uselatestversion(rejectbuilds(parse(@_)))); }
-sub parse_rebuild(@) { rejectempty(uselatestversion(rejectbuilds(parse(@_)))); }
-sub parse_clean(@) { allowempty(rejectmissing(parse(@_))); }
-sub parse_arm(@) { rejectempty(uselatestversion(parse(@_))); }
-sub parse_upgrade(@) { rejectempty(rejectmissing(uselatestversion(rejectbuilds(parse(@_))))); }
+sub parse_get(@) { uselatestversion(emptytoall(rejectbuilds(parse(@_)))); }
+sub parse_build(@) { uselatestversion(emptytoall(rejectbuilds(parse(@_)))); }
+sub parse_arm(@) { uselatestversion(emptytoall(parse(@_))); }
+sub parse_rebuild(@) { uselatestversion(emptytoall(rejectbuilds(parse(@_)))); }
+sub parse_upgrade(@) { rejectmissing(uselatestversion(emptytoall(rejectbuilds(parse(@_))))); }
 sub parse_disarm(@) { rejectempty(rejectmissing(parse(@_))); }
+sub parse_clean(@) { allowempty(rejectmissing(parse(@_))); }
 sub parse_demolish(@) { rejectempty(rejectmissing(parse(@_))); }
 sub parse_purge(@) { rejectempty(rejectmissing(rejectbuilds(parse(@_)))); }
 sub parse_remove(@) { rejectempty(rejectmissing(parse(@_))); }
@@ -4506,43 +4510,49 @@ B<toast build> vary according to the package being built.
 
 To have the latest version of B<toast> download and install itself,
 run one of the following commands.  The first requires GNU wget; the
-second relies on the C<GET> utility that comes with the LWP Perl module.
+second relies on the GET utility that comes with the LWP Perl module.
 
   sh -c 'u=http://toastball.net/toast;wget -O- $u/toast|perl - arm $u/'
   sh -c 'u=http://toastball.net/toast;GET $u/toast|perl - arm $u/'
 
-If you ran either of the above commands as root, B<toast> should now be
-installed in C</toast> with appropriate symlinks under C</usr/local>,
-and you should be all set.  If you ran either command as a non-root
-user, B<toast> will have installed itself and everything it needs under
-C<$HOME/.toast>, and you'll probably need to add C<$HOME/.toast/armed/bin>
-to your PATH environment variable in order to be able to use B<toast>
-and any other packages it installs.  For example, in a Bourne-like shell:
+If you ran either of the above commands as root, B<toast> should
+now be installed in C</toast> with appropriate symlinks under
+C</usr/local>, and you should be all set.  If you ran either command
+as a non-root user, B<toast> will have installed itself and everything
+it needs under C<I<$HOME>/.toast>, and you'll probably need to add
+C<I<$HOME>/.toast/armed/bin> to your C<PATH> environment variable in
+order to be able to use B<toast> and any other packages it installs.
+For example, in a Bourne-like shell:
 
   PATH=$HOME/.toast/armed/bin:$PATH
 
 If you would like to use any man pages, info pages, libraries or header
-files installed by B<toast>, you may also want to adjust MANPATH,
-INFOPATH, LD_LIBRARY_PATH, or CFLAGS as appropriate.  Note that setting
-LD_LIBRARY_PATH may have unintended consequences; for more information,
-search the Web for <LD_LIBRARY_PATH considered harmful>.  If your C
-compiler is gcc, you may be able to use the CPATH environment variable
-instead of messing with CFLAGS; see the gcc documentation for details.
+files installed by B<toast>, you may also want to adjust C<MANPATH>,
+C<INFOPATH>, C<LD_LIBRARY_PATH>, or C<CFLAGS> as appropriate.  Note that
+setting C<LD_LIBRARY_PATH> may have unintended consequences; for more
+information, search the Web for C<LD_LIBRARY_PATH considered harmful>.
+If your C compiler is gcc, you may be able to use the C<CPATH> environment
+variable instead of messing with C<CFLAGS>; see the gcc documentation
+for details.
 
 The above procedure is by no means required in order to install or
-use B<toast>.  The unmodified B<toast> script can be copied to and run
-from any location, and you can use B<toast man> to view the man page
-without having to install it first.  The default option settings should
-be sensible, and any necessary directories will be created on demand.
+use B<toast>.  Both the uncompressed B<toast> script and an official
+compressed tarball distribution containing B<toast> are available for
+download at C<http://www.toastball.net/toast/>. The unmodified B<toast>
+script can be copied to and run from any location, and you can use
+B<toast man> to view the man page without having to install it first.
+The default option settings should be sensible, and any necessary
+directories will be created on demand.
 
-A GNU-like C<configure> wrapper script is also provided with the official
-B<toast> distribution for your convenience.  You can supply an alternate
-installation directory prefix with C<./configure --prefix=foo>, or keep
-the default prefix of C</usr> by running C<./configure> without arguments.
-Then run C<make>, become root if necessary, and run C<make install>, which
-will install both the B<toast> script and a man page.  Sadly, B<toast>'s
-C<configure> script does not support the other command-line options and
-features of B<configure> scripts produced by the real GNU autoconf.
+A GNU-like C<configure> program (OK, symbolic link) is also provided
+with the official B<toast> distribution for your convenience.  You can
+supply an alternate installation directory prefix with C<./configure
+--prefix=foo>, or keep the default prefix of C</usr> by running
+C<./configure> without arguments.  Then run C<make>, become root if
+necessary, and run C<make install>, which will install both the B<toast>
+program and a man page.  Sadly, B<toast>'s C<configure> script does
+not support most of the other command-line options and features of
+B<configure> scripts produced by the real GNU autoconf.
 
 =head2 Commands
 
@@ -4559,96 +4569,110 @@ the command merely compares the given URLs against those already stored
 and gives an error if they don't match; use B<toast remove> or B<toast
 change> to specify new URLs for an existing package.
 
-=item S<B<toast get> I<PACKAGE> ...>
+=item S<B<toast get> [ I<PACKAGE> ...]>
 
-Downloads the given packages' files into the repository.  Implies B<toast
-add>.  After this command completes successfully, other commands will be
-able to operate on the package without downloading any additional files
-from the network.  If a given package is already C<stored>, the existing
-downloaded files are silently preserved; use B<toast purge> to force
-them to be downloaded afresh.  B<toast get> has rudimentary built-in
-support for C<file> and C<http> URLs.  If GNU B<wget> is installed,
-B<toast get> will use it to fetch C<http>, C<https>, and C<ftp> URLs.
-If B<ssh> is available, B<toast get> can use it to fetch (non-standard)
-URLs of the form C<ssh:/[username@]hostname/absolute/path/to/file>.
+Ensures that the given packages have been downloaded.  Implies B<toast
+add>.  If no arguments are given, acts on the latest version of every
+existing package.  After this command completes successfully, other
+commands will be able to operate on the package without downloading
+any additional files from the network.  If a given package is already
+C<stored>, the existing downloaded files are silently preserved; use
+B<toast purge> to force them to be downloaded afresh.  B<toast get>
+has rudimentary built-in support for C<file> and C<http> URLs.
+If GNU B<wget> is installed, B<toast get> will use it to fetch
+C<http>, C<https>, and C<ftp> URLs.  If B<ssh> is available,
+B<toast get> can use it to fetch (non-standard) URLs of the form
+C<ssh:/[username@]hostname/absolute/path/to/file>.
 
-=item S<B<toast build> I<PACKAGE> ...>
+=item S<B<toast build> [ I<PACKAGE> ...]>
 
-Ensures that the given packages are built.  Packages that already have
-at least one C<built> or C<armed> build (as reported by B<toast status>)
-are skipped by this command without causing an error; use B<toast rebuild>
-to force such packages to be rebuilt.  Building may involve implicitly
-invoking B<toast get>, decompressing and extracting archives, applying
-patch files, compiling a new build of the package and installing it in
-a build-specific directory tree.  Supported archive formats include
-compress, gzip, bzip2, zip, rpm, cpio, tar, shar, patch, and most
-combinations of the above.  You don't need to have RPM installed to
-extract .rpm files; gzip and cpio usually suffice.  Archives should
-contain either precompiled binaries or source code; in the latter case,
-a C<configure> script, C<Makefile>, C<Imakefile>, C<install.sh> or similar
-is usually, but not always, required.  Many options can influence this
-command's behavior; see the options reference for full details.
+Ensures that the given packages are compiled and ready.  If no arguments
+are given, acts on the latest version of every existing package.
+Packages that already have at least one C<built> or C<armed> build (as
+reported by B<toast status>) are skipped by this command without causing
+an error; use B<toast rebuild> to force such packages to be rebuilt.
+Building may involve implicitly invoking B<toast get>, decompressing
+and extracting archives, applying patch files, compiling a new build
+of the package and installing it in a build-specific directory tree.
+Supported archive formats include compress, gzip, bzip2, zip, rpm, cpio,
+tar, shar, patch, and most combinations of the above.  You don't need to
+have RPM installed to extract .rpm files; gzip and cpio usually suffice.
+Archives should contain either precompiled binaries or source code, which
+will be identified and/or built according to heuristics too mind-numbing
+to describe completely; in the case of source files, a C<configure>
+script, C<Makefile> or similar is often required.  Many options can
+influence this command's behavior; see the options reference for full
+details.
 
-=item S<B<toast rebuild> I<PACKAGE> ...>
+=item S<B<toast arm> [ I<BUILD> | I<PACKAGE> ...]>
 
-Forces packages to be built or rebuilt.  A new build will be created
-as if by B<toast build> for every package given, even if the package
-has already been successfully built.  Each package can have any number
-of independent builds.  Builds for a given package are automatically
-assigned sequential numbers starting from 1.  Many options can influence
-this command's behavior; see the options reference for complete details.
+Installs symbolic links to allow builds to be used.  This is perhaps the
+most frequently used B<toast> command.  It is normally required before
+programs compiled by B<toast build> or B<toast rebuild> can be run.  If no
+arguments are given, acts on the latest version of every existing package.
+If no explicit build number is supplied for a given package, B<toast
+build> is implied, and the latest C<built> or C<armed> build is armed.
+If a build to be armed is already in the C<armed> state, this command
+has no effect.  The B<armdir> option controls where the symbolic links to
+the files in each armed build will be installed; the default location is
+C</usr/local> (for root) or C<I<$HOME>/.toast/armed> (for everyone else).
+Non-root users might want to add C<I<$HOME>/.toast/armed/bin> to the
+C<I<$PATH>> environment variable to make it easier to run armed packages.
+Existing links to other builds are moved out of the way if necessary,
+and the corresponding builds are still considered to be armed.
 
-=item S<B<toast clean> [ I<BUILD> | I<PACKAGE> ...]>
+=item S<B<toast rebuild> [ I<PACKAGE> ...]>
 
-Deletes files not required by B<toast arm> from builds.  If no explicit
-version and/or build number is given, all matching versions and/or
-builds are cleaned.  Cleaning a broken build removes the build entirely;
-otherwise only files that are not required by B<toast arm> are removed
-from the build.  These typically consist of files created directly by
-B<toast> as part of the build environment, extracted source files, and
-intermediate files created by the package itself during compilation.
-The B<toast build> and B<toast rebuild> commands may perform this step
-automatically for some kinds of binary packages that do not involve
-intermediate files, as well as for other packages if the B<autoclean>
-option is enabled.  Only builds that are not in the C<building> state
-(as reported by B<toast status>) may be cleaned.  If no arguments are
-given, all eligible builds are cleaned.
+Forces packages to be built or rebuilt.  If no arguments are given,
+acts on the latest version of every existing package.  A new build
+will be created as if by B<toast build> for every package given, even
+if the package has already been successfully built.  Each package can
+have any number of independent builds.  Builds for a given package are
+automatically assigned sequential numbers starting from 1.  Many options
+can influence this command's behavior; see the options reference for
+complete details.
 
-=item S<B<toast arm> I<BUILD> | I<PACKAGE> ...>
+=item S<B<toast upgrade> [ I<PACKAGE> ...]>
 
-Creates symbolic links to each file in a build.  This step is normally
-required before a package can be used.  The links are typically created
-under a directory such as C</usr/local>.  Existing links to other builds
-are moved out of the way if necessary, and the corresponding builds are
-still considered to be armed.  A build must be in the C<built> state
-(as reported by B<toast status>) before it can be armed.  If no explicit
-build number is supplied on the command line, B<toast build> is implied,
-and the latest C<built> or C<armed> build is armed.  If the build to be
-armed is already in the C<armed> state, the command fails.
-
-=item S<B<toast upgrade> I<PACKAGE> ...>
-
-Checks for a later version of an existing package.  The existing
-package's URLs are used as a starting point to locate the new version.
-If the filename component of a given URL doesn't appear to contain the
-package's version number, that URL will be left unmodified for the new
-version; otherwise, the directory portion of the URL will be immediately
-downloaded and searched for a similar URL containing a higher version
-number.  The command fails if no URLs would change or if no single
-consistent newer version for all version-containing URLs can be found;
-otherwise, the highest eligible version is used for all modified URLs
-and the package itself.  The command performs an implicit B<add>, B<get>,
-B<build> or B<arm> on the extrapolated URLs so as to match the state of
-the given existing version, except that the new package will never be
-armed if the B<autoarm> option is disabled.
+Checks for a later version of an existing package.  If no arguments are
+given, this command acts on the latest version of every existing package.
+The existing package's URLs are used as a starting point to locate the
+new version.  If the filename component of a given URL doesn't appear to
+contain the package's version number, that URL will be left unmodified
+for the new version; otherwise, the directory portion of the URL will
+be immediately downloaded and searched for a similar URL containing a
+higher version number.  The command fails if no URLs would change or if
+no single consistent newer version for all version-containing URLs can be
+found; otherwise, the highest eligible version is used for all modified
+URLs and the package itself.  The command performs an implicit B<add>,
+B<get>, B<build> or B<arm> on the extrapolated URLs so as to match the
+state of the given existing version, except that an implicit B<arm>
+will become an implicit B<build> if the B<autoarm> option is disabled.
 
 =item S<B<toast disarm> I<BUILD> | I<PACKAGE> ...>
 
-Deletes symlinks created by B<toast arm>.  This works by removing symbolic
-links to the given build and replacing any links that had been moved
-out of the way.  If no build number is given, all C<armed> builds are
-disarmed.  If the package version number is also omitted, all C<armed>
-builds belonging to packages with the given name are disarmed.
+Deletes symlinks created by B<toast arm>.  This works by removing
+symbolic links to the given build and replacing any links that had
+been moved out of the way.  No error occurs if no such links exist.
+If no build number is given, all C<armed> builds are disarmed.  If the
+package version number is also omitted, all C<armed> builds belonging
+to packages with the given name are disarmed.
+
+=item S<B<toast clean> [ I<BUILD> | I<PACKAGE> ...]>
+
+Removes intermediate files and broken builds.  If no arguments are
+given, all builds are cleaned.  If no explicit version and/or build
+number is given, all matching versions and/or builds are cleaned.
+Cleaning a broken build removes the build entirely; otherwise only
+files that are not required by B<toast arm> are removed from the build.
+These typically consist of files created directly by B<toast> as part
+of the build environment, extracted source files, and intermediate files
+created by the package itself during compilation.  Some kinds of binary
+packages that do not involve intermediate files never require cleaning,
+and B<toast build> and B<toast build> may automatically perform this
+step if the B<autoclean> option is enabled.  Builds that are still in
+the C<building> state (as reported by B<toast status>) are silently
+ignored by this command.
 
 =item S<B<toast demolish> I<BUILD> | I<PACKAGE> ...>
 
@@ -4684,8 +4708,8 @@ Renames an existing package or set of packages.  The package or packages
 must already exist.  I<NEWNAME> uses the same syntax used to refer to
 an existing package or build, except that the destination package must
 not already exist and must contain the same number of slash characters as
-I<PACKAGE>.  Attempting to rename an armed package causes B<toast rename>
-to report an error.  This command can also be used to renumber builds.
+I<PACKAGE>.  This command can also be used to renumber builds.  Currently,
+armed packages or builds must be disarmed before they can be renamed.
 
 =item S<B<toast change> I<PACKAGE> ...>
 
@@ -5111,8 +5135,9 @@ especially when building new packages.
 
 =head1 FILES
 
-By default, B<toast> writes only to the C<I<$HOME>/.toast> directory,
-which will be created automatically if needed.
+By default, when invoked by a non-root user, B<toast> writes only to
+the C<I<$HOME>/.toast> directory, which will be created automatically
+if needed.
 
 =head1 AVAILABILITY
 
@@ -5122,9 +5147,8 @@ the terms of the GNU GPL.
 =head1 BUGS
 
 Please report any bugs, unexpected behavior, unsurprising but inconvenient
-failures, and so on to C<pub.comp.toast> on the ofb.net Gale system
-(preferred; see C<http://gale.org>), or via email to C<toast-bugs> at
-the hostname of the toast distribution site, toastball.net.
+failures, feature requests, comments, and so on to C<toast-bugs> at the
+hostname of the B<toast> distribution site, C<toastball.net>.
 
 Known bugs:
 
@@ -5141,7 +5165,6 @@ Known bugs:
 
 Wish list:
 
-  - "toast build" w/o arguments should build all unbuilt packages
   - "toast arm" should move armed packages to top of stacking order
   - "toast status" should give information about stacking order
   - "toast rename" should rename armed packages by rewriting symlinks
