@@ -728,7 +728,7 @@ sub shellescape(@)
     next unless m![^\w\+,\./:\@-]!;
     /'/ ? s!([^\w\+,\./:\@-])!\\$1!g : ($_ = "'$_'");
   }
-  return @words;
+  return join(" ", @words);
 }
 
 sub openprog(*$@)
@@ -3821,6 +3821,50 @@ BEGIN
 
 ##############################################################################
 
+sub printenvcmd($$;$)
+{
+  my($varname, $subdirs, $default) = @_;
+  my(@dirs) = map(path(armdir, $_), split(/:/, $subdirs));
+  my($exists) = exists($ENV{$varname});
+  my($current) = $exists ? $ENV{$varname} : $default;
+  my($export) = $exists ? "" : " export $varname;";
+
+  if(defined($current))
+  {
+    $export = "";
+    my(%have);
+    $have{$_} = 1 for split(/:/, $current);
+    @dirs = grep(!$have{$_}, @dirs);
+  }
+
+  push(@dirs, $current) if defined($current);
+  print("$varname=" . shellescape(join(":", @dirs)) . ";$export\n");
+}
+
+sub env(@)
+{
+  @_ && error;
+
+  my($defaultman) = "/usr/man:/usr/share/man:/usr/local/man:/usr/X11R6/man";
+  if(!exists($ENV{MANPATH})) # don't bother unless we're going to use it...
+  {
+    my($out) = `man -w`;
+    chomp($out);
+    $defaultman = $out if $out =~ m!^/! && $out !~ /\n/;
+  }
+
+  printenvcmd("PATH", "sbin:bin");
+  printenvcmd("MANPATH", "man", $defaultman);
+  printenvcmd("INFOPATH", "info", "");
+  printenvcmd("CPATH", "include");
+  printenvcmd("LIBRARY_PATH", "lib");
+  # there's also a LIBRARY_RUN_PATH or something that affects ld somehow...
+
+  return true;
+}
+
+##############################################################################
+
 sub selfopen(*)
 {
   local(*SCRIPT) = @_;
@@ -4273,6 +4317,7 @@ sub parse_rename(@);
 sub parse_change(@) { requireurls(rejectempty(rejectmissing(uselatestversion(rejectbuilds(parse(@_)))))); }
 sub parse_status(@) { allowempty(rejectmissing(parse(@_))); }
 sub parse_check(@) { rejectall(@_); }
+sub parse_env(@) { rejectall(@_); }
 sub parse_help(@) { allowall(@_); }
 sub parse_man(@) { rejectall(@_); }
 
@@ -5014,34 +5059,58 @@ requirements for B<toast build> vary according to the package being built.
 
 =head2 Setup
 
-To have the latest version of B<toast> download and install itself,
-run one of the following commands.  The first requires GNU wget; the
-second relies on the GET utility that comes with the LWP Perl module;
-the third uses telnet.
+To have the latest version of B<toast> download and install itself in your
+home directory, run one of the following commands as a non-root user.
+(See below for instructions to install as root.)  The first command
+requires GNU wget; the second relies on the GET utility that comes with
+the LWP Perl module; the third uses telnet.
 
   wget -O- http://toastball.net/toast/toast|perl -x - arm toast
   GET http://toastball.net/toast/toast|perl -x - arm toast
   echo GET /toast/toast|telnet toastball.net 80|perl -x - arm toast
 
-If you ran one of the above commands as root, B<toast> should now be
-installed in C</toast> with appropriate symlinks under C</usr/local>,
-and you should be all set.  If you ran one of the command as a
-non-root user, B<toast> will have installed itself and everything
-it needs under C<I<$HOME>/.toast>, and you'll probably need to add
-C<I<$HOME>/.toast/armed/bin> to your C<PATH> environment variable in
-order to be able to use B<toast> and any other packages it installs.
-For example, in a Bourne-like shell:
+Of course, if you already have a previous version of B<toast> up and
+running, just type C<toast upgrade toast>.  If B<toast> is installed
+system-wide, but you want to install the latest version in your home
+directory, try B<toast arm toast>.
 
-  PATH=$HOME/.toast/armed/bin:$PATH
+B<toast> should now have installed itself and everything it
+needs under C<I<$HOME>/.toast>.  You'll probably need to add
+C<I<$HOME>/.toast/armed/bin> to your C<PATH> environment variable in order
+to be able to use B<toast> and any other packages it installs.  You can
+adjust C<PATH> (and a few other useful variables) with this command:
 
-If you would like to use any man pages, info pages, libraries or header
-files installed by B<toast>, you may also want to adjust C<MANPATH>,
-C<INFOPATH>, C<LD_LIBRARY_PATH>, or C<CFLAGS> as appropriate.  Note that
-setting C<LD_LIBRARY_PATH> may have unintended consequences; for more
-information, search the Web for C<LD_LIBRARY_PATH considered harmful>.
-If your C compiler is gcc, you may be able to use the C<CPATH> environment
-variable instead of messing with C<CFLAGS>; see the gcc documentation
-for details.
+  eval `$HOME/.toast/armed/bin/toast env`
+
+(Note that those are backticks, not single quotes.)  It probably makes
+sense to add the above command to your C<.zshenv> or C<.profile> or
+whatnot, so that your environment variables will be set up automatically
+whenever you log in.  For more information, run C<toast help env>,
+or just C<toast env> to see what variables would be set.
+
+To have B<toast> install itself as root under C</toast> with symlinks in
+C</usr/local>, you should first either create a user called C<toast> whose
+UID and GID will be used when building packages, or create a configuration
+file in root's home directory specifying an alternate username (C<fred>
+in this example) by running the following command as root:
+
+  mkdir ~/.toast && echo 'username=fred' > ~/.toast/conf
+
+If you want to use directories other than C</toast> and C</usr/local>,
+now would be a good time to specify those as well, since changing them
+later is very tedious:
+
+  mkdir -p ~/.toast
+  echo 'storedir=/path/to/use/to/store/files'
+  echo 'armdir=/place/to/put/symlinks/to/armed/packages'
+
+Once the C<toast> user and/or C<~/.toast/conf> configuration file has
+been created, just execute as root one of the same three download/install
+commands given above for non-root users.  When using the default B<armdir>
+location of C</usr/local>, you probably won't need to bother with the
+B<toast env> stuff described above, but when using another location, you
+may wish to put some variation on the B<toast env> command given above
+in C</etc/profile> or something.
 
 The above procedure is by no means required in order to install or
 use B<toast>.  Both the uncompressed B<toast> script and an official
@@ -5246,6 +5315,26 @@ or B<toast rebuild> is still running), C<broken> (if it failed), C<built>
 (if it succeeded), or C<armed> (by B<toast arm>).  In the last two cases,
 the build will be marked C<(not clean)> if intermediate files created
 by B<toast build> have not yet been removed by C<toast clean>.
+
+=item <B<toast env>>
+
+Prints shell commands to make armed packages usable.  This command is
+normally invoked with C<eval `toast env`> (note the backticks) from a
+shell initialization file such as C<.zshenv> or C<.profile>.  This will
+add C<I<armdir>/sbin> and C<I<armdir>/bin> to the front of C<PATH>, unless
+either directory already appears anywhere in C<PATH>, in which case that
+directory will be left in its current position instead of being moved to
+the front.  Other environment variables are similarly affected: C<MANPATH>
+(used to find man pages), C<INFOPATH> (used by GNU info), C<CPATH> (used
+by gcc to find include files), and C<LIBRARY_PATH> (used by GNU ld to
+find libraries; not to be confused with C<LD_LIBRARY_PATH>, which also
+affects shared library loading at run time).  Note that if C<MANPATH>
+in particular is unset, B<toast env> will run C<man -w> to try to get
+the default value; if this causes problems, it may help to ensure that
+C<MANPATH> is set before invoking B<toast env>.  This command assumes a
+Bourne-like shell -- zsh and bash will work, tcsh won't.  None of this
+is likely to be unnecessary if B<armdir> is C</usr> or C</usr/local>
+(the default when running as root).
 
 =item S<B<toast help> [ I<TOPIC> ] ...>
 
@@ -5735,11 +5824,10 @@ Known bugs:
   - if x/1/1 is armed and x/1/2 is built, "toast arm x" does nothing
   - if x/1/1 is armed, "toast --noautodisarm rebuild x" arms then fails
   - "toast add foo/bar-1.2.tar.gz" guesses "foo version bar-1.2.tar.gz"
+  - openprog() still emits redundant exec() warnings
 
 Wish list:
 
-  - optionally set CPATH, LIBRARY_PATH, LD_RUN_PATH, etc. during build
-  - add a command to set PATH, MANPATH, INFOPATH, etc. in user's shell
   - when building linux, default to using /proc/kconfig.gz if present?
   - work around lack of getenv(), mkdir(), etc. in microperl...?
   - "toast upgrade" w/o args should imply --nostoponerror or something
