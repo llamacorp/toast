@@ -158,6 +158,7 @@ BEGIN
     "armdir" => superuser ? "/usr/local" : "armed",
     "username" => "toast",
     "postarmprog" => superuser ? "/sbin/ldconfig" : "",
+    "defaultcmd" => "help",
     "verbose" => true,
     "autofind" => true,
     "autochange" => true,
@@ -207,6 +208,12 @@ BEGIN
     my($name) = @_;
     return isopt($name) && isboolean($optdefault{$name});
   }
+  
+  sub checkoptname($)
+  {
+    my($name) = @_;
+    isopt($name) || error("no such option: $name");
+  }
 
   sub loadopt($)
   {
@@ -242,7 +249,7 @@ BEGIN
   sub setopt($$)
   {
     my($name, $val) = @_;
-    exists($optdefault{$name}) || error("no such option: $name");
+    checkoptname($name);
     if(isboolopt($name))
     {
       error("$name is a boolean option") unless isboolean($val);
@@ -3538,48 +3545,66 @@ sub getsub($)
 
 ##############################################################################
 
-sub nocmd() { help; }
-
-sub defaultcmd(@)
+sub badcmd(@)
 {
+  return &cmd(defaultcmd, @_) if defaultcmd ne "help" && iscmd(defaultcmd);
   my($cmd) = @_;
   select(STDERR);
   help;
-  error("no such command: $cmd");
+  error("bad defaultcmd: " . defaultcmd) if defaultcmd ne "help";
+  error("no such command: $cmd") if defined($cmd);
+  error("command expected");
+}
+
+sub iscmd($)
+{
+  my($cmd) = @_;
+  !!(getsub("cmd_$cmd") || getsub("parse_$cmd"));
 }
 
 sub parseopts(@)
 {
-  my($opt);
+  my($opt, $cmd);
   while(($opt = shift) && $opt =~ /^-/ && $opt ne "--")
   {
+    $opt = "--help" if $opt =~ /^--?[h\?]$/i;
     if($opt =~ /^--?(\w+)=(.*)$/)
     {
-      setopt($1, $2);
+      setopt(lc($1), $2);
     }
-    elsif($opt =~ /^--?no(\w+)$/)
+    elsif($opt =~ /^--?no(\w+)$/i)
     {
-      setopt($1, false);
+      setopt(lc($1), false);
     }
     elsif($opt =~ /^--?(\w+)$/)
     {
-      my($name, $val) = ($1, @_);
-      if(isboolopt($name) && !(defined($val) && isboolean($val)))
+      my($name, $val) = (lc($1), @_);
+      if(iscmd($name))
       {
-        setopt($name, true);
-      }
-      elsif(!defined($val))
-      {
-        error("option $name requires an argument");
-      }
-      elsif($val =~ /^-/)
-      {
-        error("option $name requires an argument; found \"$val\" instead");
+        error("conflicting command options: $cmd and $name")
+            if $cmd && $cmd ne $name;
+        $cmd = $name;
       }
       else
       {
-        setopt($1, $val);
-        shift;
+        checkoptname($name);
+        if(isboolopt($name) && !(defined($val) && isboolean($val)))
+        {
+          setopt($name, true);
+        }
+        elsif(!defined($val))
+        {
+          error("option $name requires an argument");
+        }
+        elsif($val =~ /^-/)
+        {
+          error("option $name requires an argument; found \"$val\" instead");
+        }
+        else
+        {
+          setopt($name, $val);
+          shift;
+        }
       }
     }
     else
@@ -3587,18 +3612,22 @@ sub parseopts(@)
       error("unable to parse option: \"$opt\"");
     }
   }
-  return defined($opt) && $opt eq "--" ? @_ : ($opt, @_);
+
+  my(@result) = @_;
+  unshift(@result, $opt) if defined($opt) && $opt ne "--";
+  unshift(@result, $cmd) if $cmd;
+  return @result;
 }
 
 sub cmd(@)
 {
-  return nocmd unless @_;
-  my($cmd, @args) = parseopts(@_);
-  error("no arguments found after options") unless defined($cmd);
+  my($cmd, @args) = @_;
+  return badcmd unless defined($cmd);
+  $cmd = lc($cmd);
   my($cmdsub) = getsub("cmd_$cmd");
   return &$cmdsub(@args) if $cmdsub;
   my($parser) = getsub("parse_$cmd");
-  return defaultcmd($cmd, @args) unless $parser;
+  return badcmd(@_) unless $parser;
   my($doer) = getsub($cmd);
   my($result) = true;
   my($pid) = $$;
@@ -3615,12 +3644,19 @@ sub cmd(@)
   return $result;
 }
 
+sub cmdline(@)
+{
+  my(@argv) = @_;
+  return help unless @argv;
+  return cmd(parseopts(@argv));
+}
+
 ##############################################################################
 
 sub main(@)
 {
   $| = 1;
-  my($result) = cmd(@_) ? 0 : 1;
+  my($result) = cmdline(@_) ? 0 : 1;
 warn("$myname: returning failure ($result)") if $result != 0;
   close(STDOUT) || error("close stdout: $!");
   exit($result);
@@ -3783,7 +3819,7 @@ toast - build and install programs from source
 
 =head1 SYNOPSIS
 
-B<toast> S<[ I<OPTION> ... ]> I<COMMAND> S<[ I<ARGUMENT> ... ]>
+B<toast> S<[ I<OPTION> ... ]> S<[ I<COMMAND> ]> S<[ I<ARGUMENT> ... ]>
 
 =head1 DESCRIPTION
 
@@ -4094,6 +4130,17 @@ refer to more than one program.  If I<PROG> returns non-zero (failure),
 the command will also fail.  Default: C</sbin/ldconfig> if invoked by
 root, empty string otherwise.
 
+=item B<--defaultcmd=>I<COMMAND>
+
+Sets an implicit command to be assumed if B<toast> is invoked with
+at least one command-line option or argument but no explicit command.
+I<COMMAND> may be the name of any valid toast command.  As a special
+case, the value C<help> causes B<toast> to print an error message and
+a list of valid commands if no explicit command is given.  Note that
+invoking B<toast> without command-line options or arguments is always
+equivalent to running B<toast help>, regardless of this option's setting.
+Default: C<help>.
+
 =item S<B<--verbose> | B<--noverbose>>
 
 Enables or disables verbose command output.  When disabled, most commands
@@ -4297,6 +4344,12 @@ The built-in default value.  See the full list of options elsewhere in
 this document for the specific default value used for each option.
 
 =back
+
+Any I<COMMAND> can also be written as if it were a command-line option by
+preceding it with one or two dashes.  For example, S<B<toast --help>> and
+S<B<toast help>> mean the same thing.  Commands do not behave like options
+in the environment or the configuration file, but see the B<defaultcmd>
+option above for an alternative.
 
 =head1 AUTHOR
 
