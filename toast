@@ -2952,7 +2952,7 @@ sub install($$)
 {
   my($makedir, $rootdir) = @_;
   my($mf) = makefile($makedir) || error("no Makefile found");
-  my(@trace, $man, $subdir, $netpbm, $usedestdir, $cdrtools);
+  my(@trace, $man, $subdir, $netpbm, $usedestdir, $cdrtools, $e2fsprogs);
   @trace = qw[strace -s 256 -f -F -o make.install.strace] if debugrewrite;
   @trace = qw[ktrace -i -f make.install.ktrace] if @trace && $^O =~ /bsd/i;
   local($ENV{ROOT}) = $rootdir; # lilo
@@ -2968,11 +2968,13 @@ sub install($$)
     $netpbm ||= /^\t\@echo "  make package pkgdir=DIR"$/;
     $usedestdir ||= /\b(DESTDIR|Makefile\.in)\b/; # atop, glibc; not libtiff!
     $cdrtools ||= / Due to a bug in SunPRO make we need special rules /;
+    $e2fsprogs ||= /^\t.* e2fsck .* ; then \$\(MAKE\) install-libs ; fi/;
     true
   } $mf;
   $netpbm &&= -x(path($makedir, "installnetpbm")) && path($makedir, "pkg");
   return &install(path($makedir, $subdir), $rootdir) if $subdir;
   push(@targets, "install.man") if $man && reconfigure; # e.g. XFree86
+  push(@targets, "install-libs") if $e2fsprogs && reconfigure;
   @targets = ("package", "pkgdir=$netpbm") if $netpbm;
   @targets = "upgrade" if -r(path($makedir, "postfix-install")); # postfix
   push(@targets, "DESTDIR=$rootdir") if $usedestdir;
@@ -6093,6 +6095,7 @@ Known bugs:
       wxpython
   - autofind chooses Linux binaries over source for doxygen
   - build fails for: jikes, sirc, netcat, lcab, gv, bittorrent
+  - if x/1 is armed and x/2 is built, "toast rebuild x" also arms x/2
 
 Wish list:
 
