@@ -781,7 +781,7 @@ sub linksfromurl($)
   local(*HANDLE);
   openurl(*HANDLE, $url);
   my(@links) = linksfromstream(*HANDLE, $url);
-  close(HANDLE) || error;
+  close(HANDLE) || error("unable to fetch $url");
   return @links;
 }
 
@@ -1367,6 +1367,8 @@ sub findnewpkg($$)
   $redirhead =~ /^Location: ([^\r\n]+)/m ||
       error("unexpected response from $redirurl");
   my($url) = $1;
+  # wget can't always get FTP directory listing correctly w/o trailing slash 
+  $url .= "/" unless basename(stripquery($url)) =~ /\./; # e.g. atop
 
   for(1..3)
   {
@@ -1378,31 +1380,29 @@ sub findnewpkg($$)
 
     my(@links) = linksfromurl($url);
     my(@urls) = grep(lookslikepkgurl($_, $name, $version), @links);
-    my(@exts) = (qw[.tar.bz2 .tar.gz .tgz .zip .rpm]);
-    my($extpat) = '(' . join('|', map(quotemeta($_), @exts)) . ')$';
-    @urls = grep(/$extpat/, @urls);
-
-    if(!defined($version))
-    {
-      my(@versions) = map { my(undef, $v) = guessnv($_); $v } @urls;
-      @versions = grep(defined($_), @versions);
-      if(@versions)
-      {
-        @versions = reverse sort cmpab @versions;
-        $version = $versions[0];
-        @urls = grep
-        {
-          my(undef, $v) = guessnv($_);
-          defined($v) && $v eq $version;
-        } @urls;
-      }
-    }
-
     my($ext);
-    for $ext (@exts)
+    for $ext qw[.tar.bz2 .tar.gz .tgz .zip .rpm]
     {
       my(@matches) = grep(stripquery($_) =~ /\Q$ext\E$/i, @urls);
-      return ($name, $version, $matches[0]) if @matches;
+
+      my($matchver) = $version;
+      if(!defined($matchver))
+      {
+        my(@versions) = map { my(undef, $v) = guessnv($_); $v } @matches;
+        @versions = grep(defined($_), @versions);
+        if(@versions)
+        {
+          @versions = reverse sort cmpab @versions;
+          $matchver = $versions[0];
+          @matches = grep
+          {
+            my(undef, $v) = guessnv($_);
+            defined($v) && $v eq $matchver;
+          } @matches;
+        }
+      }
+
+      return ($name, $matchver, $matches[0]) if @matches;
     }
 
     @links = grep(/^\Q$url\E/, @links);
@@ -2384,11 +2384,11 @@ sub install($$)
 {
   my($makedir, $rootdir) = @_;
   my($mf) = makefile($makedir) || error("no Makefile found");
-  my(@trace, $man, $subdir, $netpbm);
+  my(@trace, $man, $subdir, $netpbm, $usedestdir);
   @trace = qw[strace -s 256 -f -F -o make.install.strace] if debugrewrite;
   @trace = qw[ktrace -i -f make.install.ktrace] if @trace && $^O =~ /bsd/i;
   local($ENV{ROOT}) = $rootdir; # lilo
-  local($ENV{DESTDIR}) = $rootdir; # not on command line due to libtiff
+  local($ENV{DESTDIR}) = $rootdir; # not always on command line due to libtiff
   local($ENV{install_root}) = $rootdir;
   announce("export", "$_=$ENV{$_}") foreach (qw[ROOT DESTDIR install_root]);
   my(@targets) = "install";
@@ -2397,6 +2397,7 @@ sub install($$)
     $man ||= /^install\.man:/;
     $subdir = $1 if /  to install the X version: "cd (\w+);/; # xdaliclock
     $netpbm ||= /^\t\@echo "  make package pkgdir=DIR"$/;
+    $usedestdir ||= /\bDESTDIR\b/; # atop needs this, but see libtiff above
     true
   } $mf;
   $netpbm &&= -x(path($makedir, "installnetpbm")) && path($makedir, "pkg");
@@ -2404,6 +2405,7 @@ sub install($$)
   push(@targets, "install.man") if $man && reconfigure; # e.g. XFree86
   @targets = ("package", "pkgdir=$netpbm") if $netpbm;
   @targets = "upgrade" if -r(path($makedir, "postfix-install")); # postfix
+  push(@targets, "DESTDIR=$rootdir") if $usedestdir;
   cdrun($makedir, @trace, "make", @targets);
   run(@trace, qw[cp -R], glob("$netpbm/*/"), $rootdir) if $netpbm;
   error("trace complete; aborting") if debugrewrite;
