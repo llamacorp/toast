@@ -4961,7 +4961,7 @@ sub parse(@)
             @expansion = grep
             {
               my($xform) = $_;
-              !($xform =~ s/\.tar\.gz$/.tar.bz2/ && $expansion{$xform});
+              !($xform =~ s/\.\w+(\.g?z)?$/.tar.bz2/i && $expansion{$xform});
             } @expansion;
 
             error("unable to expand $url") unless @expansion;
