@@ -302,16 +302,24 @@ BEGIN
     isopt($name) || error("no such option: $name");
   }
 
+  sub dotfile()
+  {
+    my(@list);
+    push(@list, path($ENV{HOME}, qw[.toast conf]))
+        if exists($ENV{HOME}) && length($ENV{HOME});
+    push(@list, qw[/toast/conf /etc/toast.conf /usr/local/etc/toast.conf]);
+    -e && return $_ for(@list);
+    return undef;
+  }
+
   sub loadopt($)
   {
     my($name) = @_;
     error unless isopt($name);
     return $optloaded{$name} if %optloaded;
     $optloaded{1} = 1;
-    return unless $ENV{HOME};
-    my($dotfile) = "$ENV{HOME}/.$myname/conf";
-    $dotfile = "/etc/toast.conf" unless -e($dotfile);
-    return unless -e($dotfile);
+    my($dotfile) = dotfile;
+    return unless defined($dotfile);
     whilefile
     {
       s/^\s+//;
@@ -383,15 +391,15 @@ sub baksuffix() { ".orig" }
 
 ##############################################################################
 
-sub explain(@)
+BEGIN
 {
-  print("# @_\n") unless quiet;
+  my($verbosified) = false;
+  sub verbosify() { $verbosified = true }
+  sub say(@) { print(@_) if $verbosified || !quiet }
 }
 
-sub announce(@)
-{
-  print("@_\n") unless quiet;
-}
+sub explain(@) { say("# @_\n"); }
+sub announce(@) { say("@_\n"); }
 
 ##############################################################################
 
@@ -3346,7 +3354,7 @@ sub rebuild(@)
     my(@times) = gettimes;
 
     open(STDERR, ">&STDOUT") || error("dup stdout: $!");
-    setopt("quiet", false);
+    verbosify;
     nice(10);
     dropprivs;
     showprebuildinfo($name, $version, $build);
@@ -3377,7 +3385,7 @@ sub rebuild(@)
   {
     print LOG $_;
     chomp;
-    print("  $_\n") unless quiet;
+    say("  $_\n");
   }
 
   my($success) = close(CHILD);
@@ -4812,7 +4820,7 @@ sub main(@)
 
 sub selfconfigure(@)
 {
-  setopt("quiet", false);
+  verbosify;
 
   my($prefix) = "/usr";
   my($arg);
@@ -6140,19 +6148,21 @@ boolean option, one of the explicit values listed in item 1 must be given.
 
 =item 3.
 
-The configuration file.  If option I<NAME> has not been assigned
-a value through any of the above methods, its value will be taken
-from a line of the form I<NAME>B<=>I<VALUE>, if such a line exists, in
-C<I<$HOME>/.toast/conf>, if that file exists.  (C<I<$HOME>> specifically
-represents the value of the C<HOME> environment variable.)  I<NAME>
-is case-insensitive in this context.  Any whitespace before or after
-I<NAME> or I<VALUE> will be ignored, as will any blank line, any
-line containing only whitespace, and any line with B<#> as its first
-non-whitespace character.  If the file exists but cannot be read or has
-invalid syntax, an invalid I<NAME>, or an illegal I<VALUE> for a boolean
-option (an explicit value must be given; see item 1 for allowed forms),
-B<toast> will normally give an error message at startup and refuse to
-execute any commands.
+The configuration file.  If option I<NAME> has not been assigned a value
+through any of the above methods, its value will be taken from a line of
+the form I<NAME>B<=>I<VALUE> in the configuration file, if such a line
+exists.  I<NAME> is case-insensitive in this context.  Any whitespace
+before or after I<NAME> or I<VALUE> will be ignored, as will any blank
+line, any line containing only whitespace, and any line with B<#> as its
+first non-whitespace character.  B<toast> looks for its configuration
+file in C<I<$HOME>/.toast/conf>, C</toast/conf>, C</etc/toast.conf>,
+and C</usr/local/etc/toast.conf>; if any of those files exist, only the
+first is used.  (Here, C<I<$HOME>> specifically represents the value of
+the C<HOME> environment variable.)  If a configuration file exists but
+cannot be read or has invalid syntax, an invalid I<NAME>, or an illegal
+I<VALUE> for a boolean option (an explicit value must be given; see item
+1 for allowed forms), B<toast> will normally give an error message at
+startup and refuse to execute any commands.
 
 =item 4.
 
