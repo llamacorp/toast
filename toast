@@ -2330,6 +2330,27 @@ sub configure($$)
   # try looking in promisingly-named subdirectories
   -d && return &configure($_, $prefix) foreach map(path($dir, $_), qw[src]);
 
+  # construct a Makefile for specific intransigent binary packages
+  my(%file2dir);
+  %file2dir = () unless whiledir
+  {
+    my($name) = @_;
+    return $file2dir{$name} = "/usr/lib/netscape/plugins"
+        if $name =~ /flashplayer\.(xpt|so)$/; # flash player 6
+    $name =~ /readme|flashplayer-installer/;
+  } $dir;
+  if(%file2dir)
+  {
+    my($mftext) = "# $genby\nPREFIX=$prefix\nall:\n\ttrue\n\ninstall:\n";
+    for(sort(keys(%file2dir)))
+    {
+      my($d) = $file2dir{$_};
+      $mftext .= "\tmkdir -p $d\n\tcp $_ \$(DESTDIR)\$(PREFIX)$d\n";
+    }
+    writefile(path($dir, "Makefile"), $mftext);
+    return $dir;
+  }
+
   # getting desperate now -- try to construct a Makefile from thin air
   my(@prog, @sources, @man);
   dfs
@@ -5152,6 +5173,8 @@ hostname of the B<toast> distribution site, C<toastball.net>.
 
 Known bugs:
 
+  - toast build generates broken helper scripts if PATH contains spaces
+  - if packages foo and Foo exist, "foo" and "Foo" both refer to Foo
   - autofind mishandles http redirects (e.g. http://toastball.net/toast)
   - gtk+ doesn't seem to build properly when it is already armed
   - opera and sleepycat db refuse to build when already armed
@@ -5160,12 +5183,14 @@ Known bugs:
   - "toast upgrade gcc" doesn't work (ftp site has a subdir per version)
   - can't extract nss-tools-3.4.1-2.i686.rpm in some environments (?)
   - build overrides LD_PRELOAD instead of appending [space-separated]
-  - autofind fails for: sleepycat db, gcc, latex, gv, GNU arch (?)
+  - autofind fails for: sleepycat db, gcc, latex, gv, GNU arch (?), ogle
   - build fails for: jikes, sirc, netcat, lcab, busybox (ow!), gv
   - "toast --autoremove --crossversion upgrade toast" fails w/ NFS
+  - glibc: libdl.so and other links point into ../../destdir/lib (?)
 
 Wish list:
 
+  - put version and additional information at the *top* of broken.log
   - "toast upgrade" w/o args should imply --nostoponerror or something
   - "toast arm" should move armed packages to top of stacking order
   - "toast status" should give information about stacking order
