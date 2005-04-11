@@ -3044,6 +3044,7 @@ sub configure($$)
       s/(^\s*)read\s+(acceptance)(\s*$)/$1$2=yes$3/; # qt license
       s/^if test ! -t 0; /if false; /; # elm
       $noprefix = $confopts{"-d"} = 1 if /^\s*-d\) shift; fastread='y/; # elm
+      $noprefix ||= /elif \[ x.sysname = x \]; then/; # isc dhcp
       if(reconfigure)
       {
         s/^\s*AUTOTHREAD=no\s+\#+ leave off for now/\#$&/; # qt multithreaded
@@ -3193,9 +3194,10 @@ sub configure($$)
 
     my($emdir) = shellescape($makedir);
     my($ehdir) = defined($hdrdir) ? (shellescape($hdrdir)) : ();
-    my($mftext) = "# $genby\n\nall:\n\t\$(MAKE) -C $emdir\n\n" .
-        "install:\n\t\$(MAKE) -C $emdir install\n" .
-        "\tyes '' | make -C $ehdir oldconfig dep\n"; # e.g. mtools expects this
+    my($mftext) = "# $genby\n\nall:\n" .
+        "\tyes '' | make -C $ehdir oldconfig dep\n" . # mtools, LVM2...
+        "\t\$(MAKE) -C $emdir\n\n" .
+        "install:\n\t\$(MAKE) -C $emdir install\n";
     my($inclist) = "include/linux include/asm/. include/asm-generic";
     $mftext .= "\t\(cd $ehdir && tar c $inclist) | (cd \$(DESTDIR) && tar x)\n"
         if $ehdir;
@@ -3446,6 +3448,8 @@ sub install($$)
     $modules ||= /^modules_install: _modinst_/; # linux 2.6.x
     true
   } $mf;
+  my($cf) = path($makedir, ".config");
+  $modules &&= whilefile { !/ CONFIG_MODULES is not/ } $cf if -r($cf);
   $netpbm &&= -x(path($makedir, "installnetpbm")) && path($makedir, "pkg");
   return &install(path($makedir, $subdir), $rootdir) if $subdir;
   push(@targets, "install.man") if $man && reconfigure; # e.g. XFree86
