@@ -1252,7 +1252,7 @@ sub sanitize($)
   $word =~ s/\:/_/g;
   $word =~ s/^[\W_]+//;
   $word =~ s/[^a-z0-9\+]+$//i; # allow e.g. gtk+
-  $word =~ s/[\.-]?(source|src)$//i; # e.g. mozilla, libjpeg, minicom, XFree86
+  $word =~ s/[\.-_]?(source|src)$//i; # e.g. mozilla, libjpeg, minicom, XFree86
   $word eq "" ? undef : $word;
 }
 
@@ -3293,6 +3293,14 @@ install:
     return $dir;
   }
 
+  # some packages (e.g. htmltidy) expect us to locate and run yet another
+  # shell script that generates the real configure script that generates....
+  for(grep(-r(path($dir, $_)), "build/gnuauto/setup.sh"))
+  {
+    cdrun($dir, "sh", $_);
+    return &configure($dir, $prefix) if -x(path($dir, "configure"));
+  }
+
   # try looking in promisingly-named subdirectories
   -d && return &configure($_, $prefix) foreach map(path($dir, $_), qw[src]);
 
@@ -3345,7 +3353,7 @@ install:
   );
 
   # give up if our still-hypothetical Makefile is looking too implausible
-  error("can't figure out how to compile")
+  error("can't figure out how to compile in $dir")
       unless scalar(@prog) == 1 && @sources && scalar(@sources) < 100;
 
   my($mftext) = qq[# $genby
@@ -6791,6 +6799,7 @@ Known bugs:
 
 Wish list:
 
+  - add support for http://www.haskell.org/cabal/
   - deal better with missing gcc: clearer error msg? (email 7/21/04)
   - error messages that explain command usage (gale 2004-05-06 17:08:20)
   - convenient way to specify storedir, etc. during first time setup
