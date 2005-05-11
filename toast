@@ -3293,6 +3293,21 @@ install:
     return $dir;
   }
 
+  # Haskell Cabal (http://www.haskell.org/cabal/)
+  if(-r(path($dir, "Setup.hs")))
+  {
+    cdrun($dir, qw(ghc-pkg list)); # work around ~/.ghc bug in ghc-pkg 6.4 (?)
+    cdrunconf($dir, qw(runghc Setup.hs configure), "--prefix=$prefix");
+    writefile
+    (
+      path($dir, "Makefile"),
+      "# $genby\n\n",
+      "all:\n\trunghc Setup.hs build\n\n",
+      "install:\n\trunghc Setup.hs copy --copy-prefix=\$(DESTDIR)\n",
+    );
+    return $dir;
+  }
+
   # some packages (e.g. htmltidy) expect us to locate and run yet another
   # shell script that generates the real configure script that generates....
   for(grep(-r(path($dir, $_)), "build/gnuauto/setup.sh"))
@@ -6799,7 +6814,6 @@ Known bugs:
 
 Wish list:
 
-  - add support for http://www.haskell.org/cabal/
   - deal better with missing gcc: clearer error msg? (email 7/21/04)
   - error messages that explain command usage (gale 2004-05-06 17:08:20)
   - convenient way to specify storedir, etc. during first time setup
