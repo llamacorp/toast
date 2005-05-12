@@ -3294,18 +3294,21 @@ install:
   }
 
   # Haskell Cabal (http://www.haskell.org/cabal/)
-  if(-r(path($dir, "Setup.hs")))
+  for("Setup.hs", "Setup.lhs")
   {
-    cdrun($dir, qw(ghc-pkg list)); # work around ~/.ghc bug in ghc-pkg 6.4 (?)
-    cdrunconf($dir, qw(runghc Setup.hs configure), "--prefix=$prefix");
-    writefile
-    (
-      path($dir, "Makefile"),
-      "# $genby\n\n",
-      "all:\n\trunghc Setup.hs build\n\n",
-      "install:\n\trunghc Setup.hs copy --copy-prefix=\$(DESTDIR)\n",
-    );
-    return $dir;
+    if(-r(path($dir, $_)))
+    {
+      cdrun($dir, qw(ghc-pkg list)); # work around ~/.ghc bug in ghc-pkg 6.4 (?)
+      cdrunconf($dir, "runghc", $_, "configure", "--prefix=$prefix");
+      writefile
+      (
+        path($dir, "Makefile"),
+        "# $genby\n\n",
+        "all:\n\trunghc $_ build\n\n",
+        "install:\n\trunghc $_ copy --copy-prefix=\$(DESTDIR)\n",
+      );
+      return $dir;
+    }
   }
 
   # some packages (e.g. htmltidy) expect us to locate and run yet another
