@@ -1532,7 +1532,7 @@ sub magicstring($)
   return ".cpio" if /^07070[a-f\d]{30}/i;
   return ".tar" if /^[^\x00]+(..)?\x00{5,}[\x00\s\d]{30}/
       || /\x00ustar[ \x00]/;
-  return ".shar" if m:^\#!/bin/sh\n\# This is a shell archive:;
+  return ".shar" if m:^(\#!/bin/sh\n)?\# This is a shell archive:;
   return ".patch" if /^(diff |\*\*\* |Only in |Common subdirectories: |--- )/m;
 
   return "";
@@ -6834,6 +6834,7 @@ Wish list:
   - figure out where to go with "toast edit" (or document it as-is)
   - let the user give a hash for each explicit URL; verify hashes
   - find, download, and verify hashes, PGP signatures, etc.
+  - store checksums after build for later tripwire-like verification
   - find a way to rebuild indices for apropos by default
   - fold archives by URL and/or hash?
   - zsh completions!
