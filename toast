@@ -1458,7 +1458,6 @@ sub setbuildenv()
 {
   my(%vars) = printnewenv;
   $ENV{$_} = $vars{$_} for keys(%vars);
-optrun("printenv") || optrun("env");
   true;
 }
 
@@ -1489,6 +1488,7 @@ sub showprebuildinfo($$$)
   optrun("uname", "-a");
   optrun(findperl, "-V");
   optrun("printenv") || optrun("env");
+  explain("argv: $_") for @ARGV;
   my(@urls) = pkgurls($name, $version);
   explain("no urls") unless @urls;
   explain("url: $_") for @urls;
@@ -5244,9 +5244,20 @@ sub iscmd($)
 
 sub parseopts(@)
 {
-  my($opt, $cmd);
-  while(($opt = shift) && $opt =~ /^-/ && $opt ne "--")
+  my($opt, $cmd, @result);
+  while(($opt = shift))
   {
+    if($opt eq "--")
+    {
+      push(@result, @_);
+      last;
+    }
+    elsif($opt !~ /^-/)
+    {
+      push(@result, $opt);
+      next;
+    }
+
     $opt = "--help" if $opt =~ /^--?[h\?]$/i;
     if($opt =~ /^--?(\w+)=(.*)$/)
     {
@@ -5293,8 +5304,6 @@ sub parseopts(@)
     }
   }
 
-  my(@result) = @_;
-  unshift(@result, $opt) if defined($opt) && $opt ne "--";
   unshift(@result, $cmd) if $cmd;
   return @result;
 }
