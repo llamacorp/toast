@@ -1379,7 +1379,7 @@ sub findperl()
     for(split(/:/, $ENV{"PATH"}))
     {
       my($path) = path($_, $^X);
-      if(-x($path))
+      if(-x($path) && !-d($path)) # thanks Frederik!
       {
         $result = $path;
         last;
