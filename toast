@@ -1476,8 +1476,8 @@ sub yes()
   my($pid) = open(STDIN, "-|");
   error("fork: $!") unless defined($pid);
   return if $pid;
-  print("\n") || exit(0) foreach 1..9999;
-  error("yes count exceeded");
+  print("\n") || last for 1..9999;
+  exit(0)
 }
 
 sub showprebuildinfo($$$)
