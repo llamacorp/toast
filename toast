@@ -1908,7 +1908,7 @@ sub extractname($)
   ($cmd, $ok) = ($cmd . "tar tf $arg | ", true) if s/\.tar$//i;
   ($cmd, $ok) = ("unzip -Z1 $arg | ", true) if $arg eq $_ && s/\.zip$//i;
   return undef unless $ok;
-  $cmd .= "head -1";
+  $cmd .= "head";
 
   explain($cmd);
 
@@ -1918,7 +1918,7 @@ sub extractname($)
   my($result) = `$cmd`;
   open(STDIN, "<&SAVE") || error("restore stdin: $!");
 
-  chomp $result;
+  $result =~ s/[\r\n].*//;
   $result =~ s|/+$||;
   emptytoundef($result);
 }
