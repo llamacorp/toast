@@ -2883,7 +2883,7 @@ $rettype$name($proto)
     }
   }
 
-  my(@socc) = qw[gcc -shared -Wall];
+  my(@socc) = qw[gcc -fPIC -shared -Wall];
   push(@socc, qw[-Werror]) if strictpreload;
   my(@sol) = ();
   push(@sol, qw[-ldl]) if $^O =~ /linux/i;
