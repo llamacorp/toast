@@ -1918,6 +1918,7 @@ sub extractname($)
   my($result) = `$cmd`;
   open(STDIN, "<&SAVE") || error("restore stdin: $!");
 
+  $result = undeftoempty($result);
   $result =~ s/[\r\n].*//;
   $result =~ s|/+$||;
   emptytoundef($result);
