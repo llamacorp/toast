@@ -4978,7 +4978,7 @@ sub parse(@)
         }
 
         my($url);
-        if(/^\w+:/)
+        if(/^\w+:./)
         {
           $url = cleanurl($_);
           if(expand && $url =~ m!/$!)
