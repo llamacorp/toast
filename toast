@@ -6180,7 +6180,7 @@ or B<toast rebuild> is still running), C<broken> (if it failed), C<built>
 the build will be marked C<(not clean)> if intermediate files created
 by B<toast build> have not yet been removed by C<toast clean>.
 
-=item <B<toast env>>
+=item S<B<toast env>>
 
 Prints shell commands to make armed packages usable.  This command is
 normally invoked with C<eval `toast env`> (note the backticks) from a
@@ -6198,7 +6198,7 @@ in particular is unset, B<toast env> will run C<man -w> to try to get
 the default value; if this causes problems, it may help to ensure that
 C<MANPATH> is set before invoking B<toast env>.  This command assumes a
 Bourne-like shell -- zsh and bash will work, tcsh won't.  None of this
-is likely to be unnecessary if B<armdir> is C</usr> or C</usr/local>
+is likely to be necessary if B<armdir> is C</usr> or C</usr/local>
 (the default when running as root).
 
 =item S<B<toast help> [ I<TOPIC> ] ...>
