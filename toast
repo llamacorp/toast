@@ -3007,6 +3007,26 @@ sub configure($$)
 {
   my($dir, $prefix) = @_;
 
+  # Haskell Cabal (http://www.haskell.org/cabal/)
+  # Must be checked for before "configure" due to the following craziness:
+  # http://haskell.org/ghc/docs/6.4/html/Cabal/authors.html#system-dependent
+  for("Setup.hs", "Setup.lhs")
+  {
+    if(-r(path($dir, $_)))
+    {
+      cdrun($dir, qw(ghc-pkg list)); # work around ~/.ghc bug in ghc-pkg 6.4 (?)
+      cdrunconf($dir, "runghc", $_, "configure", "--prefix=$prefix");
+      writefile
+      (
+        path($dir, "Makefile"),
+        "# $genby\n\n",
+        "all:\n\trunghc $_ build\n\n",
+        "install:\n\trunghc $_ copy --copy-prefix=\$(DESTDIR)\n",
+      );
+      return $dir;
+    }
+  }
+
   # find a configure script
   my($cfg);
   #            autoconf  Perl          openssl elm       libmng     pmk
@@ -3292,24 +3312,6 @@ install:
           "--prefix=\Q$prefix\E --root=\$(DESTDIR)\n",
     );
     return $dir;
-  }
-
-  # Haskell Cabal (http://www.haskell.org/cabal/)
-  for("Setup.hs", "Setup.lhs")
-  {
-    if(-r(path($dir, $_)))
-    {
-      cdrun($dir, qw(ghc-pkg list)); # work around ~/.ghc bug in ghc-pkg 6.4 (?)
-      cdrunconf($dir, "runghc", $_, "configure", "--prefix=$prefix");
-      writefile
-      (
-        path($dir, "Makefile"),
-        "# $genby\n\n",
-        "all:\n\trunghc $_ build\n\n",
-        "install:\n\trunghc $_ copy --copy-prefix=\$(DESTDIR)\n",
-      );
-      return $dir;
-    }
   }
 
   # some packages (e.g. htmltidy) expect us to locate and run yet another
