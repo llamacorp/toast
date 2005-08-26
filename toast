@@ -5929,12 +5929,18 @@ requirements for B<toast build> vary according to the package being built.
 To have the latest version of B<toast> download and install itself in your
 home directory, run one of the following commands as a non-root user.
 (See below for instructions to install as root.)  The first command
-requires GNU wget; the second relies on the GET utility that comes with
-the LWP Perl module; the third uses telnet.
+requires GNU wget.  The second relies on the GET utility that comes
+with the LWP Perl module.  The third command is broken over three lines,
+though your shell should let you paste it exactly as written; it relies
+only on Perl with no modules at all.
 
   wget -O- http://toastball.net/toast/toast|perl -x - arm toast
+
   GET http://toastball.net/toast/toast|perl -x - arm toast
-  echo GET /toast/toast|telnet toastball.net 80|perl -x - arm toast
+
+  perl -e 'socket(S,2,1,0)&&connect(S,pack("Sna4x8",2,80,gethostbyname(
+      "toastball.net")||die("dns")))&&syswrite(S,"GET /toast/toast\n")&&
+      open(STDIN,"<&S")&&exec($^X,qw(-x - arm toast))||die($!)'
 
 Of course, if you already have a previous version of B<toast> up and
 running, just type C<toast upgrade toast>.  If B<toast> is installed
