@@ -2884,17 +2884,26 @@ $rettype$name($proto)
     }
   }
 
-  my(@socc) = qw[gcc -fPIC -shared -Wall];
-  push(@socc, qw[-Werror]) if strictpreload;
-  my(@sol) = ();
-  push(@sol, qw[-ldl]) if $^O =~ /linux/i;
+  my($so, $do, $cc, $ld, $libs) =
+      ("so", ".o", "gcc -fPIC", "gcc -shared", "-ldl");
+  eval q{
+    use Config;
+    $so = $Config{"dlext"} or die;
+    $do = $Config{"_o"} or die;
+    $libs = "" unless $Config{"libs"} =~ /-ldl\b/;
+    $cc = "$Config{cc} $Config{cccdlflags}";
+    $ld = "$Config{ld} $Config{lddlflags}";
+    $cc .= " -Wall -Werror" if $Config{ccname} eq "gcc" && strictpreload;
+  };
 
   writefile(path($helperdir, "dummy.c"), "void ____toast_dummy_4u38291(){}\n");
   writefile(path($helperdir, "rewrite.c"), $code);
 
-  return path($helperdir, "rewrite.so")
-      if optcdrun($helperdir, @socc, qw[dummy.c -o rewrite.so])
-      && optcdrun($helperdir, @socc, qw[rewrite.c -o rewrite.so.helper], @sol);
+  return path($helperdir, "rewrite.$so")
+      if optcdrun($helperdir, "$cc -c dummy.c -o dummy$do")
+      && optcdrun($helperdir, "$ld dummy$do -o rewrite.$so")
+      && optcdrun($helperdir, "$cc -c rewrite.c -o rewrite$do")
+      && optcdrun($helperdir, "$ld rewrite$do -o rewrite.$so.helper $libs");
 
   error("unable to compile with strictpreload enabled") if strictpreload;
   explain("unable to compile; strictpreload disabled, continuing");
