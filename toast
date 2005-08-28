@@ -281,7 +281,7 @@ BEGIN
     "crossversion" => "false",
     "skipmismatched" => "true",
     "preload" => "true",
-    "strictpreload" => "true",
+    "strictpreload" => $^O eq "linux" ? "true" : "false",
     "useflock" => $^O =~ /win/i ? "false" : "true",
     "reconfigure" => "true",
     "fixliblinks" => "true",
@@ -5916,13 +5916,14 @@ possible, rather than using B<toast> to replace it or go behind its back.
 
 =head2 Requirements
 
-B<toast> itself is known to work with Perl 5.005_03 through 5.8.x under
-Linux, FreeBSD, Solaris, and Cygwin, without relying on the presence
-or absence of any Perl modules or other tools.  Perl is available for
-download at C<http://www.cpan.org/src/stable.tar.gz>.  Although it isn't
-required, B<toast get> works better if you have GNU wget; you can use
-C<toast arm wget> to download and install it if necessary.  Additional
-requirements for B<toast build> vary according to the package being built.
+B<toast> itself has been known to work with Perl 5.005_03 through 5.8.x
+under Linux, FreeBSD, Solaris, MacOS X, and Cygwin, without relying on
+the presence or absence of any Perl modules or other tools.  Perl is
+available for download at C<http://www.cpan.org/src/stable.tar.gz>.
+Although it isn't required, B<toast get> works better if you have
+GNU wget; you can use C<toast arm wget> to download and install it if
+necessary.  Additional requirements for B<toast build> vary according
+to the package being built.
 
 =head2 Setup
 
@@ -6591,10 +6592,11 @@ B<strictpreload> option.  Default: enabled.
 When B<strictpreload> is enabled, failure to build the shared library
 described under the B<preload> option is treated as a fatal error.
 When B<strictpreload> is disabled, a compile error while attempting
-to build the shared library causes B<toast build> to behave as if
-the B<preload> option were disabled.  This may allow B<toast build>
-to succeed in the absence of a suitable C compiler, but it may allow
-some packages to build incorrectly in some situations.  Default: enabled.
+to build the shared library causes B<toast build> to behave as if the
+B<preload> option were disabled.  This may allow B<toast build> to succeed
+in the absence of a suitable C compiler, but it may allow some packages
+to build incorrectly in some situations.  Default: enabled under Linux,
+disabled elsewhere.
 
 =item S<B<--useflock> | B<--nouseflock>>
 
