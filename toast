@@ -290,6 +290,7 @@ BEGIN
     "showurls" => "true",
     "infodir" => "true",
     "xmlcatalog" => "true",
+    "hspkg" => "true",
     "protect" => "false",
     "relative" => "false",
     "debugrewrite" => "false",
@@ -1430,6 +1431,7 @@ sub newenv()
     $defaultman = $out if defined($out) && $out =~ m!^/! && $out !~ /\n/;
   }
   my($x) = path(qw(etc xml toast-xml-catalog));
+  my($hspkgdir) = path(qw(etc toast-hs-package.conf));
 
   my(@vars);
   push(@vars, newenvvar("PATH", "bin"));
@@ -1438,6 +1440,7 @@ sub newenv()
   push(@vars, newenvvar("CPATH", "include"));
   push(@vars, newenvvar("LIBRARY_PATH", "lib"));
   push(@vars, newenvvar("XML_CATALOG_FILES", $x, "/$x", " ")) if xmlcatalog;
+  push(@vars, newenvvar("HS_PKG_PATH", $hspkgdir)) if hspkg;
   # there's also a LIBRARY_RUN_PATH or something that affects ld somehow...
   return @vars;
 }
@@ -2615,6 +2618,57 @@ die("exec $cmd: $!");
 ]);
 }
 
+sub helphspkg($$$)
+{
+  my($rootdir, $helperdir, $cmd) = @_;
+  helpstub($helperdir, $cmd);
+  writescript(path($helperdir, "$cmd.helper"), "#!/bin/sh\n# $genby\n", q[
+rootdir=], quote($rootdir), q[
+name=], time() . "-$$", q[
+
+cat > "$rootdir/bin/ghc" << "EOF"
+#!/bin/sh
+exec perl -wx "$0"
+#!perl
+
+$0 =~ m!([^/]+)$! or die;
+my($me) = $1;
+my(@mystats) = stat($0) or die("stat $0: $!");
+
+my(@extra);
+push(@extra, "-package-conf", $_) for split(/:/, $ENV{"HS_PKG_PATH"} || "");
+
+for(split(/:/, $ENV{"PATH"}))
+{
+  my($prog) = "$_/$me";
+  if(-x($prog))
+  {
+    my(@progstats) = stat($prog) or die("stat $prog: $!");
+    next if $progstats[0] == $mystats[0] && $progstats[1] == $mystats[1];
+    exec($prog, @extra, @ARGV);
+    die("exec $prog failed: $!");
+  }
+}
+
+die("can't find next $me in PATH");
+EOF
+
+chmod +x "$rootdir/bin/ghc"
+for i in ghc-pkg runghc runhaskell; do
+  ln -sf ghc "$rootdir/bin/$i"
+done
+
+for arg; do
+  case "$arg" in
+    -*) ;;
+    *) [ -r "$arg" ] && exec < "$arg" ;;
+  esac
+done
+
+exec cat > "$rootdir/hspkg/$name"
+]);
+}
+
 sub helplib($$$)
 {
   my($srcdir, $rootdir, $helperdir) = @_;
@@ -2953,6 +3007,7 @@ sub inithelpers($$$)
       xmlcatalog], "[");
   helprewrite($srcdir, $rootdir, $helperdir, $_, true) for (qw[mv]);
   helpnop($helperdir, $_) for (qw[chown chgrp ldconfig install-info mknod]);
+  helphspkg($rootdir, $helperdir, $_) for (qw[ghc-pkg]);
   $env{PATH} = "$helperdir:$env{PATH}";
 
   my($preload) = helplib($srcdir, $rootdir, $helperdir);
@@ -3510,11 +3565,14 @@ sub install($$)
 sub stddirs()
 {
   my(@result) =
-      (qw[bin boot etc include info lib libexec man share src var],
-      map(path("man", "man$_"), 1..9), path(qw[var spool]),
-      path(qw[etc rc.d]), map(path("etc", "rc.d", "rc$_.d"), 0..6), # vmware
-      path(qw[var run]), # hotplug/2004_01_05
-      path(qw[share aclocal])); # librep/0.16.1
+  (
+    qw[bin boot etc include info lib libexec man share src var],
+    map(path("man", "man$_"), 1..9), path(qw[var spool]),
+    path(qw[etc rc.d]), map(path("etc", "rc.d", "rc$_.d"), 0..6), # vmware
+    path(qw[var run]), # hotplug/2004_01_05
+    path(qw[share aclocal]), # librep/0.16.1
+    "hspkg", # holding area for Haskell package files; see sub helphspkg()
+  );
   sort(@result);
 }
 
@@ -4051,6 +4109,41 @@ sub rebuildxmlcatalog(@)
   }
 }
 
+sub rebuildhspkg($)
+{
+  my($armdir) = @_;
+
+  my($dir) = path($armdir, "hspkg");
+  my(@pkgs);
+  @pkgs = absls($dir) if hspkg and -d($dir);
+
+  my($etcdir) = path($armdir, "etc");
+  my($file) = path($etcdir, "toast-hs-package.conf");
+  return -e($file) || -l($file) ? rm($file) : true unless @pkgs;
+
+  if(!-d($etcdir))
+  {
+    my($mode) = getmode($armdir);
+    safechmod(0777, $armdir);
+    md(path($etcdir));
+    safechmod($mode, $armdir);
+  }
+
+  my($mode) = getmode($etcdir);
+  safechmod(0777, $etcdir);
+  safechmod(0666, $file) if -e($file);
+  writefile($file, "[]\n");
+  optrun("ghc-pkg", "--force", "-f", $file, "register", $_) for(@pkgs);
+  optrmall("$file.old");
+  safechmod($mode, $etcdir);
+
+  if(protect)
+  {
+    safechmod(0444, $file);
+    safechmod(0555, $_) for($etcdir, $armdir);
+  }
+}
+
 sub arm(@)
 {
   my($name, $version, $build, @urls) = @_;
@@ -4120,6 +4213,7 @@ sub arm(@)
 
   rebuildinfodir(armdir);
   rebuildxmlcatalog(armdir);
+  rebuildhspkg(armdir);
   run(postarmprog) if postarmprog;
 
   unlock(armdir);
@@ -4212,6 +4306,7 @@ sub disarm(@)
 
     rebuildinfodir($armdir) if $changed;
     rebuildxmlcatalog($armdir) if $changed;
+    rebuildhspkg($armdir) if $changed;
     $anychanged ||= $changed;
     run(postarmprog) if ++$i == scalar(@armdirs) && $anychanged && postarmprog;
     unlock($armdir);
@@ -6703,6 +6798,23 @@ is disabled, B<toast arm> and B<toast disarm> will delete the
 C<toast-xml-catalog> file, if present, instead of rebuilding it.
 Default: enabled.
 
+=item S<B<--hspkg> | B<--nohspkg>>
+
+When B<hspkg> is enabled, B<toast arm> and B<toast disarm>
+will maintain a Haskell package database B<armdir> called
+C<etc/xml/toast-hs-package.conf>, whose presence and contents depend on
+the contents of B<armdir>'s C<hspkg> subdirectory, which in turn will be
+automatically populated by a wrapper script whenever a Haskell library
+tries to register itself in the package database.  If the package database
+already exists, it may be overwritten or deleted.  The B<toast env>
+command will set C<HS_PKG_PATH> to point to this file when this option
+is set, which will cause further wrapper scripts automatically installed
+with Haskell libraries to insert a -package-conf argument into the command
+lines of all the appropriate programs.  If B<hspkg> is disabled, B<toast
+arm> and B<toast disarm> will delete the C<toast-hs-package.conf> file,
+if present, instead of rebuilding it.  Tested with GHC 6.4.  Default:
+enabled.
+
 =item S<B<--protect> | B<--noprotect>>
 
 If B<protect> is enabled, B<toast build> will make some of the directories
@@ -6843,6 +6955,7 @@ Known bugs:
   - "toast edit" leaves things in an odd state if you hang up on it
   - "toast rename" is more case-sensitive than it ought to be
   - "toast get" prevents wget from truncating output if transfer restarts
+  - "toast env" doesn't set PYTHONPATH
 
 Wish list:
 
