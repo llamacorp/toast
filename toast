@@ -3079,13 +3079,15 @@ sub configure($$)
     if(-r(path($dir, $_)))
     {
       cdrun($dir, qw(ghc-pkg list)); # work around ~/.ghc bug in ghc-pkg 6.4 (?)
-      cdrunconf($dir, "runghc", $_, "configure", "--prefix=$prefix");
+      cdrunconf($dir, "runghc", $_, "configure", "--prefix=$prefix",
+          "--with-hc-pkg=ghc-pkg");
       writefile
       (
         path($dir, "Makefile"),
         "# $genby\n\n",
         "all:\n\trunghc $_ build\n\n",
         "install:\n\trunghc $_ copy --copy-prefix=\$(DESTDIR)\n",
+        "\trunghc $_ register\n",
       );
       return $dir;
     }
