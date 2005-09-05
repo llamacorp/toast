@@ -2621,45 +2621,68 @@ die("exec $cmd: $!");
 sub helphspkg($$$)
 {
   my($rootdir, $helperdir, $cmd) = @_;
+  return true unless hspkg;
   helpstub($helperdir, $cmd);
   writescript(path($helperdir, "$cmd.helper"), "#!/bin/sh\n# $genby\n", q[
 rootdir=], quote($rootdir), q[
 name=], time() . "-$$", q[
 
-cat > "$rootdir/bin/ghc" << "EOF"
+wrapper="$rootdir/bin/ghc.wrapped"
+cat > "$wrapper" << "EOF"
 #!/bin/sh
-exec perl -wx "$0"
+exec perl -wx "$0" "$@"
 #!perl
 
 $0 =~ m!([^/]+)$! or die;
 my($me) = $1;
-my(@mystats) = stat($0) or die("stat $0: $!");
 
 my(@extra);
-push(@extra, "-package-conf", $_) for split(/:/, $ENV{"HS_PKG_PATH"} || "");
-
-for(split(/:/, $ENV{"PATH"}))
+my($wrap) = $ENV{"TOAST_HS_WRAPPER"} || "";
+if($wrap)
 {
-  my($prog) = "$_/$me";
-  if(-x($prog))
+  $wrap .= ":";
+}
+else
+{
+  push(@extra, "--package-conf=$_") for split(/:/, $ENV{"HS_PKG_PATH"} || "");
+}
+$ENV{"TOAST_HS_WRAPPER"} = $wrap .= $0;
+
+DIR: for(split(/:/, $ENV{"PATH"}))
+{
+  for("$_/$me.unwrapped", "$_/$me")
   {
-    my(@progstats) = stat($prog) or die("stat $prog: $!");
-    next if $progstats[0] == $mystats[0] && $progstats[1] == $mystats[1];
-    exec($prog, @extra, @ARGV);
-    die("exec $prog failed: $!");
+    if(-x)
+    {
+      my(@stats) = stat or die("stat $_: $!");
+      my($skip);
+      for $skip (split(/:/, $wrap))
+      {
+        my(@skipstats) = stat($skip) or die("stat $skip: $!");
+        next DIR if "$skipstats[0] $skipstats[1]" eq "$stats[0] $stats[1]";
+      }
+      exec $_ ($0, @extra, @ARGV);
+      die("exec $_ failed: $!");
+    }
   }
 }
 
 die("can't find next $me in PATH");
 EOF
 
-chmod +x "$rootdir/bin/ghc"
-for i in ghc-pkg runghc runhaskell; do
-  ln -sf ghc "$rootdir/bin/$i"
+chmod +x "$wrapper"
+for i in ghc; do
+  path="$rootdir/bin/$i"
+  if [ -r "$path" -a ! -r "$path.unwrapped" ] && ! diff -q "$path" "$wrapper"
+  then
+    mv "$path" "$path.unwrapped"
+  fi
+  ln -sf ghc.wrapped "$rootdir/bin/$i"
 done
 
 for arg; do
   case "$arg" in
+    --toast-install-wrapper-only) exit 0 ;;
     -*) ;;
     *) [ -r "$arg" ] && exec < "$arg" ;;
   esac
@@ -3780,12 +3803,28 @@ sub polishrootdir($$)
   }
 }
 
+sub wraphaskell($$$)
+{
+  my($srcdir, $rootdir, $helperdir) = @_;
+  return true unless -x(path($rootdir, qw(bin ghc)));
+  my($script) = path($helperdir, "ghc-pkg");
+  if(!-x($script))
+  {
+    optmd($helperdir);
+    helphspkg($rootdir, $helperdir, "wrap-ghc");
+    $script = path($helperdir, "wrap-ghc");
+    armhelpers($helperdir);
+  }
+  run($script, "--toast-install-wrapper-only");
+}
+
 sub compile($$$)
 {
   my($srcdir, $rootdir, $helperdir) = @_;
   compiledata($srcdir, $rootdir) ||
       compilebin($srcdir, $rootdir) ||
       compilehelp($srcdir, $rootdir, $helperdir);
+  wraphaskell($srcdir, $rootdir, $helperdir) if hspkg;
   polishrootdir($rootdir, armdir);
 }
 
@@ -4135,7 +4174,7 @@ sub rebuildhspkg($)
   safechmod(0777, $etcdir);
   safechmod(0666, $file) if -e($file);
   writefile($file, "[]\n");
-  optrun("ghc-pkg", "--force", "-f", $file, "register", $_) for(@pkgs);
+  optrun("ghc-pkg", "--force", "-f", $file, "update", $_) for(@pkgs);
   optrmall("$file.old");
   safechmod($mode, $etcdir);
 
@@ -6802,20 +6841,23 @@ Default: enabled.
 
 =item S<B<--hspkg> | B<--nohspkg>>
 
-When B<hspkg> is enabled, B<toast arm> and B<toast disarm>
-will maintain a Haskell package database B<armdir> called
+When B<hspkg> is enabled, B<toast build> will generate various terrible
+wrapper scripts for ghc and related commands, and B<toast arm> and
+B<toast disarm> will maintain a Haskell package database B<armdir> called
 C<etc/xml/toast-hs-package.conf>, whose presence and contents depend on
 the contents of B<armdir>'s C<hspkg> subdirectory, which in turn will be
 automatically populated by a wrapper script whenever a Haskell library
-tries to register itself in the package database.  If the package database
-already exists, it may be overwritten or deleted.  The B<toast env>
-command will set C<HS_PKG_PATH> to point to this file when this option
-is set, which will cause further wrapper scripts automatically installed
-with Haskell libraries to insert a -package-conf argument into the command
-lines of all the appropriate programs.  If B<hspkg> is disabled, B<toast
-arm> and B<toast disarm> will delete the C<toast-hs-package.conf> file,
-if present, instead of rebuilding it.  Tested with GHC 6.4.  Default:
-enabled.
+built via B<toast build> tries to register itself in the package database.
+If the package database already exists, it may be overwritten or deleted.
+The B<toast env> command will set C<HS_PKG_PATH> to point to this file
+when this option is set, which will cause wrapper scripts installed with
+ghc and/or Haskell libraries to insert a --package-conf argument into
+the command lines of some of the appropriate programs.  If B<hspkg> is
+disabled, B<toast build> will not attempt to generate any Haskell-specific
+wrapper scripts (which may prevent Haskell libraries from building, at
+least with GHC 6.4); B<toast arm> and B<toast disarm> will delete the
+C<toast-hs-package.conf> file, if present, instead of rebuilding it.
+Tested with GHC 6.4.  Default: enabled.
 
 =item S<B<--protect> | B<--noprotect>>
 
