@@ -843,7 +843,7 @@ sub openhttp(*$;$;$)
   if($proxy)
   {
     $path = "$proto://$host:$port$path";
-    $proxy =~ m!^(\w+://)?([-\w\.]+)(:(\d+))?([^:]+)(:(\d+))?/?$!
+    $proxy =~ m!^(\w+://)?([-\w\.]+)(:(\d+))?/?$!
         || error("bad proxy URL: $proxy");
     ($host, $port) = ($2, $4 || 8080);
   }
@@ -2202,7 +2202,7 @@ sub findnewpkg($$)
     my(@links) = linksfromurl($url);
     my(@urls) = grep(lookslikepkgurl($_, $name, $version), @links);
     my($ext);
-    for $ext qw[.tar.bz2 .tar.gz .tgz .zip .deb .rpm]
+    for $ext (qw[.tar.bz2 .tar.gz .tgz .zip .deb .rpm])
     {
       my(@matches) = grep(stripquery($_) =~ /\Q$ext\E$/i, @urls);
 
@@ -2592,7 +2592,7 @@ while(@ARGV)
             print("$myname: created directory $rootdir$dir\n");
         $dir .= "/$component";
       }
-      -d("$armdir$_") && mkdir("$rootdir$_") &&
+      -d("$armdir$_") && mkdir("$rootdir$_", 0777) &&
           print("$myname: created directory $rootdir$_\n");
       $_ = "$rootdir$_";
     }
@@ -6985,6 +6985,7 @@ Known bugs:
   - autofind produces URLs with extra slashes, e.g. "toast arm latex"
   - make oldconfig isn't running for linux/2.6.x
   - toast add misguesses device-mapper name/version from URL
+  - toast add misguesses [ foo-1.0-src.tar.gz foo-1.0-src.diff.gz ]
   - autofind hangs in httphead() when going through tinyproxy?
   - autofind mishandles http redirects (e.g. http://toastball.net/toast)
   - gtk+ doesn't seem to build properly when it is already armed
