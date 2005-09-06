@@ -2662,7 +2662,12 @@ DIR: for(split(/:/, $ENV{"PATH"}))
         my(@skipstats) = stat($skip) or die("stat $skip: $!");
         next DIR if "$skipstats[0] $skipstats[1]" eq "$stats[0] $stats[1]";
       }
-      exec $_ ($0, @extra, @ARGV);
+      if(exists($ENV{"TOAST_VERBOSE_HS_WRAPPER"}))
+      {
+        print("toast: not rewriting $0 @ARGV\n") unless @extra;
+        print("toast: rewriting $0 @ARGV -> $0 @ARGV @extra\n") if @extra;
+      }
+      exec $_ ($0, @ARGV, @extra);
       die("exec $_ failed: $!");
     }
   }
@@ -2672,7 +2677,7 @@ die("can't find next $me in PATH");
 EOF
 
 chmod +x "$wrapper"
-for i in ghc ghci ghc-pkg runghc runhaskell; do
+for i in ghc ghci ghc-pkg; do
   path="$rootdir/bin/$i"
   if [ -r "$path" -a ! -r "$path.unwrapped" ] && ! diff -q "$path" "$wrapper"
   then
