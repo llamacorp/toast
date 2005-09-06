@@ -2636,18 +2636,13 @@ exec perl -wx "$0" "$@"
 $0 =~ m!([^/]+)$! or die;
 my($me) = $1;
 
-my(@extra);
 my($wrap) = $ENV{"TOAST_HS_WRAPPER"} || "";
-if($wrap)
-{
-  $wrap .= ":";
-}
-else
-{
-  push(@extra, ($me =~ /-pkg/ ? "-" : "") . "-package-conf", $_)
-      for grep(-r, split(/:/, $ENV{"GHC_PKG_PATH"} || ""));
-}
+$wrap .= ":" if $wrap;
 $ENV{"TOAST_HS_WRAPPER"} = $wrap .= $0;
+
+my(@extra);
+push(@extra, ($me =~ /-pkg/ ? "-" : "") . "-package-conf", $_)
+    for grep(-r, split(/:/, $ENV{"GHC_PKG_PATH"} || ""));
 
 DIR: for(split(/:/, $ENV{"PATH"}))
 {
