@@ -1440,7 +1440,7 @@ sub newenv()
   push(@vars, newenvvar("CPATH", "include"));
   push(@vars, newenvvar("LIBRARY_PATH", "lib"));
   push(@vars, newenvvar("XML_CATALOG_FILES", $x, "/$x", " ")) if xmlcatalog;
-  push(@vars, newenvvar("HS_PKG_PATH", $hspkgdir)) if hspkg;
+  push(@vars, newenvvar("GHC_PKG_PATH", $hspkgdir)) if hspkg;
   # there's also a LIBRARY_RUN_PATH or something that affects ld somehow...
   return @vars;
 }
@@ -2644,7 +2644,8 @@ if($wrap)
 }
 else
 {
-  push(@extra, "--package-conf=$_") for split(/:/, $ENV{"HS_PKG_PATH"} || "");
+  push(@extra, ($me =~ /-pkg/ ? "-" : "") . "-package-conf", $_)
+      for grep(-r, split(/:/, $ENV{"GHC_PKG_PATH"} || ""));
 }
 $ENV{"TOAST_HS_WRAPPER"} = $wrap .= $0;
 
@@ -2671,7 +2672,7 @@ die("can't find next $me in PATH");
 EOF
 
 chmod +x "$wrapper"
-for i in ghc; do
+for i in ghc ghci ghc-pkg runghc runhaskell; do
   path="$rootdir/bin/$i"
   if [ -r "$path" -a ! -r "$path.unwrapped" ] && ! diff -q "$path" "$wrapper"
   then
@@ -6849,7 +6850,7 @@ the contents of B<armdir>'s C<hspkg> subdirectory, which in turn will be
 automatically populated by a wrapper script whenever a Haskell library
 built via B<toast build> tries to register itself in the package database.
 If the package database already exists, it may be overwritten or deleted.
-The B<toast env> command will set C<HS_PKG_PATH> to point to this file
+The B<toast env> command will set C<GHC_PKG_PATH> to point to this file
 when this option is set, which will cause wrapper scripts installed with
 ghc and/or Haskell libraries to insert a --package-conf argument into
 the command lines of some of the appropriate programs.  If B<hspkg> is
