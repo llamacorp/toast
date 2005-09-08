@@ -291,7 +291,7 @@ BEGIN
     "showurls" => "true",
     "infodir" => "true",
     "xmlcatalog" => "true",
-    "hspkg" => "true",
+    "hspkg" => "false",
     "protect" => "false",
     "relative" => "false",
     "debugrewrite" => "false",
@@ -2627,6 +2627,7 @@ sub helphspkg($$$)
   writescript(path($helperdir, "$cmd.helper"), "#!/bin/sh\n# $genby\n", q[
 rootdir=], quote($rootdir), q[
 name=], time() . "-$$", q[
+PATH=], quote($ENV{"PATH"}), q[
 
 wrapper="$rootdir/bin/ghc.wrapped"
 cat > "$wrapper" << "EOF"
@@ -2682,9 +2683,12 @@ for i in ghc ghci ghc-pkg; do
   ln -sf ghc.wrapped "$rootdir/bin/$i"
 done
 
+[ "$*" = "--toast-install-wrapper-only" ] && exit 0
+
+ghc-pkg "$@" --user # let --auto-ghci-libs do its thing
+ 
 for arg; do
   case "$arg" in
-    --toast-install-wrapper-only) exit 0 ;;
     -*) ;;
     *) [ -r "$arg" ] && exec < "$arg" ;;
   esac
@@ -6863,12 +6867,13 @@ If the package database already exists, it may be overwritten or deleted.
 The B<toast env> command will set C<GHC_PKG_PATH> to point to this file
 when this option is set, which will cause wrapper scripts installed with
 ghc and/or Haskell libraries to insert a --package-conf argument into
-the command lines of some of the appropriate programs.  If B<hspkg> is
-disabled, B<toast build> will not attempt to generate any Haskell-specific
-wrapper scripts (which may prevent Haskell libraries from building, at
-least with GHC 6.4); B<toast arm> and B<toast disarm> will delete the
-C<toast-hs-package.conf> file, if present, instead of rebuilding it.
-Tested with GHC 6.4.  Default: enabled.
+the command lines of some of the appropriate programs.  This approach
+has many flaws and is not unlikely to cause more problems than it solves.
+If B<hspkg> is disabled, B<toast build> will not attempt to generate any
+Haskell-specific wrapper scripts (which may prevent Haskell libraries
+from building, at least with GHC 6.4); B<toast arm> and B<toast disarm>
+will delete the C<toast-hs-package.conf> file, if present, instead of
+rebuilding it.  Poorly tested against GHC 6.4 only.  Default: disabled.
 
 =item S<B<--protect> | B<--noprotect>>
 
@@ -7012,6 +7017,7 @@ Known bugs:
   - "toast rename" is more case-sensitive than it ought to be
   - "toast get" prevents wget from truncating output if transfer restarts
   - "toast env" doesn't set PYTHONPATH
+  - "toast man" refers to nonexistent disarmmismatched option
 
 Wish list:
 
@@ -7034,6 +7040,8 @@ Wish list:
   - find, download, and verify hashes, PGP signatures, etc.
   - store checksums after build for later tripwire-like verification
   - find a way to rebuild indices for apropos by default
+  - allow package name/version as URL; expand w/ autofind iff missing
+  - add "toast find" and/or have autofind/upgrade prompt for version (?)
   - fold archives by URL and/or hash?
   - zsh completions!
 
