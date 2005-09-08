@@ -266,6 +266,7 @@ BEGIN
     "httpproxy" => exists($ENV{http_proxy}) ? $ENV{http_proxy} : "",
     "ftpproxy" => exists($ENV{ftp_proxy}) ? $ENV{ftp_proxy} : "",
     "confappend" => "",
+    "makeappend" => "",
     "quiet" => "false",
     "expand" => "true",
     "autofind" => "true",
@@ -3534,8 +3535,9 @@ sub make($)
         if -r($in) && !-e($out)
   }
 
-  return cdrun($dir, @prog) unless @targets;
-  cdrun($dir, @prog, $_) foreach @targets;
+  my(@args) = splitwords(makeappend);
+  return cdrun($dir, @prog, @args) unless @targets;
+  cdrun($dir, @prog, $_, @args) foreach @targets;
   return true;
 }
 
@@ -6584,6 +6586,14 @@ a list of space-separated words, each of which may be optionally quoted
 with single or double quotes with backslash acting as an escape character;
 the resulting words are added to the end of the command line.  Default:
 empty string.
+
+=item B<--makeappend=>I<ARGS>
+
+The B<makeappend> option is just like the B<confappend> option except
+that it applies to the C<make> command or commands (if any) invoked
+by B<toast build>.  As with B<confappend>, use of this option should
+never be necessary; if you find a package that won't build without it,
+please send me a bug report!  Default: empty string.
 
 =item S<B<--quiet> | B<--noquiet>>
 
