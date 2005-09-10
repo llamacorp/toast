@@ -2227,7 +2227,8 @@ sub findnewpkg($$)
         }
       }
 
-      return ($name, $matchver, $matches[0]) if @matches;
+      # TODO: return an ordered list of candidates, not just the best match
+      return ([$name, $matchver, undef, $matches[0]]) if @matches;
     }
 
     @links = grep(/^\Q$url\E/, @links);
@@ -2271,8 +2272,16 @@ sub add(@)
   $build && error;
   $name || @urls || error;
 
-  ($name, $version, @urls) = findnewpkg($name, $version)
-      unless @urls || !autofind;
+  if(!@urls && autofind)
+  {
+    my(@pkgs) = reverse(findnewpkg($name, $version));
+    error unless @pkgs;
+    ($name, $version, undef, @urls) = @{$pkgs[0]};
+    error unless $name;
+    error unless $version;
+    error unless @urls;
+  }
+
   @urls || error("autofind is disabled; please specify URL(s) for " .
       pkgname($name, $version));
 
@@ -4365,12 +4374,11 @@ sub disarm(@)
 
 ##############################################################################
 
-sub upgrade(@)
+sub findnewerpkg($$@)
 {
   my($name, $version, $build, @urls) = @_;
   error unless defined($name);
   error unless defined($version);
-  error if defined($build);
 
   @urls = pkgurls($name, $version) unless @urls;
   error unless @urls;
@@ -4412,12 +4420,16 @@ sub upgrade(@)
     }
   }
 
-  my($newver);
-  for(reverse(sort cmpab keys(%candidates)))
+  my($pkgname) = pkgname($name, $version);
+  error("URLs for $pkgname don't seem version-specific") unless $hasver;
+
+  my(@result);
+  for(sort cmpab keys(%candidates))
   {
     my($candidate) = $_;
     my($ok) = true;
-    for(@newurls)
+    my(@curls) = @newurls;
+    for(@curls)
     {
       next unless ref;
       my(%vermap) = %$_;
@@ -4426,30 +4438,58 @@ sub upgrade(@)
         $ok = false;
         last;
       }
+      $_ = $vermap{$candidate};
     }
-    if($ok)
-    {
-      $newver = $candidate;
-      last;
-    }
+    push(@result, [$name, $candidate, undef, @curls]) if $ok;
   }
 
+  error("can't find consistent URLs for $pkgname") unless @result;
+  return @result;
+}
+
+sub find(@)
+{
+  my($name, $version, $build, @urls) = @_;
+  error unless defined($name);
+  error if defined($build);
+
+  my(@pkgs) = isadded($name, $version)
+      ? findnewerpkg($name, $version, @urls)
+      : findnewpkg($name, $version);
+
+  error unless @pkgs;
+  $name = ${$pkgs[0]}[0];
+  $name eq ${$pkgs[$_]}[0] or error for 0..$#pkgs;
+
+  say("\n");
+
+  print("$name\n");
+  for(@pkgs)
+  {
+    (undef, $version, undef, @urls) = @$_;
+    print("  version $version: found\n");
+    print("    urls:\n");
+    print("      $_\n") for(@urls);
+  }
+
+  return true;
+}
+
+sub upgrade(@)
+{
+  my($name, $version, $build, @urls) = @_;
+  error if defined($build);
+
+  my(@pkgs) = reverse(findnewerpkg($name, $version, @urls));
+  my(@cmdargs) = @{$pkgs[0]};
+  my($newver) = $cmdargs[1];
+
   my($pkgname) = pkgname($name, $version);
-  error("URLs for $pkgname don't look version-specific") unless $hasver;
-  error("can't find consistent URLs for $pkgname") unless defined($newver);
   error("$pkgname appears to be the latest available version")
       if $version eq $newver;
   my(@sortvers) = sort cmpab ($version, $newver);
   error("only found older versions of $pkgname") if $sortvers[1] eq $version;
 
-  for(@newurls)
-  {
-    next unless ref;
-    my(%vermap) = %$_;
-    $_ = $vermap{$newver};
-  }
-
-  my(@cmdargs) = ($name, $newver, undef, @newurls);
   if(autoarm && isarmedmatch($name, $version))
   {
     return arm(@cmdargs);
@@ -5312,6 +5352,7 @@ sub emptytoall(@)
 
 ##############################################################################
 
+sub parse_find(@) { uselatestversion(emptytoall(rejectbuilds(parse(@_)))); }
 sub parse_add(@) { rejectempty(parse(@_)); }
 sub parse_get(@) { uselatestversion(emptytoall(rejectbuilds(parse(@_)))); }
 sub parse_build(@) { uselatestversion(emptytoall(rejectbuilds(parse(@_)))); }
@@ -6733,8 +6774,7 @@ mismatched builds.  All other checks are unaffected by this option.
 For example, B<toast remove> will never remove an armed build without
 completely disarming it first, even if thie build is mismatched and this
 option is enabled.  When B<skipmismatched> is disabled, mismatched builds
-are never treated specially.  See also the B<disarmmismatched> option.
-Default: enabled.
+are never treated specially.  Default: enabled.
 
 =item S<B<--preload> | B<--nopreload>>
 
@@ -7016,8 +7056,8 @@ Known bugs:
   - "toast edit" leaves things in an odd state if you hang up on it
   - "toast rename" is more case-sensitive than it ought to be
   - "toast get" prevents wget from truncating output if transfer restarts
+  - "toast find" is undocumented and shows only best match for new pkgs
   - "toast env" doesn't set PYTHONPATH
-  - "toast man" refers to nonexistent disarmmismatched option
 
 Wish list:
 
@@ -7041,9 +7081,12 @@ Wish list:
   - store checksums after build for later tripwire-like verification
   - find a way to rebuild indices for apropos by default
   - allow package name/version as URL; expand w/ autofind iff missing
-  - add "toast find" and/or have autofind/upgrade prompt for version (?)
+  - have autofind/upgrade prompt for version (?)
+  - optionally have toast add imply change, then make get+build smarter
+  - toast status/env should allow multiple read-only storedirs/armdirs
   - fold archives by URL and/or hash?
   - zsh completions!
+  - ccache
 
 Questions left unanswered by this documentation:
 
