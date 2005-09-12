@@ -281,6 +281,7 @@ BEGIN
     "autoremove" => "false",
     "crossversion" => "false",
     "skipmismatched" => "true",
+    "ccache" => "true",
     "preload" => "true",
     "strictpreload" => $^O eq "linux" ? "true" : "false",
     "useflock" => $^O =~ /win/i ? "false" : "true",
@@ -1355,6 +1356,15 @@ BEGIN
     $uid || error;
     announce("chown", $usertext, @files);
     chown($uid, $gid, @files) || error("chown $uid:$gid @files: $!");
+  }
+
+  sub belongstononroot($)
+  {
+    my($path) = @_;
+    my(@stats) = safestat($path);
+    initnonroot;
+    $uid || error;
+    return $stats[4] == $uid;
   }
 
   sub dropprivs()
@@ -2707,6 +2717,48 @@ exec cat > "$rootdir/hspkg/$name"
 ]);
 }
 
+sub helpccache($$$)
+{
+  my($rootdir, $helperdir, $cmd) = @_;
+  return true unless ccache;
+
+  my($path) = $ENV{"PATH"};
+  my($found);
+  $found ||= -x(path($_, "ccache")) for split(/:/, $path);
+  return true unless $found;
+
+  my($storecachedir) = path(storedir, "ccache");
+  my($cachedir);
+  if(exists($ENV{"CCACHE_DIR"}))
+  {
+    $cachedir = $ENV{"CCACHE_DIR"};
+  }
+  elsif(superuser)
+  {
+    optmd($cachedir = $storecachedir);
+  }
+  else
+  {
+    return true unless exists($ENV{"HOME"}) && -d($ENV{"HOME"});
+    $cachedir = path($ENV{"HOME"}, ".ccache");
+  }
+
+  chownnonroot($cachedir) if superuser && !belongstononroot($cachedir) &&
+      optsamefile($cachedir, $storecachedir);
+
+  for($cmd, "$cmd.helper")
+  {
+    writescript(path($helperdir, $_), qq[
+#!/bin/sh
+# $genby
+PATH=$path
+CCACHE_DIR=$cachedir
+export CCACHE_DIR
+exec ccache $_ "\$\@"
+]);
+  }
+}
+
 sub helplib($$$)
 {
   my($srcdir, $rootdir, $helperdir) = @_;
@@ -3046,6 +3098,7 @@ sub inithelpers($$$)
   helprewrite($srcdir, $rootdir, $helperdir, $_, true) for (qw[mv]);
   helpnop($helperdir, $_) for (qw[chown chgrp ldconfig install-info mknod]);
   helphspkg($rootdir, $helperdir, $_) for (qw[ghc-pkg]);
+  helpccache($rootdir, $helperdir, $_) for (qw[cc gcc]);
   $env{PATH} = "$helperdir:$env{PATH}";
 
   my($preload) = helplib($srcdir, $rootdir, $helperdir);
@@ -6775,6 +6828,20 @@ For example, B<toast remove> will never remove an armed build without
 completely disarming it first, even if thie build is mismatched and this
 option is enabled.  When B<skipmismatched> is disabled, mismatched builds
 are never treated specially.  Default: enabled.
+
+=item S<B<--ccache> | B<--noccache>>
+
+When B<ccache> is enabled and a program called C<ccache> is present,
+B<toast build> and B<toast rebuild> will try to use it to speed up
+compilation of C/C++ programs.  Read about ccache at ccache.samba.org;
+install it with C<toast arm ccache>.  If invoked as root, the cache
+directory defaults to the C<ccache> subdirectory of B<storedir>; for
+non-root users, the default is C<I<$HOME>/ccache>.  The location can
+always be overridden by setting the C<CCACHE_DIR> environment variable.
+If ccache is not installed, this option has no effect.  Disabling this
+option prevents toast from taking any special steps to take advantage of
+ccache, but it does not guarantee that ccache will not be used, though
+it may prevent it from finding a user's home directory.  Default: enabled.
 
 =item S<B<--preload> | B<--nopreload>>
 
