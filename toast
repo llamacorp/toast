@@ -2207,7 +2207,7 @@ sub findnewpkg($$)
     if(lookslikepkgurl($url))
     {
       (undef, $version) = guessnv($url) unless defined($version);
-      return ($name, $version, $url);
+      return [$name, $version, undef, $url];
     }
 
     my(@links) = linksfromurl($url);
@@ -3077,7 +3077,7 @@ sub inithelpers($$$)
   helprewrite($srcdir, $rootdir, $helperdir, $_, true) for (qw[mv]);
   helpnop($helperdir, $_) for (qw[chown chgrp ldconfig install-info mknod]);
   helphspkg($rootdir, $helperdir, $_) for (qw[ghc-pkg]);
-  helpccache($rootdir, $helperdir, $_) for (qw[cc gcc]);
+  helpccache($rootdir, $helperdir, $_) for (qw[cc gcc g++]);
   $env{PATH} = "$helperdir:$env{PATH}";
 
   my($preload) = helplib($srcdir, $rootdir, $helperdir);
@@ -7157,7 +7157,6 @@ Wish list:
   - toast status/env should allow multiple read-only storedirs/armdirs
   - fold archives by URL and/or hash?
   - zsh completions!
-  - ccache
 
 Questions left unanswered by this documentation:
 
