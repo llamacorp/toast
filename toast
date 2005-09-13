@@ -2727,33 +2727,12 @@ sub helpccache($$$)
   $found ||= -x(path($_, "ccache")) for split(/:/, $path);
   return true unless $found;
 
-  my($storecachedir) = path(storedir, "ccache");
-  my($cachedir);
-  if(exists($ENV{"CCACHE_DIR"}))
-  {
-    $cachedir = $ENV{"CCACHE_DIR"};
-  }
-  elsif(superuser)
-  {
-    optmd($cachedir = $storecachedir);
-  }
-  else
-  {
-    return true unless exists($ENV{"HOME"}) && -d($ENV{"HOME"});
-    $cachedir = path($ENV{"HOME"}, ".ccache");
-  }
-
-  chownnonroot($cachedir) if superuser && !belongstononroot($cachedir) &&
-      optsamefile($cachedir, $storecachedir);
-
   for($cmd, "$cmd.helper")
   {
     writescript(path($helperdir, $_), qq[
 #!/bin/sh
 # $genby
 PATH=$path
-CCACHE_DIR=$cachedir
-export CCACHE_DIR
 exec ccache $_ "\$\@"
 ]);
   }
@@ -3940,6 +3919,31 @@ sub rebuild(@)
   defined($version) || error;
 
   clean($name, $version) if autoclean;
+
+  local(%ENV) = %ENV;
+  if(ccache)
+  {
+    my($storecachedir) = path(storedir, "ccache");
+    my($cachedir);
+    if(exists($ENV{"CCACHE_DIR"}))
+    {
+      $cachedir = $ENV{"CCACHE_DIR"};
+    }
+    elsif(superuser)
+    {
+      optmd($cachedir = $storecachedir);
+    }
+    elsif(exists($ENV{"HOME"}) && -d($ENV{"HOME"}))
+    {
+      $cachedir = path($ENV{"HOME"}, ".ccache");
+    }
+
+    chownnonroot($cachedir) if superuser && !belongstononroot($cachedir) &&
+        optsamefile($cachedir, $storecachedir);
+
+    $ENV{"CCACHE_DIR"} = $cachedir;
+    announce("export", "CCACHE_DIR=$cachedir");
+  }
 
   my($verdir) = pkgpath($name, $version);
   my(@allbuilds) = allbuilds($name, $version);
