@@ -149,7 +149,7 @@ sub uniq(@)
 
 sub dirname($) { my($arg) = @_; $arg =~ s|/[^/]*$|| ? $arg : "."; }
 sub basename($) { my($arg) = @_; $arg =~ s|.*/||g; $arg; }
-sub stripext($) { my($a) = @_; $a =~ s/(\.tar(\.g?z)?)?(\.[a-z]\w*)?$//i; $a; }
+sub stripext($) { my($a)=@_;$a=~s/(\.(t|sh)ar(\.g?z)?)?(\.[a-z]\w*)?$//i;$a }
 sub stripquery($) { my($arg) = @_; $arg =~ s/\?.*$//; $arg; }
 
 sub path(@)
@@ -2733,7 +2733,7 @@ sub helpccache($$$)
 #!/bin/sh
 # $genby
 PATH=$path
-exec ccache $_ "\$\@"
+exec ccache $cmd "\$\@"
 ]);
   }
 }
