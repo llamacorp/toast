@@ -4439,11 +4439,12 @@ sub disarm(@)
 
 ##############################################################################
 
-sub findnewerpkg($$@)
+sub findnewerpkg($$$@)
 {
   my($name, $version, $build, @urls) = @_;
   error unless defined($name);
   error unless defined($version);
+  error if defined($build);
 
   @urls = pkgurls($name, $version) unless @urls;
   error unless @urls;
@@ -4518,8 +4519,8 @@ sub find(@)
   error unless defined($name);
   error if defined($build);
 
-  my(@pkgs) = @urls || isadded($name, $version)
-      ? findnewerpkg($name, $version, @urls)
+  my(@pkgs) = defined($version) && (@urls || isadded($name, $version))
+      ? findnewerpkg($name, $version, $build, @urls)
       : findnewpkg($name, $version);
 
   error unless @pkgs;
@@ -4545,7 +4546,7 @@ sub upgrade(@)
   my($name, $version, $build, @urls) = @_;
   error if defined($build);
 
-  my(@pkgs) = reverse(findnewerpkg($name, $version, @urls));
+  my(@pkgs) = reverse(findnewerpkg($name, $version, $build, @urls));
   my(@cmdargs) = @{$pkgs[0]};
   my($newver) = $cmdargs[1];
 
@@ -5387,6 +5388,16 @@ sub rejectbuilds(@)
   @_;
 }
 
+sub requirename(@)
+{
+  for(@_)
+  {
+    my($name, $version, $build, @urls) = @$_;
+    defined($name) || error("unable to guess package name from urls: @urls");
+  }
+  @_;
+}
+
 sub requireurls(@)
 {
   for(@_)
@@ -5417,7 +5428,7 @@ sub emptytoall(@)
 
 ##############################################################################
 
-sub parse_find(@) { uselatestversion(emptytoall(rejectbuilds(parse(@_)))); }
+sub parse_find(@) { requirename(uselatestversion(emptytoall(rejectbuilds(parse(@_))))); }
 sub parse_add(@) { rejectempty(parse(@_)); }
 sub parse_get(@) { uselatestversion(emptytoall(rejectbuilds(parse(@_)))); }
 sub parse_build(@) { uselatestversion(emptytoall(rejectbuilds(parse(@_)))); }
