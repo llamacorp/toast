@@ -3204,6 +3204,7 @@ sub configure($$)
       $twowordprefix ||= /  --prefix dir  /; # doxygen
       $builddir ||= /error: you must configure in a separate build/; # glibc
       $builddir||=m!\. \$srcdir/build-tools/scripts/configure-top !;#arch/tla
+      $builddir ||= /Building in the source directory is not support/; # gcc 4
       $bogus ||= /There is no .+configure.+ script .+Instead/i; # libpng
       $bogus ||= /configure is no longer used - just type /i; # cdrtools
       s/(^\s*)read\s+(acceptance)(\s*$)/$1$2=yes$3/; # qt license
