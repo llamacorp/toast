@@ -287,6 +287,7 @@ BEGIN
     "useflock" => $^O =~ /win/i ? "false" : "true",
     "reconfigure" => "true",
     "fixliblinks" => "true",
+    "interactive" => "false",
     "stoponerror" => "true",
     "ignorecase" => "true",
     "showurls" => "true",
@@ -2281,6 +2282,40 @@ sub setpkgurls($$@)
   mv($tmpfile, $urlfile);
 }
 
+sub choose(@)
+{
+  my(@pkgs) = @_;
+  return @pkgs unless @pkgs && interactive;
+  my(@allurls);
+  for(@pkgs)
+  {
+    my($name, $version, $build, @urls) = @$_;
+    error unless @urls;
+    push(@allurls, @urls);
+  }
+  error unless @allurls;
+  my($pl, $sl) = (commonlen(@allurls), commonlen(reverseall(@allurls)));
+  print(substr($allurls[0], 0, $pl), " [...] ", substr($allurls[0], -$sl), "\n")
+      if $pl || $sl;
+  my($i) = 0;
+  for(@pkgs)
+  {
+    ++$i;
+    my($name, $version, $build, @urls) = @$_;
+    print("$i) ", join(" ", map(substr($_, $pl, $sl ? -$sl : 9999), @urls)),
+        "\n");
+  }
+  my($choice) = "";
+  while(!($choice =~ /^\d+$/ && $choice > 0 && $choice <= $i))
+  {
+    print("> [$i] ");
+    $choice = scalar(<STDIN>);
+    $choice =~ s/\s+//g;
+    $choice = $i if $choice eq "";
+  }
+  return $pkgs[$choice-1];
+}
+
 ##############################################################################
 
 sub add(@)
@@ -2292,7 +2327,7 @@ sub add(@)
 
   if(!@urls && autofind)
   {
-    my(@pkgs) = reverse(findnewpkg($name, $version));
+    my(@pkgs) = reverse(choose(findnewpkg($name, $version)));
     error unless @pkgs;
     ($name, $version, undef, @urls) = @{$pkgs[0]};
     error unless $name;
@@ -2737,8 +2772,7 @@ sub helpccache($$$)
 
   for($cmd, "$cmd.helper")
   {
-    writescript(path($helperdir, $_), qq[
-#!/bin/sh
+    writescript(path($helperdir, $_), qq[#!/bin/sh
 # $genby
 PATH=$path
 exec ccache $cmd "\$\@"
@@ -4547,7 +4581,7 @@ sub upgrade(@)
   my($name, $version, $build, @urls) = @_;
   error if defined($build);
 
-  my(@pkgs) = reverse(findnewerpkg($name, $version, $build, @urls));
+  my(@pkgs) = reverse(choose(findnewerpkg($name, $version, $build, @urls)));
   my(@cmdargs) = @{$pkgs[0]};
   my($newver) = $cmdargs[1];
 
@@ -6941,6 +6975,15 @@ whatever reason, it would have created them as well.  Binary packages
 that contain shared libraries are especially likely to benefit from
 this behavior.  Default: enabled.
 
+=item S<B<--interactive> | B<--nointeractive>>
+
+When B<interactive> is enabled, B<toast upgrade> will display a list of
+candidates (the same information as B<toast find>, but presented in a
+different form) and prompt the user to choose one of them.  If B<autofind>
+is enabled, B<toast add> and other commands do the same thing.  Note that
+if only one candidate is found, that candidate will be used automatically,
+without prompting.  Default: disabled.
+
 =item S<B<--stoponerror> | B<--nostoponerror>>
 
 When B<stoponerror> is enabled, B<toast> aborts and returns failure as
@@ -7159,6 +7202,7 @@ Known bugs:
   - "toast rename" is more case-sensitive than it ought to be
   - "toast get" prevents wget from truncating output if transfer restarts
   - "toast env" doesn't set PYTHONPATH
+  - "toast build linux" may fail during install phase w/o --nopreload
 
 Wish list:
 
