@@ -2285,7 +2285,7 @@ sub setpkgurls($$@)
 sub choose(@)
 {
   my(@pkgs) = @_;
-  return @pkgs unless @pkgs && interactive;
+  return @pkgs unless scalar(@pkgs) > 1 && interactive;
   my(@allurls);
   for(@pkgs)
   {
@@ -7182,8 +7182,6 @@ hostname of the B<toast> distribution site, C<toastball.net>.
 
 Known bugs:
 
-  - autofind produces URLs with extra slashes, e.g. "toast arm latex"
-  - make oldconfig isn't running for linux/2.6.x
   - toast add misguesses device-mapper name/version from URL
   - toast add misguesses [ foo-1.0-src.tar.gz foo-1.0-src.diff.gz ]
   - autofind hangs in httphead() when going through tinyproxy?
