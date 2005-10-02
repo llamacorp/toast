@@ -1384,33 +1384,16 @@ BEGIN
 
 ##############################################################################
 
-sub findperl()
+sub which($)
 {
-  my($result);
-  if($^X !~ m!/!) # 5.8.2 doesn't need all this, but 5.6.1 seems to
+  my($prog) = @_;
+  for(split(/:/, $ENV{"PATH"}))
   {
-    for(split(/:/, $ENV{"PATH"}))
-    {
-      my($path) = path($_, $^X);
-      if(-x($path) && !-d($path)) # thanks Frederik!
-      {
-        $result = $path;
-        last;
-      }
-    }
-  }
-  $result = abspath($^X) unless defined($result);
-  $result = abspath($result) unless $result =~ m!^/!;
-  return $result if -x($result);
-
-  # maybe it moved as a result of arm/disarm or something...?
-  for(split(/:/, $ENV{"PATH"}), "/usr/bin", "/usr/local/bin", "/bin")
-  {
-    my($path) = path($_, "perl");
+    my($path) = path($_, $prog);
     $path = abspath($path) unless $path =~ m!^/!;
     return $path if -x($path);
   }
-  return "/usr/bin/perl";
+  error("can't find $prog in PATH");
 }
 
 ##############################################################################
@@ -1501,7 +1484,7 @@ sub showprebuildinfo($$$)
   explain("$myname $myversion building " . pkgname($name, $version, $build));
   explain("$^X $0 $] $^O");
   optrun("uname", "-a");
-  optrun(findperl, "-V");
+  optrun("perl", "-V");
   optrun("printenv") || optrun("env");
   explain("argv: $_") for @ARGV;
   my(@urls) = pkgurls($name, $version);
@@ -2606,9 +2589,13 @@ sub helprewrite($$$$$)
 {
   my($srcdir, $rootdir, $helperdir, $cmd, $force) = @_;
   helpstub($helperdir, $cmd);
-  my($perl) = findperl;
-  error("can't find perl: $perl") unless -x($perl);
-  writescript(path($helperdir, "$cmd.helper"), "#!$perl\n# $genby\n", q[
+  writescript(path($helperdir, "$cmd.helper"), "#!/bin/sh\n# $genby\n", q[
+
+exec perl -x $0 ${1+"$@"}
+echo "Can't find perl in PATH; aborting." >&2
+exit 1
+
+#!perl
 $cmd = ], quote($cmd), q[;
 $srcdir = ], quote($srcdir), q[;
 $rootdir = ], quote($rootdir), q[;
@@ -3603,6 +3590,8 @@ sub make($)
     $figlet ||= m!^DEFAULTFONTDIR = /usr.*/figlet$!;
     $menuconfig ||= m!^all: menuconfig$!;
     $silentoldconfig ||= /Makefile silentoldconfig$/;
+    s!(^PERL\s*=\s*)(/usr/.*/perl)($)!$1 . (-x($2) ? $2 : which("perl")) . $3!e
+        if reconfigure; # psutils/p17
   } $mf;
 
   return false if $abort;
@@ -7201,6 +7190,8 @@ Known bugs:
   - "toast get" prevents wget from truncating output if transfer restarts
   - "toast env" doesn't set PYTHONPATH
   - "toast build linux" may fail during install phase w/o --nopreload
+  - "toast find bc/3.14159" yields bizarre results
+  - "toast upgrade" doesn't like file:// URLs
 
 Wish list:
 
@@ -7224,7 +7215,6 @@ Wish list:
   - store checksums after build for later tripwire-like verification
   - find a way to rebuild indices for apropos by default
   - allow package name/version as URL; expand w/ autofind iff missing
-  - have autofind/upgrade prompt for version (?)
   - optionally have toast add imply change, then make get+build smarter
   - toast status/env should allow multiple read-only storedirs/armdirs
   - autofind should try other sites if freshmeat.net has no listing
