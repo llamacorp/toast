@@ -1049,6 +1049,7 @@ sub linksfromstream(*$)
 sub linksfromurl($)
 {
   my($url) = @_;
+  return map("file://localhost$_", absls($1)) if $url =~ m!^file://\w+(/.*)/$!;
   local(*HANDLE);
   openurl(*HANDLE, $url);
   my(@links) = linksfromstream(*HANDLE, $url);
@@ -4483,7 +4484,7 @@ sub findnewerpkg($$$@)
   my($hasver) = false;
   for(@urls)
   {
-    m!^((http|ftp)://[^\?]+/)([^\?/]*)(\?.*)?$!i ||
+    m!^((http|ftp|file)://[^\?]+/)([^\?/]*)(\?.*)?$!i ||
         error("bad URL for upgrade: $_");
     my($dirname, $basename, $query) = undeftoempty($1, $3, $4);
     if($basename !~ /^(.*)\Q$version\E(.*)$/)
@@ -7191,7 +7192,6 @@ Known bugs:
   - "toast env" doesn't set PYTHONPATH
   - "toast build linux" may fail during install phase w/o --nopreload
   - "toast find bc/3.14159" yields bizarre results
-  - "toast upgrade" doesn't like file:// URLs
 
 Wish list:
 
