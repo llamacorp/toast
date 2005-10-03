@@ -271,7 +271,7 @@ BEGIN
     "quiet" => "false",
     "expand" => "true",
     "autofind" => "true",
-    "autochange" => "true",
+    "autochange" => "false",
     "autorename" => "true",
     "autoenv" => "true",
     "autoclean" => "true",
@@ -6827,16 +6827,14 @@ is given either, the latest version found will be used.  Default: enabled.
 
 =item S<B<--autochange> | B<--noautochange>>
 
-When B<autochange> is enabled, B<toast get> may replace the URLs
-stored by B<toast add> with the actual URLs of the files it downloaded.
-This matters if an URL given on the command line points to an HTML page or
-FTP directory rather than to an actual archive to be extracted and built.
-In order to ensure consistent results, it is often desirable to store the
-more specific URLs, especially if B<autopurge> is enabled.  If this option
-is disabled, B<toast get> will still follow links in the usual way, but
-stored URLs will be left untouched, and future invocations of B<toast get>
-may end up downloading different files for the same package if new files
-or links have since been added to a page or directory.  Default: enabled.
+When B<autochange> is enabled, B<toast get> may replace the URLs stored by
+B<toast add> with the actual URLs of the files it downloaded.  When it is
+disabled, URLs stored by B<toast add> will never change without warning.
+This only matters in cases where the URL stored by B<toast add> actually
+points to an HTML page or FTP directory, which used to happen all the time
+back when the B<toast find> heuristic was more naive and the B<expand>
+option didn't exist.  Enabling this option now seems more likely to
+cause problems than to solve them.  Default: disabled.
 
 =item S<B<--autorename> | B<--noautorename>>
 
