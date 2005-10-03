@@ -263,6 +263,7 @@ BEGIN
     "postarmprog" => superuser ? "/sbin/ldconfig" : "",
     "editprog" => "",
     "defaultcmd" => "help",
+    "findsites" => "all",
     "httpproxy" => exists($ENV{http_proxy}) ? $ENV{http_proxy} : "",
     "ftpproxy" => exists($ENV{ftp_proxy}) ? $ENV{ftp_proxy} : "",
     "confappend" => "",
@@ -1274,6 +1275,7 @@ sub guessnv(@)
       || $base =~ /^(.*)()$/;                              # Xmerge
   my($name, $version) = ($1, $2);
   $name =~ s/\./_/g; # helps parse() distinguish filenames from pkg names
+  $name =~ s/::/-/g; # perl module naming convention
   return (sanitize($name), sanitize($version));
 }
 
@@ -2153,95 +2155,120 @@ sub findnewpkg($$)
   defined($name) || error;
   $name =~ /^[\w-]+$/ || error("invalid package name: $name");
   my($lcname) = lc($name);
+  my($perlname) = $name;
+  $perlname =~ s/-/::/g;
+
+  my(@sites) =
+  (
+    "freshmeat" => "http://freshmeat.net/projects-xml/$lcname/$lcname.xml",
+    "sourceforge" => "http://prdownloads.sourceforge.net/$lcname/",
+    "gnu" => "http://ftp.gnu.org/gnu/$lcname/",
+    "cpan" => "http://cpan.uwinnipeg.ca/module/$perlname",
+  );
+
+  my(%sites) = @sites;
+  my(@all) = grep(/^\w+$/, @sites);
+  my(@findsites) = split(/\s+/, findsites);
+  @findsites = map { ($_ eq "all") ? @all : $_ } @findsites;
+  @findsites = map { exists($sites{$_}) ? $sites{$_} : $_ } @findsites;
+  s/\*/\Q$name\E/g for @findsites;
+  @findsites = $myurl if $lcname eq $myname;
+  @findsites = uniq(@findsites);
 
   my($url);
-  if($lcname eq $myname)
+  for $url (@findsites)
   {
-    $url = $myurl;
-  }
-  else
-  {
-    local(*XML, $_);
-    my($sitename) = "freshmeat.net";
-    openurl(*XML, "http://freshmeat.net/projects-xml/$lcname/$lcname.xml");
-    my($notfound, %fmurl);
-    while(<XML>)
+    my(@ret) = eval
     {
-      $notfound = /^Error: project not found/i ? 1 : 0 if !defined($notfound);
-      $fmurl{$1} = $2 while m!<url_(\w+)>([^<]+)</!g;
-    }
-    close(XML) || error("unable to contact freshmeat.net");
-
-    error("no listing for package $name on $sitename") if $notfound;
-
-    my($redirurl);
-    $redirurl ||= $fmurl{$_} for qw(bz2 tgz zip deb rpm homepage);
-    $redirurl || error("no suitable URL for package $name on $sitename");
-
-    my($redirhead) = httphead($redirurl);
-    $redirhead =~ /^Location: ([^\r\n]+)/im ||
-        error("unexpected response from $redirurl");
-    $url = $1;
-    # wget can't always get FTP directory listing correctly w/o trailing slash
-    $url .= "/" if $url =~ m!^ftp:.*/[^/\.]+$!; # e.g. atop
-    $url = cleanurl($url);
-  }
-
-  my(@links) = $url;
-  for(1..3)
-  {
-    $url = $links[$#links];
-    @links = sort cmpab grep(lookslikepkgurl(
-        $_, defined($version) ? $name : undef, $version), @links);
-    my(@result);
-    for(@links)
-    {
-      my($v) = $version;
-      (undef, $v) = guessnv($_) unless defined($v);
-      push(@result, [$name, $v, undef, $_])
-    }
-    if(scalar(@result) == 1)
-    {
-      eval
+      my($tries) = 1;
+      if($url =~ m!^http://(freshmeat.net)/.*\.xml$!)
       {
-        @result = findnewerpkg(@{$result[0]})
-      }
-    }
-    return @result if @result;
-    last if lookslikepkgurl($url);
+        local(*XML, $_);
+        my($sitename) = $1;
+        openurl(*XML, $url);
+        my($notfound, %fmurl);
+        while(<XML>)
+        {
+          $notfound = /^Error: project not found/i ? 1 : 0
+              if !defined($notfound);
+          $fmurl{$1} = $2 while m!<url_(\w+)>([^<]+)</!g;
+        }
+        close(XML) || error("unable to contact $sitename");
 
-    @links = linksfromurl($url);
-    my(@urls) = grep(lookslikepkgurl($_, $name, $version), @links);
-    my($ext);
-    for $ext (qw[.tar.bz2 .tar.gz .tgz .zip .deb .rpm])
-    {
-      my(@matches) = grep(stripquery($_) =~ /\Q$ext\E$/i, @urls);
+        error("no listing for package $name on $sitename") if $notfound;
 
-      my(@namematches) = grep { my($n) = guessnv($_); $n eq $name } @matches;
-      @matches = @namematches if @namematches;
+        my($redirurl);
+        $redirurl ||= $fmurl{$_} for qw(bz2 tgz zip deb rpm homepage);
+        $redirurl || error("no suitable URL for package $name on $sitename");
 
-      if(defined($version))
-      {
-        my(@vermatches) =
-            grep { my(undef, $v) = guessnv($_); $v eq $version } @matches;
-        @matches = @vermatches if @vermatches;
+        my($redirhead) = httphead($redirurl);
+        $redirhead =~ /^Location: ([^\r\n]+)/im ||
+            error("unexpected response from $redirurl");
+        $url = $1;
+        # wget can't always get FTP directory listing w/o trailing slash
+        $url .= "/" if $url =~ m!^ftp:.*/[^/\.]+$!; # e.g. atop
+        $url = cleanurl($url);
+        $tries = 3;
       }
 
-      @matches = sort cmpab @matches;
-      @result = ();
-      for(@matches)
+      my(@links) = $url;
+      for(1..$tries)
       {
-        my($undef, $v) = guessnv($_);
-        push(@result, [$name, $v, undef, $_]);
-      }
-      return @result if @result;
-    }
+        $url = $links[$#links];
+        @links = sort cmpab grep(lookslikepkgurl(
+            $_, defined($version) ? $name : undef, $version), @links);
+        my(@result);
+        for(@links)
+        {
+          my($v) = $version;
+          (undef, $v) = guessnv($_) unless defined($v);
+          push(@result, [$name, $v, undef, $_])
+        }
+        if(scalar(@result) == 1)
+        {
+          eval { @result = findnewerpkg(@{$result[0]}) }
+        }
+        return @result if @result;
+        last if lookslikepkgurl($url);
 
-    @links = grep(/^\Q$url\E/, @links);
-    last unless @links;
+        @links = linksfromurl($url);
+        my(@urls) = grep(lookslikepkgurl($_, $name, $version), @links);
+        my($ext);
+        for $ext (qw[.tar.bz2 .tar.gz .tgz .zip .deb .rpm])
+        {
+          my(@matches) = grep(stripquery($_) =~ /\Q$ext\E$/i, @urls);
+
+          my(@namematches) =
+              grep { my($n) = guessnv($_); $n eq $name } @matches;
+          @matches = @namematches if @namematches;
+
+          if(defined($version))
+          {
+            my(@vermatches) =
+                grep { my(undef, $v) = guessnv($_); $v eq $version } @matches;
+            @matches = @vermatches if @vermatches;
+          }
+
+          @matches = sort cmpab @matches;
+          @result = ();
+          for(@matches)
+          {
+            my($undef, $v) = guessnv($_);
+            push(@result, [$name, $v, undef, $_]);
+          }
+          return @result if @result;
+        }
+
+        @links = grep(/^\Q$url\E/, @links);
+        last unless @links;
+      }
+    };
+
+    return @ret if @ret;
+    explain($_) for(split(/\n/, $@));
   }
 
-  error("can't find URLs for " . pkgname($name, $version) . " at $url");
+  error("can't find " . pkgname($name, $version));
 }
 
 sub pkgurls($$)
@@ -6310,10 +6337,11 @@ This command does not write to the disk at all.  The output format is
 similar to that of B<toast status>, but all information comes from the
 network rather than the on-disk package database.  If a given package
 has not been added and no URLs were specified on the command line,
-B<toast find> looks for an exact name match on freshmeat.net; otherwise
-it attempts to list the directory or directories to which the package's
-URL(s) belong.  If an explicit version number is given, only that version
-is listed; otherwise all versions are listed from oldest to newest.
+B<toast find> looks for an exact name match on the web sites specified
+by the B<findsites> option; otherwise it attempts to list the directory
+or directories to which the package's URL(s) belong.  If an explicit
+version number is given, only that version is listed; otherwise all
+versions are listed from oldest to newest.
 
 =item S<B<toast add> I<PACKAGE> ...>
 
@@ -6714,6 +6742,17 @@ a list of valid commands if no explicit command is given.  Note that
 invoking B<toast> without command-line options or arguments is always
 equivalent to running B<toast help>, regardless of this option's setting.
 Default: C<help>.
+
+=item B<--findsites=>I<SITELIST>
+
+Set the list of web sites or other locations searched by B<toast
+find> for packages that have not already been added.  I<SITELIST>
+is a space-separated list of URLs and/or special words taken from the
+following list: C<freshmeat>, C<sourceforge>, C<gnu>, C<cpan>, or C<all>
+(which stands for all of the preceding words in the order given).
+The C<*> character will be replaced by the name of the package to find
+wherever it occurs.  If you want a literal C<*> character, too bad.
+Default: C<all>.
 
 =item B<--httpproxy=>I<URL>
 
@@ -7218,7 +7257,6 @@ Wish list:
   - allow package name/version as URL; expand w/ autofind iff missing
   - optionally have toast add imply change, then make get+build smarter
   - toast status/env should allow multiple read-only storedirs/armdirs
-  - autofind should try other sites if freshmeat.net has no listing
   - fold archives by URL and/or hash?
   - zsh completions!
 
