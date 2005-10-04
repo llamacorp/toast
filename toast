@@ -2310,21 +2310,26 @@ sub choose($@)
   my($pl, $sl) = (commonlen(@allurls), commonlen(reverseall(@allurls)));
   print(substr($allurls[0], 0, $pl), " [...] ", substr($allurls[0], -$sl), "\n")
       if $pl || $sl;
-  my($i) = 0;
+  my($i, $cvi) = (0, 0);
   for(@pkgs)
   {
     ++$i;
     my($name, $version, $build, @urls) = @$_;
-    print((($curver && $version && $curver eq $version) ? "*" : " "), " $i) ",
+    my($margin) = "   ";
+    ($cvi, $margin) = ($i, "0) ") 
+        if !$cvi && $curver && $version && $curver eq $version;
+    print("$margin$i) ",
         join(" ", map(substr($_, $pl, $sl ? -$sl : 9999), @urls)), "\n");
   }
   my($choice) = "";
   while(!($choice =~ /^\d+$/ && $choice > 0 && $choice <= $i))
   {
-    print(">[$i] ");
+    print("> [$i] ");
     $choice = scalar(<STDIN>);
+    error("EOF") unless defined($choice);
     $choice =~ s/\s+//g;
     $choice = $i if $choice eq "";
+    $choice = $cvi if $choice eq "0";
   }
   return $pkgs[$choice-1];
 }
@@ -4606,6 +4611,8 @@ sub upgrade(@)
   my($newver) = $cmdargs[1];
 
   my($pkgname) = pkgname($name, $version);
+  return ($name, $version, $build, @urls)
+      if interactive && $version eq $newver;
   error("$pkgname appears to be the latest available version")
       if $version eq $newver;
   my(@sortvers) = sort cmpab ($version, $newver);
