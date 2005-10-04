@@ -2295,9 +2295,9 @@ sub setpkgurls($$@)
   mv($tmpfile, $urlfile);
 }
 
-sub choose(@)
+sub choose($@)
 {
-  my(@pkgs) = @_;
+  my($curver, @pkgs) = @_;
   return @pkgs unless scalar(@pkgs) > 1 && interactive;
   my(@allurls);
   for(@pkgs)
@@ -2315,13 +2315,13 @@ sub choose(@)
   {
     ++$i;
     my($name, $version, $build, @urls) = @$_;
-    print("$i) ", join(" ", map(substr($_, $pl, $sl ? -$sl : 9999), @urls)),
-        "\n");
+    print((($curver && $version && $curver eq $version) ? "*" : " "), " $i) ",
+        join(" ", map(substr($_, $pl, $sl ? -$sl : 9999), @urls)), "\n");
   }
   my($choice) = "";
   while(!($choice =~ /^\d+$/ && $choice > 0 && $choice <= $i))
   {
-    print("> [$i] ");
+    print(">[$i] ");
     $choice = scalar(<STDIN>);
     $choice =~ s/\s+//g;
     $choice = $i if $choice eq "";
@@ -2340,7 +2340,7 @@ sub add(@)
 
   if(!@urls && autofind)
   {
-    my(@pkgs) = reverse(choose(findnewpkg($name, $version)));
+    my(@pkgs) = reverse(choose(undef, findnewpkg($name, $version)));
     error unless @pkgs;
     ($name, $version, undef, @urls) = @{$pkgs[0]};
     error unless $name;
@@ -4600,7 +4600,8 @@ sub upgrade(@)
   my($name, $version, $build, @urls) = @_;
   error if defined($build);
 
-  my(@pkgs) = reverse(choose(findnewerpkg($name, $version, $build, @urls)));
+  my(@pkgs) =
+      reverse(choose($version, findnewerpkg($name, $version, $build, @urls)));
   my(@cmdargs) = @{$pkgs[0]};
   my($newver) = $cmdargs[1];
 
@@ -4608,7 +4609,8 @@ sub upgrade(@)
   error("$pkgname appears to be the latest available version")
       if $version eq $newver;
   my(@sortvers) = sort cmpab ($version, $newver);
-  error("only found older versions of $pkgname") if $sortvers[1] eq $version;
+  error("only found older versions of $pkgname")
+      if $sortvers[1] eq $version && !interactive;
 
   if(autoarm && isarmedmatch($name, $version))
   {
