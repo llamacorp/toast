@@ -4545,6 +4545,9 @@ sub findnewerpkg($$$@)
     }
   }
 
+  return &findnewerpkg($name, $version, $build, @urls)
+      if !$hasver && $version =~ s/-toast\d+$//;
+
   my($pkgname) = pkgname($name, $version);
   error("URLs for $pkgname don't seem version-specific") unless $hasver;
 
@@ -6339,7 +6342,7 @@ B<configure> scripts produced by the real GNU autoconf.
 
 =over 4
 
-=item s<B<toast find> I<PACKAGE> ...>
+=item S<B<toast find> I<PACKAGE> ...>
 
 Locate some of the URLs from which a package could be downloaded.
 This command does not write to the disk at all.  The output format is
