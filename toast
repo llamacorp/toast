@@ -33,7 +33,7 @@ if($^V && %SIG) # test requires perl 5.6.0 with working %SIG (not microperl)
 {
   { my($ok); { local $SIG{'__WARN__'} = sub { die };
       $ok = !eval('1 + "a"') } $ok || warn("use warnings"); }
-  { eval('$foo = 1') && warn("use strict") }
+  { eval('$foo = 1') && warn("use strict"); $@ = undef }
 }
 
 ##############################################################################
@@ -91,8 +91,9 @@ sub warning(@)
 sub true() { 1 }
 sub false() { "" }
 
-sub emptytoundef(@) { map { defined($_) && $_ eq "" ? undef : $_ } @_; }
-sub undeftoempty(@) { map { defined($_) ? $_ : "" } @_; }
+sub scalify(@) { return @_ if wantarray; error if scalar(@_) > 1; $_[0] }
+sub emptytoundef(@) { scalify(map(defined($_) && $_ eq "" ? undef : $_, @_)) }
+sub undeftoempty(@) { scalify(map(defined($_) ? $_ : "", @_)) }
 sub firstdef(@) { return $_ foreach grep(defined($_), @_); undef; }
 
 sub samelist(\@\@)
@@ -263,6 +264,7 @@ BEGIN
     "postarmprog" => superuser ? "/sbin/ldconfig" : "",
     "editprog" => "",
     "defaultcmd" => "help",
+    "stickyopts" => "reconfigure confappend makeappend",
     "findsites" => "all",
     "httpproxy" => exists($ENV{http_proxy}) ? $ENV{http_proxy} : "",
     "ftpproxy" => exists($ENV{ftp_proxy}) ? $ENV{ftp_proxy} : "",
@@ -292,6 +294,7 @@ BEGIN
     "stoponerror" => "true",
     "ignorecase" => "true",
     "showurls" => "true",
+    "showopts" => "true",
     "infodir" => "true",
     "xmlcatalog" => "true",
     "hspkg" => "false",
@@ -339,45 +342,91 @@ BEGIN
     isopt($name) || error("no such option: $name");
   }
 
-  sub dotfile()
+  my(%cmdlineopt);
+
+  sub unloadopts(;$;$)
   {
+    my($n, $v) = @_;
+    my($key) = undeftoempty($n) . "/" . undeftoempty($v);
+    delete $optloaded{$key};
+  }
+
+  sub loadopts(;$;$)
+  {
+    my($n, $v) = @_;
+    my($key) = undeftoempty($n) . "/" . undeftoempty($v);
+    return $optloaded{$key} if exists($optloaded{$key});
+    my($opts) = $optloaded{$key} = {};
     my(@list);
     push(@list, laxpath($ENV{HOME}, qw[.toast conf]))
         if exists($ENV{HOME}) && length($ENV{HOME});
     push(@list, qw[/toast/conf /etc/toast.conf /usr/local/etc/toast.conf]);
-    -e && return $_ for(@list);
-    return undef;
-  }
-
-  sub loadopt($)
-  {
-    my($name) = @_;
-    error unless isopt($name);
-    return $optloaded{$name} if %optloaded;
-    $optloaded{1} = 1;
-    my($dotfile) = dotfile;
-    return unless defined($dotfile);
-    whilefile
+    @list = path(pkgpath($n, $v), "conf") if defined($n);
+    for(@list)
     {
-      s/^\s+//;
-      s/\s+$//;
-      return true if $_ eq "" || /^\#/;
-      /^([^\=]*?)\s*\=\s*(.*)$/ ||
-          error("$dotfile: line $.: missing \"=\"");
-      my($name, $val) = ($1, $2);
-      isopt($name) ||
-          error("$dotfile: line $.: unknown option name \"$name\"");
-      !isboolopt($name) || isboolean($val) ||
-          error("$dotfile: line $.: illegal boolean value: \"$val\"");
-      $optloaded{$name} = $val;
-      true;
-    } $dotfile;
-    $optloaded{$name};
+      my($dotfile) = $_;
+      if(-e($dotfile))
+      {
+        whilefile
+        {
+          s/^\s+//;
+          s/\s+$//;
+          return true if $_ eq "" || /^\#/;
+          /^([^\=]*?)\s*\=\s*(.*)$/ ||
+              error("$dotfile: line $.: missing \"=\"");
+          my($name, $val) = ($1, $2);
+          isopt($name) ||
+              error("$dotfile: line $.: unknown option name \"$name\"");
+          !isboolopt($name) || isboolean($val) ||
+              error("$dotfile: line $.: illegal boolean value: \"$val\"");
+          $opts->{$name} = $val;
+          true;
+        } $dotfile;
+        last unless defined($n);
+      }
+
+      next unless defined($n);
+      next if (defined($v) ? 1 : 0) eq (&crossversion ? 1 : 0);
+
+      my($changed);
+      for(map($_ ne "all" ? $_ : grep($_ ne "stickyopts", keys(%cmdlineopt)),
+          map(lc, split(/\W+/, getopt("stickyopts")))))
+      {
+        my($new) = $cmdlineopt{$_};
+        next unless defined($new);
+        my($old) = $opts->{$_};
+        if($new eq getglobalopt($_))
+        {
+          next unless defined($old);
+          delete($opts->{$_});
+          $changed = true;
+        }
+        elsif(!defined($old) || $new ne $old)
+        {
+          $new =~ s/\n/ /g;
+          $opts->{$_} = $new;
+          $changed = true;
+        }
+      }
+      if($changed)
+      {
+        my(@lines);
+        for(sort(keys(%{$opts})))
+        {
+          my($value) = $opts->{$_};
+          next unless defined($value);
+          push(@lines,
+              "$_=" . (!isboolopt($_) ? $value : $value ? "1" : "0") . "\n");
+        }
+        writefile($dotfile, @lines) if @lines;
+        rm($dotfile) unless @lines;
+      }
+
+    }
+    return $opts;
   }
 
-  my(%optcurrent);
-
-  sub setopt($$)
+  sub parseopt($$)
   {
     my($name, $val) = @_;
     checkoptname($name);
@@ -396,18 +445,67 @@ BEGIN
         $val = path(&storedir, $val);
       }
     }
-    $optcurrent{$name} = $val;
+    return $val;
+  }
+
+  sub setopt($$)
+  {
+    my($name, $val) = @_;
+    $cmdlineopt{$name} = $val;
+  }
+
+  sub getglobalopt($)
+  {
+    my($name) = @_;
+    error unless isopt($name);
+    return firstdef(envopt($name), loadopts()->{$name}, $optdefault{$name});
+  }
+
+  my($an, $av);
+
+  sub setactivepkg(;$;$)
+  {
+    unloadopts($an, $av) if defined($an);
+    ($an, $av) = @_;
+    unloadopts($an, $av) if defined($an);
+    loadopts($an, $av) if defined($an);
   }
 
   sub getopt($)
   {
     my($name) = @_;
-    setopt($name, firstdef(envopt($name), loadopt($name), $optdefault{$name}))
-        unless exists($optcurrent{$name});
-    return $optcurrent{$name};
+    error unless isopt($name);
+    my($nvopts, $nopts);
+    $nvopts = loadopts($an, $av) if defined($av);
+    $nopts = loadopts($an) if defined($an);
+    return parseopt($name, firstdef($cmdlineopt{$name},
+        $nvopts->{$name}, $nopts->{$name}, getglobalopt($name)));
   }
 
   checkedeval("sub $_() { getopt('$_') }") foreach keys(%optdefault);
+}
+
+sub cmd_getopt(@)
+{
+  my($name) = shift;
+  error("option name required") unless defined($name);
+  error("invalid option name: $name") unless isopt($name);
+  my(@pkgs) = parse(@_);
+  error("only one package allowed") if scalar(@pkgs) > 1;
+  setactivepkg();
+  for(@pkgs)
+  {
+    my($n, $v) = @$_;
+    setactivepkg($n, $v);
+  }
+  my($result);
+  eval { $result = getopt($name) };
+  my($err) = $@;
+  setactivepkg();
+  die($err) if $err;
+  $result = ($result ? "true" : "false") if isboolopt($name);
+  error unless defined($result);
+  print("$result\n");
 }
 
 ##############################################################################
@@ -2364,6 +2462,8 @@ sub add(@)
   $version = "unknown" unless $goodver;
   my($verdir) = pkgpath($name, $version);
 
+  setactivepkg($name, $version);
+
   if($goodver)
   {
     if(!-d($verdir))
@@ -2409,6 +2509,7 @@ sub add(@)
 
   setpkgurls($name, $version, @urls);
 
+  setactivepkg($name, $version);
   ($name, $version, @urls);
 }
 
@@ -4668,6 +4769,22 @@ sub demolish(@)
 
 ##############################################################################
 
+sub printopts($;$)
+{
+  my($name, $version) = @_;
+  return true unless showopts;
+  my($indent) = defined($version) ? "  " : "";
+  my($opts) = loadopts($name, $version);
+  return unless %{$opts};
+  print("$indent  options:\n");
+  for(sort(keys(%{$opts})))
+  {
+    my($value) = $opts->{$_};
+    print("$indent    --" .  (!isboolopt($_) ? "$_=" . quote($value) :
+        $value ? "$_" : "no$_") . "\n");
+  }
+}
+
 sub status(@)
 {
   my($name, $version, $build, @urls) = @_;
@@ -4678,6 +4795,7 @@ sub status(@)
   for $name (allnames($name))
   {
     print("$name\n");
+    printopts($name);
 
     for $version (allversions($name, $version))
     {
@@ -4696,6 +4814,8 @@ sub status(@)
           print("      $_\n") foreach @haveurls;
         }
       }
+
+      printopts($name, $version);
 
       for $build (allbuilds($name, $version, $build))
       {
@@ -5649,6 +5769,7 @@ sub parseopts(@)
 sub cmd(@)
 {
   my($cmd, @args) = @_;
+  setactivepkg();
   return badcmd unless defined($cmd);
   $cmd = lc($cmd);
   my($cmdsub) = getsub("cmd_$cmd");
@@ -5660,10 +5781,14 @@ sub cmd(@)
   my($pid) = $$;
   for(&$parser(@args))
   {
+    my($name, $version) = @$_;
+    setactivepkg($name, $version);
     $result = false unless eval { &$doer(@$_) };
-    if($@)
+    my($err) = $@;
+    setactivepkg();
+    if($err)
     {
-      die($@) if $$ != $pid;
+      die($err) if $$ != $pid;
       print STDERR "$@\n";
       return false if stoponerror;
     }
@@ -6755,6 +6880,31 @@ invoking B<toast> without command-line options or arguments is always
 equivalent to running B<toast help>, regardless of this option's setting.
 Default: C<help>.
 
+=item B<--stickyopts=>I<OPTNAMES>
+
+Sets the list of per-package command-line options implicitly stored
+in B<storedir> for automatic re-use by later invocations of B<toast>.
+I<OPTNAMES> is either a whitespace- and/or punctuation-separated list
+of option names.  The word C<all> may also appear on the list; it
+stands for the names of all options except for the B<stickyopts> option
+itself.  The empty list is allowed.  Case is not significant.  Note that
+B<stickyopts> only determines which options are stored (or removed from
+storage); it can not be used to prevent previously stored options from
+being implicitly loaded and re-used.  B<toast> will implicitly store
+an option listed in I<OPTNAMES> only if it is specifically mentioned
+on the command line; options read from the environment or from files on
+disk are never implicitly stored.  If the value explicitly given on the
+command line is the same value that would otherwise have been used if
+no command-line options had been given and no per-package options were
+stored, and that option is already stored, the option is removed from
+storage instead of being stored.  If B<crossversion> is enabled, this
+option writes to a file that applies equally to all same-name packages,
+regardless of version number; otherwise, this option writes to a different
+file that applies only to a single package name and version number taken
+together.  Values stored in the more specific file (name and version)
+always override values stored in the less-specific file (name only).
+Default: C<reconfigure confappend makeappend>.
+
 =item B<--findsites=>I<SITELIST>
 
 Set the list of web sites or other locations searched by B<toast
@@ -6792,11 +6942,13 @@ is not set.
 Specifies additional arguments for B<toast build> to pass to a package's
 C<configure> script or equivalent, if any.  This should never be necessary
 in order to build a package correctly (if it is, send me a bug report!),
-but it can be awfully handy at times.  The I<ARGS> string is treated as
-a list of space-separated words, each of which may be optionally quoted
-with single or double quotes with backslash acting as an escape character;
-the resulting words are added to the end of the command line.  Default:
-empty string.
+but it can be awfully handy at times.  The I<ARGS> string is treated
+as a list of space-separated words, each of which may be optionally
+quoted with single or double quotes with backslash acting as an escape
+character; the resulting words are added to the end of the command line.
+Note that by default, this option's value may be saved with the package
+and reused by future invocations of B<toast>; see the B<stickyopts>
+option for details.  Default: empty string.
 
 =item B<--makeappend=>I<ARGS>
 
@@ -6998,7 +7150,9 @@ it can sometimes break things (usually in a straightforward way), or it
 may be undesirable for other reasons.  If B<reconfigure> is disabled,
 B<toast build> does not try to do anything beyond the minimum steps
 required to correctly build and install whatever files the package builds
-and installs by default.  Default: enabled.
+and installs by default.  Note that by default, this option's value may
+be saved with the package and reused by future invocations of B<toast>;
+see the B<stickyopts> option for details.  Default: enabled.
 
 =item S<B<--fixliblinks> | B<--nofixliblinks>>
 
@@ -7051,10 +7205,17 @@ related, even if B<crossversion> is enabled.  Default: enabled.
 
 =item S<B<--showurls> | B<--noshowurls>>
 
-When B<showurls> is enabled, B<toast show> always displays the stored
+When B<showurls> is enabled, B<toast status> always displays the stored
 URLs associated with each displayed package.  If B<showurls> is disabled,
-B<toast show> only displays a package's URLs if a different list of URLs
+B<toast status> only displays a package's URLs if a different list of URLs
 for that package was given explicitly on the command line.  Default:
+enabled.
+
+=item S<B<--showopts> | B<--noshowopts>>
+
+When B<showopts> is enabled, B<toast status> always displays any stored
+options associated with each displayed package.  If B<showopts> is
+disabled, B<toast status> never displays this information.  Default:
 enabled.
 
 =item S<B<--infodir> | B<--noinfodir>>
@@ -7159,15 +7320,25 @@ is case-sensitive, except for boolean options.
 
 =item 2.
 
+Package-specific configuration files.  If they exist at all, these
+files are normally created and updated by B<toast>.  Package-specific
+configuration files can live in two different places: the first applies
+to a specific package with a given name and version number, the second
+applies to all packages with the given name.  If both files exist, both
+are checked in that order, and the first one to supply a value for the
+option in question wins.  See the B<stickyopts> option for details.
+
+=item 3.
+
 The environment.  If option I<NAME> is not given a value on the command
 line, will be read from the environment variable B<TOAST_>I<NAME> (all
 uppercase) if it exists.  Note that environment variables whose names
 contain lowercase letters will be silently ignored!  In the case of a
 boolean option, one of the explicit values listed in item 1 must be given.
 
-=item 3.
+=item 4.
 
-The configuration file.  If option I<NAME> has not been assigned a value
+The main configuration file.  If option I<NAME> has not been assigned a value
 through any of the above methods, its value will be taken from a line of
 the form I<NAME>B<=>I<VALUE> in the configuration file, if such a line
 exists.  I<NAME> is case-insensitive in this context.  Any whitespace
@@ -7183,7 +7354,7 @@ I<VALUE> for a boolean option (an explicit value must be given; see item
 1 for allowed forms), B<toast> will normally give an error message at
 startup and refuse to execute any commands.
 
-=item 4.
+=item 5.
 
 The built-in default value.  See the full list of options elsewhere in
 this document for the specific default value used for each option.
@@ -7223,6 +7394,8 @@ hostname of the B<toast> distribution site, C<toastball.net>.
 
 Known bugs:
 
+  - badness likely if storedir/armdir contains .../{dev,proc,tmp}/...
+  - "toast arm udev" causes assertion failure
   - toast add misguesses device-mapper name/version from URL
   - toast add misguesses [ foo-1.0-src.tar.gz foo-1.0-src.diff.gz ]
   - autofind hangs in httphead() when going through tinyproxy?
@@ -7267,6 +7440,7 @@ Wish list:
   - allow package name/version as URL; expand w/ autofind iff missing
   - optionally have toast add imply change, then make get+build smarter
   - toast status/env should allow multiple read-only storedirs/armdirs
+  - have toast status show/sort by size/timestamp
   - fold archives by URL and/or hash?
   - zsh completions!
 
