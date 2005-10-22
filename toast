@@ -2767,10 +2767,10 @@ while(@ARGV)
   }
   else
   {
-    if(m|^/| && !m!^(\Q$srcdir\E|\Q$rootdir\E)($|/)!)
+    if(m|^/| && !m!^(\Q$srcdir\E|\Q$rootdir\E)($|/)! &&
+        (s!^\Q$armdir\E($|/)!$1! || !m!^/(dev|proc|tmp)($|/)!))
     {
       $rewritten = 1;
-      s!^\Q$armdir\E($|/)!$1!;
       my($dir, $elem) = "";
       for $component (split(/\//, $_))
       {
@@ -2948,7 +2948,8 @@ static const char *armdir = ] . cquote(armdir) . qq[;
 
 static int startswith(const char *s, const char *prefix)
 {
-  int result = strncmp(s, prefix, strlen(prefix)) == 0;
+  int len = strlen(prefix);
+  int result = strncmp(s, prefix, len) == 0 && (s[len] == 0 || s[len] == '/');
   /* debug("startswith(%s, %s) = %d", s, prefix, result); */
   return result;
 }
@@ -2987,6 +2988,21 @@ static const char *check_strip_armdir(const char *pathname)
       debug("pathname in armdir: %s", pathname);
       pathname += strlen(armdir);
       debug("stripping armdir: %s", pathname);
+    }
+    else if(startswith(pathname, "/dev"))
+    {
+      debug("pathname in /dev: %s", pathname);
+      return 0;
+    }
+    else if(startswith(pathname, "/proc"))
+    {
+      debug("pathname in /proc: %s", pathname);
+      return 0;
+    }
+    else if(startswith(pathname, "/tmp"))
+    {
+      debug("pathname in /tmp: %s", pathname);
+      return 0;
     }
 
     if(BUFSIZE < strlen(rootdir) + strlen(pathname) + 1)
@@ -3830,12 +3846,7 @@ sub stdlinks()
   );
 }
 
-sub rootlinks()
-{
-  my(@result) = stdlinks;
-  push(@result, $_, "/$_") foreach (qw[dev proc tmp]);
-  @result;
-}
+sub rootlinks() { stdlinks }
 
 sub mkrootdir($$)
 {
@@ -7394,7 +7405,6 @@ hostname of the B<toast> distribution site, C<toastball.net>.
 
 Known bugs:
 
-  - badness likely if storedir/armdir contains .../{dev,proc,tmp}/...
   - "toast arm udev" causes assertion failure
   - toast add misguesses device-mapper name/version from URL
   - toast add misguesses [ foo-1.0-src.tar.gz foo-1.0-src.diff.gz ]
