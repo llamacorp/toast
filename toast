@@ -2362,7 +2362,7 @@ sub findnewpkg($$)
       }
     };
 
-    return @ret if @ret;
+    return @ret if !$@ && @ret && $ret[0];
     explain($_) for(split(/\n/, $@));
   }
 
@@ -2447,7 +2447,6 @@ sub add(@)
     error unless @pkgs;
     ($name, $version, undef, @urls) = @{$pkgs[0]};
     error unless $name;
-    error unless $version;
     error unless @urls;
   }
 
