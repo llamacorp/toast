@@ -2889,7 +2889,7 @@ sub helpccache($$$)
 
   my($path) = $ENV{"PATH"};
   my($found);
-  $found ||= -x(path($_, "ccache")) for split(/:/, $path);
+  $found ||= -x(laxpath($_, "ccache")) for split(/:/, $path);
   return true unless $found;
 
   for($cmd, "$cmd.helper")
@@ -7404,7 +7404,6 @@ hostname of the B<toast> distribution site, C<toastball.net>.
 
 Known bugs:
 
-  - "toast arm udev" causes assertion failure
   - toast add misguesses device-mapper name/version from URL
   - toast add misguesses [ foo-1.0-src.tar.gz foo-1.0-src.diff.gz ]
   - autofind hangs in httphead() when going through tinyproxy?
@@ -7424,6 +7423,7 @@ Known bugs:
   - "toast get" prevents wget from truncating output if transfer restarts
   - "toast env" doesn't set PYTHONPATH
   - "toast build linux" may fail during install phase w/o --nopreload
+  - "toast find mplayer" yields warnings and odd results
 
 Wish list:
 
@@ -7449,6 +7449,7 @@ Wish list:
   - allow package name/version as URL; expand w/ autofind iff missing
   - optionally have toast add imply change, then make get+build smarter
   - toast status/env should allow multiple read-only storedirs/armdirs
+  - toast get should support cvs, svn (e.g. GNU Emacs, Xapian, Ruby)
   - have toast status show/sort by size/timestamp
   - fold archives by URL and/or hash?
   - zsh completions!
