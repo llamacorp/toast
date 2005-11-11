@@ -2337,7 +2337,7 @@ sub findnewpkg($$)
           my(@matches) = grep(stripquery($_) =~ /\Q$ext\E$/i, @urls);
 
           my(@namematches) =
-              grep { my($n) = guessnv($_); $n eq $name } @matches;
+              grep { my($n) = guessnv($_); lc($n) eq lc($name) } @matches;
           @matches = @namematches if @namematches;
 
           if(defined($version))
@@ -4706,6 +4706,7 @@ sub find(@)
   for(@pkgs)
   {
     (undef, $version, undef, @urls) = @$_;
+    $version = "unknown" unless defined($version);
     print("  version $version: found\n");
     print("    urls:\n");
     print("      $_\n") for(@urls);
