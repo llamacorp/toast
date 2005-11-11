@@ -451,7 +451,7 @@ BEGIN
   sub setopt($$)
   {
     my($name, $val) = @_;
-    $cmdlineopt{$name} = $val;
+    $cmdlineopt{$name} = parseopt($name, $val);
   }
 
   sub getglobalopt($)
@@ -7424,7 +7424,6 @@ Known bugs:
   - "toast get" prevents wget from truncating output if transfer restarts
   - "toast env" doesn't set PYTHONPATH
   - "toast build linux" may fail during install phase w/o --nopreload
-  - "toast find mplayer" yields warnings and odd results
 
 Wish list:
 
