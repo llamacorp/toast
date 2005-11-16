@@ -2475,8 +2475,6 @@ sub add(@)
   $version = "unknown" unless $goodver;
   my($verdir) = pkgpath($name, $version);
 
-  setactivepkg($name, $version);
-
   if($goodver)
   {
     if(!-d($verdir))
@@ -7465,7 +7463,6 @@ Known bugs:
   - "toast get" prevents wget from truncating output if transfer restarts
   - "toast env" doesn't set PYTHONPATH
   - "toast build linux" may fail during install phase w/o --nopreload
-  - "toast add http://x/foo --confappend=bar" fails
 
 Wish list:
 
