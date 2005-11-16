@@ -983,13 +983,23 @@ sub openhttpurl(*$;$)
 {
   local(*HANDLE) = shift;
   my($url, $proxy) = @_;
-  openhttp(*HANDLE, $url, undef, $proxy);
-  local($_);
-  $_ = <HANDLE>;
-  s/\r?\n?$//;
-  m|^HTTP/[\w\.]+ 200 | || error("$url: $_");
-  while(<HANDLE>) { last if /^\r?\n?$/ }
-  return true;
+  for(1..5)
+  {
+    openhttp(*HANDLE, $url, undef, $proxy);
+    local($_);
+    $_ = <HANDLE>;
+    s/\r?\n?$//;
+    m|^HTTP/[\w\.]+ [23]0[01237] | || error("$url: $_");
+    my($redirect);
+    while(<HANDLE>)
+    {
+      $redirect = $1 if /^location:\s*(\S+)/i;
+      last if /^\r?\n?$/;
+    }
+    return $url unless $redirect;
+    ($url) = linksfromstring("<a href=$redirect>", $url); # *wince*
+  }
+  error("too many HTTP redirects");
 }
 
 sub ftpcmd(*$;$)
@@ -1095,13 +1105,16 @@ sub openurl(*$)
   local($ENV{http_proxy}) = httpproxy if httpproxy;
   local($ENV{ftp_proxy}) = ftpproxy if ftpproxy;
 
+  return openhttpurl(*HANDLE, $url) if $proto eq "http";
+
   $proto eq "file" && openfileurl(*HANDLE, $url) ||
   $proto eq "ssh" && opensshurl (*HANDLE, $url) ||
   openprog(*HANDLE, "wget", "-O-", $url) ||
   openprog(*HANDLE, "GET", $url) ||
-  $proto eq "http" && openhttpurl(*HANDLE, $url) ||
   $proto eq "ftp" && openftpurl(*HANDLE, $url) ||
   error("unable to download: $url");
+
+  return $url;
 }
 
 sub geturl($$)
@@ -1111,7 +1124,7 @@ sub geturl($$)
   local(*SOURCE, *DEST);
   explain("creating $dest");
   safeopen(*DEST, ">", $dest);
-  openurl(*SOURCE, $url);
+  my($newurl) = openurl(*SOURCE, $url);
 
   my($buf, $result);
   my(@dstat) = stat(DEST);
@@ -1124,6 +1137,7 @@ sub geturl($$)
 
   close(DEST) || error("close $dest for write: $!");
   close(SOURCE) || error("close $url for read: $!");
+  return $newurl;
 }
 
 sub linksfromstring($$)
@@ -1163,8 +1177,8 @@ sub linksfromurl($)
   my($url) = @_;
   return map("file://localhost$_", absls($1)) if $url =~ m!^file://\w+(/.*)/$!;
   local(*HANDLE);
-  openurl(*HANDLE, $url);
-  my(@links) = linksfromstream(*HANDLE, $url);
+  my($newurl) = openurl(*HANDLE, $url);
+  my(@links) = linksfromstream(*HANDLE, $newurl);
   close(HANDLE) || error("unable to fetch $url");
   return @links;
 }
@@ -2552,7 +2566,7 @@ sub smartgeturl($$)
     $basename = "index" if $basename eq "";
     my($file) = path($dir, $basename);
 
-    geturl($url, $file);
+    my($newurl) = geturl($url, $file);
     $visited{$url} = 1;
 
     local(*FILE);
@@ -2563,7 +2577,7 @@ sub smartgeturl($$)
     if($header =~ /^\<.*\bHTML\b/i)
     {
       seek(FILE, 0, 0) || error("rewind $file: $!");
-      my(@links) = reverse(sort cmpab linksfromstream(*FILE, $url));
+      my(@links) = reverse(sort cmpab linksfromstream(*FILE, $newurl));
       my(@goodlinks) = grep(/\.tar\./, @links);
       @goodlinks = grep(!/\.(s?html?|php)$/i, @links) unless @goodlinks;
       @links = @goodlinks if @goodlinks;
@@ -2581,6 +2595,7 @@ sub smartgeturl($$)
               && !$visited{$_};
         }
       }
+      error("no more links to try") unless $redir;
     }
     close(FILE) || error("close $file: $!");
 
@@ -7447,7 +7462,6 @@ Known bugs:
   - toast add misguesses device-mapper name/version from URL
   - toast add misguesses [ foo-1.0-src.tar.gz foo-1.0-src.diff.gz ]
   - autofind hangs in httphead() when going through tinyproxy?
-  - autofind mishandles http redirects (e.g. http://toastball.net/toast)
   - gtk+ doesn't seem to build properly when it is already armed
   - opera and sleepycat db refuse to build when already armed
   - gimp will load plugins from other armed versions despite .off suffix
