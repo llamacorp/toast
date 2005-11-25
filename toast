@@ -1382,8 +1382,8 @@ sub sanitize($)
   my($word) = @_;
   $word =~ s/\:/_/g;
   $word =~ s/^[\W_]+//;
+  $word =~ s/(source|src)$//i; # e.g. mozilla, libjpeg, minicom, XFree86
   $word =~ s/[^a-z0-9\+]+$//i; # allow e.g. gtk+
-  $word =~ s/[\.-_]?(source|src)$//i; # e.g. mozilla, libjpeg, minicom, XFree86
   $word eq "" ? undef : $word;
 }
 
@@ -7459,17 +7459,12 @@ hostname of the B<toast> distribution site, C<toastball.net>.
 
 Known bugs:
 
-  - toast add misguesses device-mapper name/version from URL
-  - toast add misguesses [ foo-1.0-src.tar.gz foo-1.0-src.diff.gz ]
   - autofind hangs in httphead() when going through tinyproxy?
   - gtk+ doesn't seem to build properly when it is already armed
   - opera and sleepycat db refuse to build when already armed
   - gimp will load plugins from other armed versions despite .off suffix
   - "toast upgrade gcc" doesn't work (ftp site has a subdir per version)
-  - autofind fails for: sleepycat db, gcc, latex, gv, GNU arch (?), ogle,
-      wxpython
-  - autofind chooses Linux binaries over source for doxygen
-  - autofind chooses old (2001) version of Postfix
+  - find fails for: sleepycat db, gcc, latex, GNU arch (?), ogle
   - autofind chooses "libraries only" version of xfig
   - build fails for: jikes, sirc, netcat, lcab, gv, bittorrent, xmlcatmgr
   - "toast edit" leaves things in an odd state if you hang up on it
