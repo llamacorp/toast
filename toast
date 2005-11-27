@@ -76,14 +76,22 @@ BEGIN
   }
 }
 
+sub msg($@)
+{
+  my($default) = shift;
+  my($msg) = join('', @_) || $default;
+  $msg =~ s/\n+$//;
+  return $msg . "\n[" . trace(2) . "]\n";
+}
+
 sub error(@)
 {
-  die(join('', @_) || "assertion failed", "\n[" . trace . "]\n");
+  die(msg("assertion failed", @_));
 }
 
 sub warning(@)
 {
-  warn(join('', @_) || "warning", "\n[" . trace . "]\n");
+  warn(msg("warning", @_));
 }
 
 ##############################################################################
@@ -1121,10 +1129,32 @@ sub geturl($$)
 {
   my($url, $dest) = @_;
 
+  my($newurl);
+  eval q{
+    use LWP::UserAgent;
+    $newurl = false;
+    explain("fetching $url to $dest");
+    my($ua) = LWP::UserAgent->new;
+    $ua->proxy(["http", "https"], httpproxy) if httpproxy;
+    $ua->proxy("ftp", ftpproxy) if ftpproxy;
+    my($r) = $ua->get($url, ":content_file" => $dest);
+    my($msg) = $r->message;
+    die("unable to fetch $url: $msg\n") if $r->is_error;
+    $newurl = $r->base;
+  } if $url !~ /^(file|ssh)/;
+  error($@) if $@ && defined($newurl);
+  return $newurl if $newurl;
+  
+  if(defined($newurl))
+  {
+    error($@) unless $newurl;
+    return $newurl;
+  }
+
   local(*SOURCE, *DEST);
   explain("creating $dest");
   safeopen(*DEST, ">", $dest);
-  my($newurl) = openurl(*SOURCE, $url);
+  $newurl = openurl(*SOURCE, $url);
 
   my($buf, $result);
   my(@dstat) = stat(DEST);
