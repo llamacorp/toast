@@ -1559,9 +1559,12 @@ sub which($)
 
 sub newenvvar($$;$;$)
 {
-  my($varname, $subdirs, $default, $delim) = @_;
+  my($varname, $subdir, $default, $delim) = @_;
   $delim ||= ":";
-  my(@dirs) = map(path(armdir, $_), split(/$delim/, $subdirs));
+  my($adirs, @adirs) = altarmdirs;
+  push(@adirs, $2 eq "" ? armdir : $2) while $adirs =~ /(^|:)([^:]*)/g;
+  my(@dirs) = map(path($_, $subdir),
+      uniq(map(m!^/! ? $_ : path(storedir, $_), @adirs)));
   my($current) = exists($ENV{$varname}) ? $ENV{$varname} : $default;
 
   if(defined($current))
@@ -2223,11 +2226,17 @@ sub isbuildarmedin($$$$)
   );
 }
 
-sub allarmdirs()
+sub allarmdirs(;$$$)
 {
+  my($name, $version, $build) = @_;
+  my(@candidates);
+  @candidates = path(pkgpath($name, $version, $build), armdirlink)
+      if defined($build);
+  push(@candidates, armdir, split(/:/, altarmdirs));
   my(@armdirs, %seendi);
-  for (armdir, split(/:/, altarmdirs))
+  for(@candidates)
   {
+    next if $_ eq "";
     my($armdir) = m!^/! ? $_ : path(storedir, $_);
     my($device, $inode) = stat($armdir);
     next unless defined($device);
@@ -2245,7 +2254,7 @@ sub isarmed(@)
   return !whilebuild
   {
     my($name, $version, $build) = @_;
-    for (allarmdirs)
+    for (allarmdirs($name, $version, $build))
     {
       return false if isbuildarmedin($_, $name, $version, $build);
     }
@@ -4923,11 +4932,12 @@ sub status(@)
         else
         {
           push(@notes, "not clean") unless isclean($name, $version, $build);
-          for(@armdirs)
+          my($mismatched) = ismismatched($name, $version, $build);
+          for($mismatched ? allarmdirs($name, $version, $build) : @armdirs)
           {
             push(@armedin, $_) if isbuildarmedin($_, $name, $version, $build);
           }
-          if(ismismatched($name, $version, $build))
+          if($mismatched)
           {
             $status = "mismatched";
             my($armdirlink) =
@@ -6561,16 +6571,16 @@ B<configure> scripts produced by the real GNU autoconf.
 
 =item S<B<toast find> I<PACKAGE> ...>
 
-Locate some of the URLs from which a package could be downloaded.
-This command does not write to the disk at all.  The output format is
-similar to that of B<toast status>, but all information comes from the
-network rather than the on-disk package database.  If a given package
-has not been added and no URLs were specified on the command line,
-B<toast find> looks for an exact name match on the web sites specified
-by the B<findsites> option; otherwise it attempts to list the directory
-or directories to which the package's URL(s) belong.  If an explicit
-version number is given, only that version is listed; otherwise all
-versions are listed from oldest to newest.
+Locates URLs from which a package could be downloaded.  This command does
+not write to the disk at all.  The output format is similar to that of
+B<toast status>, but all information comes from the network rather than
+the on-disk package database.  If a given package has not been added and
+no URLs were specified on the command line, B<toast find> looks for an
+exact name match on the web sites specified by the B<findsites> option;
+otherwise it attempts to list the directory or directories to which the
+package's URL(s) belong.  If an explicit version number is given, only
+that version is listed; otherwise all versions are listed from oldest
+to newest.
 
 =item S<B<toast add> I<PACKAGE> ...>
 
@@ -6672,14 +6682,18 @@ will become an implicit B<build> if the B<autoarm> option is disabled.
 
 =item S<B<toast disarm> I<BUILD> | I<PACKAGE> ...>
 
-Deletes symlinks created by B<toast arm>.  This works by removing symbolic
-links to the given build and replacing any links that had been moved
-out of the way.  No error occurs if no such links exist.  If no build
-number is given, all C<armed> builds, including C<mismatched> builds
-reported to be C<armed>, are disarmed from all directories specified
-by the B<armdir> and B<altarmdirs> options.  If the package version
+Deletes symlinks created by B<toast arm>.  This works by removing
+symbolic links to the given build and replacing any links that had been
+moved out of the way.  No error occurs if no such links exist.  If no
+build number is given, all C<armed> builds, including C<mismatched>
+builds reported to be C<armed>, are disarmed.  If the package version
 number is also omitted, all C<armed> builds belonging to packages with
-the given name are disarmed.
+the given name are disarmed.  Disarming a build always removes links from
+the I<ARMDIR> specified by the B<armdir> option at the time the package
+was built, the I<ARMDIR> currently specified by the B<armdir> option,
+and any I<ALTARMDIRS> currently specified by the B<altarmdirs> option.
+Disarming a build only removes hard or symbolic links to the actual
+build files stored in I<STOREDIR>.
 
 =item S<B<toast clean> [ I<BUILD> | I<PACKAGE> ...]>
 
@@ -6762,9 +6776,12 @@ by B<toast build> have not yet been removed by C<toast clean>.
 Prints shell commands to make armed packages usable.  This command is
 normally invoked with C<eval `toast env`> (note the backticks) from a
 shell initialization file such as C<.zshenv> or C<.profile>.  This will
-add C<I<armdir>/bin> to the front of C<PATH>, unless either directory
-already appears anywhere in C<PATH>, in which case that directory will
-be left in its current position instead of being moved to the front.
+add I<ALTARMDIR>C</bin> to the front of C<PATH> for each I<ALTARMDIR>, in
+order.  (By default, I<ALTARMDIR> is the same as I<ARMDIR>, which usually
+defaults to C<~/.toast/armed>; this is the directory that contains a
+merged view of all armed packages.)  If a particular I<ALTARMDIR>C</bin>
+already appears anywhere in C<PATH>, it will remain in its current
+position instead of being added or moved to the front of B<PATH>.
 Other environment variables are similarly affected: C<MANPATH> (used to
 find man pages), C<INFOPATH> (used by GNU info), C<CPATH> (used by gcc
 to find include files), C<XML_CATALOG_FILES> (used by DocBook and other
@@ -6773,9 +6790,9 @@ find libraries; not to be confused with C<LD_LIBRARY_PATH>, which also
 affects shared library loading at run time).  Note that if C<MANPATH>
 in particular is unset, B<toast env> will run C<man -w> to try to get
 the default value; if this causes problems, it may help to ensure that
-C<MANPATH> is set before invoking B<toast env>.  This command assumes a
-Bourne-like shell -- zsh and bash will work, tcsh won't.  None of this
-is likely to be necessary if B<armdir> is C</usr> or C</usr/local>
+C<MANPATH> is set before invoking B<toast env>.  This command assumes
+a Bourne-like shell -- zsh and bash will work, tcsh won't.  None of
+this is likely to be necessary if I<ARMDIR> is C</usr> or C</usr/local>
 (the default when running as root).
 
 =item S<B<toast help> [ I<TOPIC> ] ...>
@@ -6915,14 +6932,19 @@ if invoked by root, C<armed> otherwise.
 
 =item B<--altarmdirs=>I<ALTARMDIR>[:I<ALTARMDIR>]...
 
-Specifies an optional colon-separated list of alternate directories to
-search for armed packages after searching I<ARMDIR>.  It is strongly
-recommended that this list include any directory where a package is
-likely to be armed.  is searched to determine whether a package is
-currently armed.  When disarming a package, links will be removed from
-each I<ALTARMDIR> in addition to I<ARMDIR> itself.  If an I<ALTARMDIR>
-is not an absolute path, it is taken to be relative to I<STOREDIR>.
-Default: empty list.
+Optionally specifies one or more colon-separated directories to use
+instead of or in addition to the I<ARMDIR> given by the B<armdir> option.
+An empty list or an empty list item stands for the current value of
+I<ARMDIR>.  Commands that check to see if a package is already armed look
+for links back into I<STOREDIR> in the current I<ARMDIR> and all current
+I<ALTARMDIRS>, as well as the I<ARMDIR> stored by B<toast build> when the
+package was built.  B<toast disarm> additionally removes any such links
+it finds.  B<toast env> is the only command that uses I<ALTARMDIR>s but
+ignores I<ARMDIR>.  The reverse is true of B<toast build>, which uses
+and stores I<ARMDIR> only, ignoring I<ALTARMDIRS>.  Note that B<toast>
+will never write to any I<ALTARMDIR> except for I<ARMDIR> unless the
+I<ALTARMDIR> actually contains hard or symbolic links to files in
+I<STOREDIR>.  Default: empty list (equivalent to listing I<ARMDIR> alone).
 
 =item B<--username=>I<USER>
 
@@ -7526,7 +7548,7 @@ Wish list:
   - find a way to rebuild indices for apropos by default
   - allow package name/version as URL; expand w/ autofind iff missing
   - optionally have toast add imply change, then make get+build smarter
-  - toast status/env should allow multiple read-only storedirs/armdirs
+  - toast status should allow multiple storedirs
   - toast get should support cvs, svn (e.g. GNU Emacs, Xapian, Ruby)
   - have toast status show/sort by size/timestamp
   - fold archives by URL and/or hash?
