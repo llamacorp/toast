@@ -2761,6 +2761,7 @@ sub makedir($)
   {
     my($abs) = path($dir, $_);
     return false unless -d($abs);
+    return true if -l($abs); # e.g. xcircuit 3.6.19
     return true if $_ eq "CVS";
     return false if defined($subdir);
     $subdir = $abs;
@@ -3529,8 +3530,8 @@ sub configure($$)
         cdrunconf($bubuilddir, "../dist/configure", "--prefix=$prefix");
   }
 
-  # configure script might be hidden in a "source" subdirectory (e.g. samba)
-  for(qw[source src])
+  # configure script might be hidden in a "source" subdirectory (samba, tcl/tk)
+  for(qw[source src unix])
   {
     my($subdir) = path($dir, $_);
     my($confprog) = path($subdir, "configure");
@@ -3736,7 +3737,7 @@ install:
         if $name =~ /^[a-z]+$/ && -x && -B; # upx
     return $file2dir{$name} = "/man/man1"
         if $name =~ /^[a-z]+\.1$/ && !-x && -T;
-    $name =~ /readme|flashplayer-installer|^[A-Z]+$|\.(doc|html)$/;
+    $name =~ /readme|flashplayer-installer|^[A-Z]+$|\.(doc|html?)$/i;
   } $dir;
   if(%file2dir)
   {
@@ -4001,7 +4002,7 @@ sub compilebin($$)
     sub
     {
       $one = $one ? 0 : $_ unless defined($one);
-      $ok ||= m!/(usr|bin|etc|lib|sbin)$!;
+      $ok ||= m!/(usr|bin|etc|lib|sbin|firefox)$!;
       -d
     },
     $srcdir
@@ -4072,7 +4073,7 @@ sub polishrootdir($$)
     $rootdir,
     sub { $count{$_} = $total; true },
     sub { fixrootfile($_); ++$total },
-    sub { $count{$_} < $total ? !protect || safechmod(0555, $_) : rd($_) }
+    sub { $count{$_} < $total ? safechmod(protect ? 0555 : 0755, $_) : rd($_) }
   );
   $total || error("no files found in $rootdir");
 
@@ -7515,6 +7516,7 @@ Known bugs:
   - gtk+ doesn't seem to build properly when it is already armed
   - opera and sleepycat db refuse to build when already armed
   - gimp will load plugins from other armed versions despite .off suffix
+  - antiword 0.35 and unison 0.9.20 end up in armdir/helpers/home/bin/
   - "toast upgrade gcc" doesn't work (ftp site has a subdir per version)
   - find fails for: sleepycat db, gcc, latex, GNU arch (?), ogle
   - autofind chooses "libraries only" version of xfig
@@ -7522,8 +7524,12 @@ Known bugs:
   - "toast edit" leaves things in an odd state if you hang up on it
   - "toast rename" is more case-sensitive than it ought to be
   - "toast get" prevents wget from truncating output if transfer restarts
+  - "toast get" should support resuming, but doesn't
+  - "toast get" no longer displays progress under many circumstances
   - "toast env" doesn't set PYTHONPATH
   - "toast build linux" may fail during install phase w/o --nopreload
+  - "toast remove" leaves cruft behind after removing last package
+  - "toast status mail::spamassassin" is too case-sensitive
 
 Wish list:
 
@@ -7550,7 +7556,9 @@ Wish list:
   - optionally have toast add imply change, then make get+build smarter
   - toast status should allow multiple storedirs
   - toast get should support cvs, svn (e.g. GNU Emacs, Xapian, Ruby)
+  - add "toast confhelp" or something to run ./configure --help?
   - have toast status show/sort by size/timestamp
+  - add support for Ruby's install.rb
   - fold archives by URL and/or hash?
   - zsh completions!
 
