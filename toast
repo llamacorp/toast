@@ -4430,7 +4430,8 @@ sub rebuildinfodir($)
     {
       return true if m!(/dir|\Q$tmpsuffix\E|\Q$offsuffix\E|-\d+(\.info)?)$!;
       safechmod(0777, $dir);
-      optrun("install-info", $_, infodiropt . $tmpfile);
+      optrun("install-info", infodiropt ? (infodiropt . $tmpfile, $_) :
+          ($_, $tmpfile));
       true;
     } $dir;
     mv($tmpfile, $dirfile) if -e($tmpfile);
@@ -7080,11 +7081,11 @@ please send me a bug report!  Default: empty string.
 =item B<--infodiropt=>I<STRING>
 
 When the B<infodir> option is enabled, B<toast arm> and B<toast disarm>
-will prepend I<STRING> to the C<install-info> command's second argument,
-which is the full path of the file to be created or updated, and not
-(for example) the directory containing that file.  See the B<infodir>
-option for details.  Previous versions of B<toast> used the empty string.
-Default: C<--dir-file=>.
+will prepend I<STRING> to the C<install-info> command argument containing
+the full path of the file to be created or updated.  See the B<infodir>
+option for details.  Previous versions of B<toast> used the empty string,
+which causes the path in question to be passed as the second positional
+argument to B<install-info>.  Default: C<--dir-file=>.
 
 =item S<B<--quiet> | B<--noquiet>>
 
