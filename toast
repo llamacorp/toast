@@ -304,7 +304,6 @@ BEGIN
     "showurls" => "true",
     "showopts" => "true",
     "infodir" => "true",
-    "infodiropt" => "--dir-file=",
     "xmlcatalog" => "true",
     "hspkg" => "false",
     "protect" => "false",
@@ -4418,11 +4417,11 @@ sub rebuildinfodir($)
   }
   else
   {
-    my($tmpfile) = addtmp($dirfile);
-    if(-e($tmpfile) || -l($tmpfile))
+    my($tmpdir) = addtmp($dirfile);
+    if(-e($tmpdir) || -l($tmpdir))
     {
       safechmod(0777, $dir);
-      rm($tmpfile);
+      rmall($tmpdir);
     }
     my($tmpsuffix) = tmpsuffix;
     my($offsuffix) = offsuffix;
@@ -4430,11 +4429,13 @@ sub rebuildinfodir($)
     {
       return true if m!(/dir|\Q$tmpsuffix\E|\Q$offsuffix\E|-\d+(\.info)?)$!;
       safechmod(0777, $dir);
-      optrun("install-info", infodiropt ? (infodiropt . $tmpfile, $_) :
-          ($_, $tmpfile));
+      optmd($tmpdir);
+      optrun("install-info", "--info-dir=$tmpdir", $_);
       true;
     } $dir;
+    my($tmpfile) = path($tmpdir, "dir");
     mv($tmpfile, $dirfile) if -e($tmpfile);
+    rmall($tmpdir);
   }
 
   safechmod($mode, $dir);
@@ -7077,15 +7078,6 @@ that it applies to the C<make> command or commands (if any) invoked
 by B<toast build>.  As with B<confappend>, use of this option should
 never be necessary; if you find a package that won't build without it,
 please send me a bug report!  Default: empty string.
-
-=item B<--infodiropt=>I<STRING>
-
-When the B<infodir> option is enabled, B<toast arm> and B<toast disarm>
-will prepend I<STRING> to the C<install-info> command argument containing
-the full path of the file to be created or updated.  See the B<infodir>
-option for details.  Previous versions of B<toast> used the empty string,
-which causes the path in question to be passed as the second positional
-argument to B<install-info>.  Default: C<--dir-file=>.
 
 =item S<B<--quiet> | B<--noquiet>>
 
