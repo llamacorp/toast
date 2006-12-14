@@ -1603,7 +1603,7 @@ sub newenv()
   push(@vars, newenvvar("CPATH", "include"));
   push(@vars, newenvvar("LIBRARY_PATH", "lib"));
   push(@vars, newenvvar("XML_CATALOG_FILES", $x, "/$x", " ")) if xmlcatalog;
-  push(@vars, newenvvar("GHC_PKG_PATH", $hspkgdir)) if hspkg;
+  push(@vars, newenvvar("GHC_PACKAGE_PATH", $hspkgdir, "")) if hspkg;
   # there's also a LIBRARY_RUN_PATH or something that affects ld somehow...
   return @vars;
 }
@@ -2901,62 +2901,6 @@ rootdir=], quote($rootdir), q[
 name=], time() . "-$$", q[
 PATH=], quote($ENV{"PATH"}), q[
 
-wrapper="$rootdir/bin/ghc.wrapped"
-cat > "$wrapper" << "EOF"
-#!/bin/sh
-exec perl -wx "$0" "$@"
-#!perl
-
-$0 =~ m!([^/]+)$! or die;
-my($me) = $1;
-
-my($wrap) = $ENV{"TOAST_HS_WRAPPER"} || "";
-$wrap .= ":" if $wrap;
-$ENV{"TOAST_HS_WRAPPER"} = $wrap .= $0;
-
-my(@extra);
-push(@extra, ($me =~ /-pkg/ ? "-" : "") . "-package-conf", $_)
-    for grep(-r, split(/:/, $ENV{"GHC_PKG_PATH"} || ""));
-
-DIR: for(split(/:/, $ENV{"PATH"}))
-{
-  for("$_/$me.unwrapped", "$_/$me")
-  {
-    if(-x)
-    {
-      my(@stats) = stat or die("stat $_: $!");
-      my($skip);
-      for $skip (split(/:/, $wrap))
-      {
-        my(@skipstats) = stat($skip) or die("stat $skip: $!");
-        next DIR if "$skipstats[0] $skipstats[1]" eq "$stats[0] $stats[1]";
-      }
-      if(exists($ENV{"TOAST_VERBOSE_HS_WRAPPER"}))
-      {
-        print("toast: not rewriting $0 @ARGV\n") unless @extra;
-        print("toast: rewriting $0 @ARGV -> $0 @extra @ARGV\n") if @extra;
-      }
-      exec $_ ($0, @extra, @ARGV);
-      die("exec $_ failed: $!");
-    }
-  }
-}
-
-die("can't find next $me in PATH");
-EOF
-
-chmod +x "$wrapper"
-for i in ghc ghci ghc-pkg; do
-  path="$rootdir/bin/$i"
-  if [ -r "$path" -a ! -r "$path.unwrapped" ] && ! diff -q "$path" "$wrapper"
-  then
-    mv "$path" "$path.unwrapped"
-  fi
-  ln -sf ghc.wrapped "$rootdir/bin/$i"
-done
-
-[ "$*" = "--toast-install-wrapper-only" ] && exit 0
-
 ghc-pkg "$@" --user # let --auto-ghci-libs do its thing
  
 for arg; do
@@ -4117,28 +4061,12 @@ sub polishrootdir($$)
   }
 }
 
-sub wraphaskell($$$)
-{
-  my($srcdir, $rootdir, $helperdir) = @_;
-  return true unless -x(path($rootdir, qw(bin ghc)));
-  my($script) = path($helperdir, "ghc-pkg");
-  if(!-x($script))
-  {
-    optmd($helperdir);
-    helphspkg($rootdir, $helperdir, "wrap-ghc");
-    $script = path($helperdir, "wrap-ghc");
-    armhelpers($helperdir);
-  }
-  run($script, "--toast-install-wrapper-only");
-}
-
 sub compile($$$)
 {
   my($srcdir, $rootdir, $helperdir) = @_;
   compiledata($srcdir, $rootdir) ||
       compilebin($srcdir, $rootdir) ||
       compilehelp($srcdir, $rootdir, $helperdir);
-  wraphaskell($srcdir, $rootdir, $helperdir) if hspkg;
   polishrootdir($rootdir, armdir);
 }
 
@@ -7370,31 +7298,26 @@ whose presence and contents depend on the contents of B<armdir>'s
 C<share/xml> and C<etc/xml> subdirectories.  If the catalog already
 exists, it may be overwritten or deleted.  The B<toast env> command will
 set C<XML_CATALOG_FILES> to point to this file when this option is set,
-which helpds things like DocBook operate correctly.  If B<xmlcatalog>
+which helps things like DocBook operate correctly.  If B<xmlcatalog>
 is disabled, B<toast arm> and B<toast disarm> will delete the
 C<toast-xml-catalog> file, if present, instead of rebuilding it.
 Default: enabled.
 
 =item S<B<--hspkg> | B<--nohspkg>>
 
-When B<hspkg> is enabled, B<toast build> will generate various terrible
-wrapper scripts for ghc and related commands, and B<toast arm> and
-B<toast disarm> will maintain a Haskell package database B<armdir> called
-C<etc/xml/toast-hs-package.conf>, whose presence and contents depend on
-the contents of B<armdir>'s C<hspkg> subdirectory, which in turn will be
-automatically populated by a wrapper script whenever a Haskell library
-built via B<toast build> tries to register itself in the package database.
-If the package database already exists, it may be overwritten or deleted.
-The B<toast env> command will set C<GHC_PKG_PATH> to point to this file
-when this option is set, which will cause wrapper scripts installed with
-ghc and/or Haskell libraries to insert a --package-conf argument into
-the command lines of some of the appropriate programs.  This approach
-has many flaws and is not unlikely to cause more problems than it solves.
-If B<hspkg> is disabled, B<toast build> will not attempt to generate any
-Haskell-specific wrapper scripts (which may prevent Haskell libraries
-from building, at least with GHC 6.4); B<toast arm> and B<toast disarm>
-will delete the C<toast-hs-package.conf> file, if present, instead of
-rebuilding it.  Poorly tested against GHC 6.4 only.  Default: disabled.
+When B<hspkg> is enabled, B<toast build> will attempt to intercept
+information about Haskell packages registered with C<ghc-pkg> and store
+it in strangely-named files in a special C<hspkg> subdirectory; B<toast
+arm> and B<toast disarm> will rebuild a Haskell package database in
+B<armdir> called C<etc/xml/toast-hs-package.conf>, whose presence and
+contents depend on the contents of B<armdir>'s C<hspkg> subdirectory;
+and B<toast env> will add this package database to the C<GHC_PACKAGE_PATH>
+environment variable used by GHC 6.6 and later.  If B<hspkg> is disabled,
+B<toast build> will not attempt to intercept calls to C<ghc-pkg>, which
+may prevent Haskell libraries from building at all, at least with GHC
+6.6 and earlier; and B<toast arm> and B<toast disarm> will delete the
+C<toast-hs-package.conf> file, if present, instead of rebuilding it.
+Essentially untested.  Default: disabled.
 
 =item S<B<--protect> | B<--noprotect>>
 
