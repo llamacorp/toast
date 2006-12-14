@@ -1543,7 +1543,7 @@ BEGIN
 
 ##############################################################################
 
-sub which($)
+sub optwhich($)
 {
   my($prog) = @_;
   for(split(/:/, $ENV{"PATH"}))
@@ -1552,7 +1552,13 @@ sub which($)
     $path = abspath($path) unless $path =~ m!^/!;
     return $path if -x($path);
   }
-  error("can't find $prog in PATH");
+  return false;
+}
+
+sub which($)
+{
+  my($prog) = @_;
+  return optwhich(path) || error("can't find $prog in PATH");
 }
 
 ##############################################################################
@@ -4406,8 +4412,10 @@ sub rebuildinfodir($)
   }
 
   my($mode) = getmode($dir);
+  my($prog) = infodir && optwhich("install-info");
+  my($bogus) = $prog && whilefile { !/Ian Jackson/ } $prog; # dpkg
 
-  if(!infodir)
+  if(!$prog || $bogus)
   {
     if(-e($dirfile) || -l($dirfile))
     {
@@ -7341,13 +7349,17 @@ enabled.
 
 =item S<B<--infodir> | B<--noinfodir>>
 
-When B<infodir> is enabled, B<toast arm> and B<toast disarm> will create
-a file in B<armdir> called C<info/dir>; if the file already exists,
-it will be replaced with an updated version.  When this option is set,
-B<toast env> sets C<INFODIR> to point to this file, so that the "info"
-command can display a list of installed info pages.  If B<infodir> is
-disabled, B<toast arm> and B<toast disarm> will delete the C<info/dir>
-file, if present, instead of rebuilding it.  Default: enabled.
+When B<infodir> is enabled, B<toast arm> and B<toast disarm> will create a
+file in B<armdir> called C<info/dir>; if the file already exists, it will
+be replaced with an updated version.  When this option is set, B<toast
+env> sets C<INFODIR> to point to this file, so that the "info" command can
+display a list of installed info pages.  If B<infodir> is disabled or the
+C<install-info> program is missing or broken (e.g. the fake install-info
+command bundled with dpkg), B<toast arm> and B<toast disarm> will delete
+the C<info/dir> file, if present, instead of rebuilding it, which will
+likely prevent the C<info> command from giving you a correctly-populated
+menu when invoked without arguments, though it should still work fine
+when invoked with a program name as an argument.  Default: enabled.
 
 =item S<B<--xmlcatalog> | B<--noxmlcatalog>>
 
