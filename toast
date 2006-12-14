@@ -4413,9 +4413,10 @@ sub rebuildinfodir($)
 
   my($mode) = getmode($dir);
   my($prog) = infodir && optwhich("install-info");
-  my($bogus) = $prog && whilefile { !/Ian Jackson/ } $prog; # dpkg
+  my($dpkg);  # dpkg's install-info wants to write to /var/backups....
+  whilefile { !/\0/ && !($dpkg = /Ian Jackson/) } $prog;
 
-  if(!$prog || $bogus)
+  if(!$prog || $dpkg)
   {
     if(-e($dirfile) || -l($dirfile))
     {
@@ -4443,7 +4444,7 @@ sub rebuildinfodir($)
     } $dir;
     my($tmpfile) = path($tmpdir, "dir");
     mv($tmpfile, $dirfile) if -e($tmpfile);
-    rmall($tmpdir);
+    optrmall($tmpdir);
   }
 
   safechmod($mode, $dir);
@@ -7572,6 +7573,7 @@ Wish list:
   - toast status should allow multiple storedirs
   - toast get should support cvs, svn (e.g. GNU Emacs, Xapian, Ruby)
   - add "toast confhelp" or something to run ./configure --help?
+  - make lemonade somehow when given dpkg's install-info
   - have toast status show/sort by size/timestamp
   - add support for Ruby's install.rb
   - fold archives by URL and/or hash?
