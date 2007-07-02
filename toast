@@ -3369,7 +3369,8 @@ sub configure($$)
         "# $genby\n\n",
         "all:\n\trunghc $_ build\n\n",
         "install:\n\trunghc $_ copy --copy-prefix=\$(DESTDIR)\n",
-        "\trunghc $_ register\n",
+        qq{\tout="`runghc $_ register 2>&1`"; echo "\$\$out"; [ \$\$? = 0 -o },
+        qq{"\$\$out" = "$_: Package contains no library to register" ]\n},
       );
       return $dir;
     }
