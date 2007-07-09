@@ -3603,26 +3603,6 @@ install:
     return $dir;
   }
 
-  # look for Unixish or OS-specific Makefile in a subdir and mv it here
-  # e.g. zip -> unix/Makefile; libpng -> scripts/makefile.linux
-  # note that this rule would incorrectly grab a spurious subdirectory
-  # Makefile from glibc+linuxthreads or j2sdk 1.5 if the above rules didn't
-  # come first
-  return $dir unless dfs
-  (
-    $dir,
-    sub { true },
-    sub
-    {
-      my($rel) = @_;
-      return true unless $rel =~ /makefile/i;
-      return true unless $rel =~ /$^O|\bunix/i;
-      mv($_, path($dir, "Makefile"));
-      return false;
-    },
-    sub { true }
-  );
-
   # Maybe there's just an install script of some kind that we need to run.
   # Create an appropriate Makefile.
   for(qw[install.sh INSTALL install.pl vmware-install.pl])
@@ -3671,6 +3651,26 @@ install:
     cdrun($dir, "sh", $_);
     return &configure($dir, $prefix) if -x(path($dir, "configure"));
   }
+
+  # look for Unixish or OS-specific Makefile in a subdir and mv it here
+  # e.g. zip -> unix/Makefile; libpng -> scripts/makefile.linux
+  # note that this rule would incorrectly grab a spurious subdirectory
+  # Makefile from glibc+linuxthreads or j2sdk 1.5 if the above rules didn't
+  # come first
+  return $dir unless dfs
+  (
+    $dir,
+    sub { true },
+    sub
+    {
+      my($rel) = @_;
+      return true unless $rel =~ /makefile/i;
+      return true unless $rel =~ /$^O|\bunix/i;
+      mv($_, path($dir, "Makefile"));
+      return false;
+    },
+    sub { true }
+  );
 
   # try looking in promisingly-named subdirectories
   -d && return &configure($_, $prefix) foreach map(path($dir, $_), qw[src]);
