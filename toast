@@ -1502,8 +1502,8 @@ BEGIN
         ($uid, $gid, $usertext) = ($tryuid, $tryuid, $tryuid);
         return;
       }
-      ++$uid;
-      $uid = 1 if $uid == 65536;
+      ++$tryuid;
+      $tryuid = 1 if $tryuid == 65536;
     }
     error("can't find unused uid");
   }
