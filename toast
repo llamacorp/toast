@@ -3094,10 +3094,8 @@ static void mkparents(const char *pathname)
   }
 }
 
-static const char *rewrite(const char *pathname)
+static const char *rewrite(const char *pathname, char *buffer)
 {
-  static char buffers[2][BUFSIZE];
-  static int whichbuf = 0;
   const char *stripped = check_strip_armdir(pathname);
 
   if(!stripped)
@@ -3107,8 +3105,6 @@ static const char *rewrite(const char *pathname)
   }
   else
   {
-    char *buffer = buffers[whichbuf];
-    whichbuf ^= 1;
     strcpy(buffer, rootdir);
     strcat(buffer, stripped);
     debug("rewriting %s -> %s", pathname, buffer);
@@ -3157,7 +3153,10 @@ static const char *rewrite(const char *pathname)
     my($retfailed, $retfmt) = $rettype =~ /\*/ ? (0, '%p') : (-1, '%d');
     my(@alist) = map { /\w+$/ ? $& : error } split(/, /, $proto);
     my($args) = join(", ", @alist);
-    my($newargs) = join(", ", map { /pathname/ ? "rewrite($_)" : $_ } @alist);
+    my($newargs) = join(", ", map { /pathname/ ?
+        "rewrite($_, rewritten_$_)" : $_ } @alist);
+    my($buffers) = join(", ", map("rewritten_${_}[BUFSIZE]",
+        grep(/pathname/, @alist)));
     my($allrewritable) = join(" && ", map("check_strip_armdir($_)",
         grep(/pathname/, @alist)));
     my($destarg) = $proto =~ /pathname2/ ? "pathname2" : "pathname";
@@ -3184,6 +3183,7 @@ static ${rettype}real_$name($proto)
 $rettype$name($proto)
 {
   ${rettype}result;
+  char $buffers;
 
   debug("rewriting $name");
 
