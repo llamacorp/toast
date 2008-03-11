@@ -2951,6 +2951,7 @@ sub helplib($$$)
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
 
 #ifdef __CYGWIN__
 #ifndef RTLD_NEXT
@@ -2965,7 +2966,8 @@ $defdebug
 struct timeval; /* to match the utimes() prototype that SunOS pulls in... */
 
 #ifdef DEBUG
-#define debug(fmt, args...) do { fprintf(DEBUG, "$myname: " fmt "\\n", ## args); fflush(DEBUG); } while(0)
+pid_t getpid(void);
+#define debug(fmt, args...) do { fprintf(DEBUG, "$myname: pid %u: " fmt "\\n", (unsigned)getpid(), ## args); fflush(DEBUG); } while(0)
 #else
 #define debug(fmt, args...) ((void)0)
 #endif
