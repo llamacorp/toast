@@ -3170,15 +3170,10 @@ static const char *rewrite(const char *pathname, char *buffer)
       {
         my($name) = "$nameprefix$basename$namesuffix";
         $code .= $iswrap ? qq[
-static $rettype(*next_$name)($proto) = 0;
-
 static ${rettype}real_$name($proto)
 {
-  if(!next_$name)
-  {
-    next_$name = dlsym(RTLD_NEXT, "$name");
-  }
-
+  $rettype(*next_$name)($proto) = dlsym(RTLD_NEXT, "$name");
+  debug("invoking next_$name = %p", next_$name);
   return next_$name($args);
 }
 
