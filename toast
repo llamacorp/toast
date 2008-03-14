@@ -3809,8 +3809,8 @@ sub install($$)
   my($makedir, $rootdir) = @_;
   my($mf) = makefile($makedir) || error("no Makefile found");
   my(@trace);
-  @trace = qw[strace -s 256 -f -F -o make.install.strace] if debugrewrite;
-  @trace = qw[ktrace -i -f make.install.ktrace] if @trace && $^O =~ /bsd/i;
+  @trace = qw[strace -s 256 -f -F -o make.install.trace] if debugrewrite;
+  @trace = qw[ktrace -i -f make.install.trace] if @trace && $^O =~ /bsd/i;
   local($ENV{ROOT}) = $rootdir; # lilo
   local($ENV{DESTDIR}) = $rootdir; # not always on command line due to libtiff
   local($ENV{install_root}) = $rootdir;
@@ -3850,6 +3850,7 @@ sub install($$)
   push(@targets, "modules_install", "INSTALL_MOD_PATH=$rootdir") if $modules;
   cdrun($makedir, @trace, "make", @targets);
   run(@trace, "sh", "-c", "cp -R '$netpbm'/*/ '$rootdir'") if $netpbm;
+  optrun("cat", path($makedir, "make.install.trace")) if debugrewrite;
   error("trace complete; aborting") if debugrewrite;
 }
 
