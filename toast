@@ -403,7 +403,7 @@ BEGIN
         my($new) = $cmdlineopt{$_};
         next unless defined($new);
         my($old) = $opts->{$_};
-        if($new eq getglobalopt($_))
+        if($new eq parseopt($_, getglobalopt($_)))
         {
           next unless defined($old);
           delete($opts->{$_});
