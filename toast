@@ -1651,6 +1651,7 @@ sub showprebuildinfo($$$)
   my($name, $version, $build) = @_;
   explain("$myname $myversion building " . pkgname($name, $version, $build));
   explain("$^X $0 $] $^O");
+  optrun("lsb_release", "-a");
   optrun("uname", "-a");
   optrun("perl", "-V");
   optrun("printenv") || optrun("env");
