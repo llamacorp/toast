@@ -3123,7 +3123,7 @@ static const char *rewrite(const char *pathname, char *buffer)
     wrap void *opendir(const char *pathname);
     wrap void *dlopen(const char *pathname, int flag);
     wrap int creat(const char *pathname, int flags);
-    wrap int open(const char *pathname, int flags, int mode);
+    wrapva int open(const char *pathname, int flags, int mode);
     wrap int access(const char *pathname, int flags);
     wrap int chdir(const char *pathname);
     wrap int xstat(int version, const char *pathname, void *foo);
@@ -3148,11 +3148,14 @@ static const char *rewrite(const char *pathname, char *buffer)
   {
     s/\s+//;
     next unless $_;
-    /^(wrap0?|suppress) (int |\w+ \*)(\w+)\((.*)\)$/ || error;
+    /^(wrap|wrap0|wrapva|suppress) (int |\w+ \*)(\w+)\((.*)\)$/ || error;
     my($iswrap, $rettype, $basename, $proto) = ($1 ne "suppress", $2, $3, $4);
     # wrapped dlopen() always fails with "Service not available" in FreeBSD (?)
     next if $basename eq "dlopen" && $^O eq "freebsd";
     my($iswrap0) = $1 eq "wrap0";
+    my($iswrapva) = $1 eq "wrapva";
+    my($ptrproto) = $proto;
+    $ptrproto =~ s/int mode/.../ or error if $iswrapva;
     my($retfailed, $retfmt) = $rettype =~ /\*/ ? (0, '%p') : (-1, '%d');
     my(@alist) = map { /\w+$/ ? $& : error } split(/, /, $proto);
     my($args) = join(", ", @alist);
@@ -3173,7 +3176,7 @@ static const char *rewrite(const char *pathname, char *buffer)
         $code .= $iswrap ? qq[
 static ${rettype}real_$name($proto)
 {
-  $rettype(*next_$name)($proto) = dlsym(RTLD_NEXT, "$name");
+  $rettype(*next_$name)($ptrproto) = dlsym(RTLD_NEXT, "$name");
   debug("invoking next_$name = %p", next_$name);
   return next_$name($args);
 }
@@ -7796,6 +7799,7 @@ Known bugs:
   - find fails for: sleepycat db, gcc, latex, GNU arch (?), ogle
   - autofind chooses "libraries only" version of xfig
   - build fails for: jikes, sirc, netcat, lcab, gv, bittorrent, xmlcatmgr
+  - build (w/ --preload) fails for python 2.5.2 if ~/.toast is a symlink
   - "toast edit" leaves things in an odd state if you hang up on it
   - "toast rename" is more case-sensitive than it ought to be
   - "toast get" prevents wget from truncating output if transfer restarts
