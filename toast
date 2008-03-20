@@ -1283,6 +1283,7 @@ sub findrelpath($$)
     $ditonameidx{$di} = $#names unless exists($ditonameidx{$di});
     last if $dir eq "/";
     $dir = path($dir, "..");
+    last unless -r($dir);
     last if whiledir # figure out how to get down one level from here
     {
       my($pd, $pi) = stat(path($dir, $_));
