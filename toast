@@ -272,12 +272,14 @@ BEGIN
     "postarmprog" => superuser ? "/sbin/ldconfig" : "",
     "editprog" => "",
     "defaultcmd" => "help",
-    "stickyopts" => "reconfigure confappend makeappend",
+    "stickyopts" => "reconfigure confappend makeappend compilecmd installcmd",
     "findsites" => "all",
     "httpproxy" => exists($ENV{http_proxy}) ? $ENV{http_proxy} : "",
     "ftpproxy" => exists($ENV{ftp_proxy}) ? $ENV{ftp_proxy} : "",
     "confappend" => "",
     "makeappend" => "",
+    "compilecmd" => "",
+    "installcmd" => "",
     "quiet" => "false",
     "expand" => "true",
     "autofind" => "true",
@@ -3804,18 +3806,31 @@ sub make($)
   return true;
 }
 
+sub tracecdrun($@)
+{
+  my($dir, @prog) = @_;
+  return cdrun($dir, @prog) unless debugrewrite;
+  my(@trace) = qw[strace -s 256 -f -F -o make.install.trace];
+  @trace = qw[ktrace -i -f make.install.trace] if $^O =~ /bsd/i;
+  push(@trace, "sh", "-c") if scalar(@prog) == 1;
+  cdrun($dir, @trace, @prog);
+  run("cat", path($dir, "make.install.trace"));
+  error("trace complete; aborting");
+}
+
 sub install($$)
 {
   my($makedir, $rootdir) = @_;
-  my($mf) = makefile($makedir) || error("no Makefile found");
-  my(@trace);
-  @trace = qw[strace -s 256 -f -F -o make.install.trace] if debugrewrite;
-  @trace = qw[ktrace -i -f make.install.trace] if @trace && $^O =~ /bsd/i;
-  local($ENV{ROOT}) = $rootdir; # lilo
+
   local($ENV{DESTDIR}) = $rootdir; # not always on command line due to libtiff
+  announce("export", "$_=$ENV{$_}") for (qw[DESTDIR]);
+  return tracecdrun($makedir, installcmd) if installcmd ne "";
+
+  my($mf) = makefile($makedir) || error("can't figure out how to install");
+  local($ENV{ROOT}) = $rootdir; # lilo
   local($ENV{install_root}) = $rootdir;
   local($ENV{PREFIX}) = $rootdir; # airhook v2
-  announce("export", "$_=$ENV{$_}") for (qw[ROOT DESTDIR install_root PREFIX]);
+  announce("export", "$_=$ENV{$_}") for (qw[ROOT install_root PREFIX]);
   my(@targets) = "install";
   my($man, $subdir, $netpbm, $usedestdir, $nodestdir, $useinstallprefix,
       $cdrtools, $e2fsprogs, $modules);
@@ -3848,10 +3863,8 @@ sub install($$)
   push(@targets, "RUN_QUERY_LOADER_TEST=true", "RUN_QUERY_IMMODULES_TEST=true")
       if -d(path($makedir, "gdk-pixbuf")); # gtk+
   push(@targets, "modules_install", "INSTALL_MOD_PATH=$rootdir") if $modules;
-  cdrun($makedir, @trace, "make", @targets);
-  run(@trace, "sh", "-c", "cp -R '$netpbm'/*/ '$rootdir'") if $netpbm;
-  optrun("cat", path($makedir, "make.install.trace")) if debugrewrite;
-  error("trace complete; aborting") if debugrewrite;
+  tracecdrun($makedir, "make", @targets);
+  run("sh", "-c", "cp -R '$netpbm'/*/ '$rootdir'") if $netpbm;
 }
 
 sub stddirs()
@@ -3907,6 +3920,7 @@ sub compiledata($$)
 {
   my($srcdir, $rootdir) = @_;
   my(@installdir);
+  return false unless compilecmd eq "" && installcmd eq "";
 
   # docbook-xml, maybe other things too?
   my($cat) = path($srcdir, "catalog.xml");
@@ -3948,6 +3962,7 @@ sub compiledata($$)
 sub compilebin($$)
 {
   my($srcdir, $rootdir) = @_;
+  return false unless compilecmd eq "" && installcmd eq "";
   return false if -d(path($srcdir, "xc")); # Xaw3d
   my($one);
   my($ok);
@@ -3975,8 +3990,15 @@ sub compilehelp($$$)
       announce("export", "$_=$initenv{$_}") foreach keys(%initenv);
   local(%ENV) = %initenv;
 
-  $makedir = configure($makedir, armdir);
-  make($makedir);
+  if(compilecmd ne "")
+  {
+    cdrun($makedir, compilecmd);
+  }
+  else
+  {
+    $makedir = configure($makedir, armdir);
+    make($makedir);
+  }
   mkrootdir($rootdir, armdir);
   armhelpers($helperdir);
   install($makedir, $rootdir);
@@ -7301,7 +7323,7 @@ regardless of version number; otherwise, this option writes to a different
 file that applies only to a single package name and version number taken
 together.  Values stored in the more specific file (name and version)
 always override values stored in the less-specific file (name only).
-Default: C<reconfigure confappend makeappend>.
+Default: C<reconfigure confappend makeappend compilecmd installcmd>.
 
 =item B<--findsites=>I<SITELIST>
 
@@ -7355,6 +7377,51 @@ that it applies to the C<make> command or commands (if any) invoked
 by B<toast build>.  As with B<confappend>, use of this option should
 never be necessary; if you find a package that won't build without it,
 please send me a bug report!  Default: empty string.
+
+=item B<--compilecmd=>I<CMD>
+
+Specifies an alternate shell command to compile (but not install)
+a package.  See the B<installcmd> option for further discussion of
+what this option does and does not do.  If I<CMD> is the empty string,
+B<toast build> uses built-in heuristics to figure out what to do based
+on the package contents.  Otherwise, it will execute I<CMD> as a shell
+command according to Perl's usual conventions, which is to say that
+I<CMD> may contain multiple words, shell metacharacters, and so on.
+I<CMD> will be invoked from the top-level source directory, unless that
+directory contains nothing but a single subdirectory, in which case
+B<toast> will change to that directory first, repeating if necessary.
+A reasonable value for I<CMD> might look something like C<./configure &&
+make>; a similarly reasonable value for the B<installcmd> option might
+be C<make install>.  You probably wouldn't want to specify exactly those
+commands, of course, since B<toast> could figure those out on its own; if
+it tries something fancier instead, the B<noreconfigure> option might do
+what you want.  These options are intended to make it easier to customize
+specific packages; if you encounter a package that won't compile at all
+without them, I'd appreciate a bug report.  If all you really need is to
+pass an extra argument or two to a C<configure> script or set a C<make>
+variable, consider using B<confappend> or B<makeappend> instead.  Default:
+empty string (compile automatically).
+
+=item B<--installcmd=>I<CMD>
+
+Specifies an alternate shell command to install a compiled package.
+This option is analogous to the B<compilecmd> option; see that option's
+description for important details.  B<toast build> always installs a
+package in a separate step immediately after successfully compiling
+it.  The compilation step must not attempt to write to any directory
+outside the source directory (with a few exceptions, such as C</tmp>
+and C</dev/null>).  Before invoking the install command, B<toast build>
+will set a special environment variable, C<DESTDIR>, to the path of a
+private directory tree (containing subdirectories such as C<bin> and
+C<lib>) under which the package should install itself.  In principle,
+the install step should write only to C<DESTDIR>.  If the install step
+attempts to write outside of C<DESTDIR>, the source directory, or a few
+other exceptional filesystem locations, B<toast> may attempt to redirect
+the write to C<DESTDIR> using a variety of means including (but not
+limited to) that described under the B<preload> option.  Because these
+rewriting mechanisms can sometimes be prone to failure, it's best to
+restrict actions taken during the install step to the minimum required.
+Default: empty string (install automatically).
 
 =item S<B<--quiet> | B<--noquiet>>
 
@@ -7469,10 +7536,10 @@ disabled, this option has no effect.  Default: disabled.
 
 =item S<B<--crossversion> | B<--nocrossversion>>
 
-When B<crossversion> is enabled, the B<autodisarm>, B<autodemolish> and
-B<autoremove> options will extend their effects to other packages with
-the same name when appropriate.  See the descriptions of those options
-for details.  Default: disabled.
+When B<crossversion> is enabled, the B<autodisarm>, B<autodemolish>,
+B<autoremove> and B<stickyopts> options will extend their effects to other
+packages with the same name when appropriate.  See the descriptions of
+those options for details.  Default: disabled.
 
 =item S<B<--skipmismatched> | B<--noskipmismatched>>
 
@@ -7810,6 +7877,7 @@ Known bugs:
   - "toast build linux" may fail during install phase w/o --nopreload
   - "toast remove" leaves cruft behind after removing last package
   - "toast status mail::spamassassin" is too case-sensitive
+  - "--stickyopts=crossversion" suffers from chicken-and-egg problem
 
 Wish list:
 
@@ -7828,6 +7896,7 @@ Wish list:
   - configure packages to use alternate /etc, /var, etc. when possible
   - share rewriting code between command wrappers and shared library
   - come up with a better way to deal with gnome (guess dependencies?)
+  - track runtime dependencies (e.g. ldd output); trigger auto rebuild
   - figure out where to go with "toast edit" (or document it as-is)
   - let the user give a hash for each explicit URL; verify hashes
   - find, download, and verify hashes, PGP signatures, etc.
