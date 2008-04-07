@@ -3832,11 +3832,12 @@ sub install($$)
   local($ENV{PREFIX}) = $rootdir; # airhook v2
   announce("export", "$_=$ENV{$_}") for (qw[ROOT install_root PREFIX]);
   my(@targets) = "install";
-  my($man, $subdir, $netpbm, $usedestdir, $nodestdir, $useinstallprefix,
+  my($man, $dev, $subdir, $netpbm, $usedestdir, $nodestdir, $useinstallprefix,
       $cdrtools, $e2fsprogs, $modules);
   whilefile
   {
     $man ||= /^install\.man:/;
+    $dev ||= /^install-dev:/;
     $subdir = $1 if /  to install the X version: "cd (\w+);/; # xdaliclock
     $netpbm ||= /^\t\@echo "  make package pkgdir=DIR"$/;
     $usedestdir ||= /\b(DESTDIR|Makefile\.in)\b/; # atop, glibc; not libtiff!
@@ -3852,6 +3853,7 @@ sub install($$)
   $netpbm &&= -x(path($makedir, "installnetpbm")) && path($makedir, "pkg");
   return &install(path($makedir, $subdir), $rootdir) if $subdir;
   push(@targets, "install.man") if $man && reconfigure; # e.g. XFree86
+  push(@targets, "install-dev") if $dev && reconfigure; # e.g. bitlbee 1.2
   push(@targets, "install-libs") if $e2fsprogs && reconfigure;
   @targets = ("package", "pkgdir=$netpbm") if $netpbm;
   @targets = "upgrade" if -r(path($makedir, "postfix-install")); # postfix
