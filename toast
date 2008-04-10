@@ -627,6 +627,16 @@ sub md(@)
   true;
 }
 
+sub mdp(@)
+{
+  foreach(@_)
+  {
+    my($dirname) = dirname($_);
+    $dirname eq "/" || $dirname eq "." || -d($dirname) || &mdp($dirname);
+  }
+  md(@_);
+}
+
 sub optmd(@)
 {
   foreach(@_)
@@ -1147,12 +1157,6 @@ sub geturl($$)
   error($@) if $@ && defined($newurl);
   return $newurl if $newurl;
   
-  if(defined($newurl))
-  {
-    error($@) unless $newurl;
-    return $newurl;
-  }
-
   local(*SOURCE, *DEST);
   explain("creating $dest");
   safeopen(*DEST, ">", $dest);
@@ -3289,7 +3293,7 @@ sub inithelpers($$$)
 
   helprewrite($srcdir, $rootdir, $helperdir, $_, false)
       for (qw[mkdir rmdir touch cp rm ln install chmod test ranlib gzip
-      xmlcatalog], "[");
+      xmlcatalog pkg-config], "[");
   helprewrite($srcdir, $rootdir, $helperdir, $_, true) for (qw[mv]);
   helpnop($helperdir, $_) for (qw[chown chgrp ldconfig install-info mknod]);
   helphspkg($rootdir, $helperdir, $_) for (qw[ghc-pkg]);
@@ -3648,6 +3652,19 @@ install:
     return $dir;
   }
 
+  # SCons replaces make entirely; wrap it in a Makefile (e.g. klick)
+  if(-r(path($dir, "SConstruct")))
+  {
+    writefile
+    (
+      path($dir, "Makefile"),
+      "# $genby\n\n",
+      "all:\n\tscons\n\n",
+      "install:\n\tscons install\n", # not sure how to pass in DESTDIR....
+    );
+    return $dir;
+  }
+
   # some packages (e.g. htmltidy) expect us to locate and run yet another
   # shell script that generates the real configure script that generates....
   for(grep(-r(path($dir, $_)), "build/gnuauto/setup.sh"))
@@ -3902,11 +3919,12 @@ sub mkrootdir($$)
 {
   my($rootdir, $armdir) = @_;
   md($rootdir);
-  md(path($rootdir, $_)) foreach stddirs;
+  mdp(path($rootdir, $_)) foreach stddirs;
   my(%link) = rootlinks;
   ln($link{$_}, path($rootdir, $_)) foreach keys(%link);
   my($p) = $rootdir;
   optrelln($rootdir, $p = path($p, $_)) for unpath($armdir), unpath($rootdir);
+  s!^/!! and mdp(path($rootdir, $_)) for @INC; # PDFlib-Lite/7.0.3
 }
 
 sub mkxmlcatalog($@)
