@@ -627,16 +627,6 @@ sub md(@)
   true;
 }
 
-sub mdp(@)
-{
-  foreach(@_)
-  {
-    my($dirname) = dirname($_);
-    $dirname eq "/" || $dirname eq "." || -d($dirname) || &mdp($dirname);
-  }
-  md(@_);
-}
-
 sub optmd(@)
 {
   foreach(@_)
@@ -650,6 +640,16 @@ sub optmd(@)
     }
   }
   true;
+}
+
+sub mdp(@)
+{
+  foreach(@_)
+  {
+    my($dirname) = dirname($_);
+    $dirname eq "/" || $dirname eq "." || -d($dirname) || &mdp($dirname);
+  }
+  optmd(@_);
 }
 
 ##############################################################################
