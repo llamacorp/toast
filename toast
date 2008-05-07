@@ -3481,6 +3481,23 @@ sub configure($$)
     return $dir;
   }
 
+  # Construct a Makefile to invoke setup.py on behalf of various Python source
+  # packages (e.g. BitTorrent, Cython):
+  if(-r(path($dir, "setup.py")))
+  {
+    $dir = path($dir, "setup.py.toast.d");
+    md($dir);
+    writefile
+    (
+      path($dir, "Makefile"),
+      "# $genby\n\n",
+      "all:\n\tcd .. && python setup.py build\n\n",
+      "install:\n\tcd .. && python setup.py install " .
+          "--prefix=\Q$prefix\E --root=\$(DESTDIR)\n",
+    );
+    return $dir;
+  }
+
   for(qw[build_unix build.unix]) # e.g. Sleepycat DB and nvi, respectively
   {
     my($bubuilddir) = path($dir, $_);
@@ -3635,21 +3652,6 @@ install:
           "# $genby\n\nall:\n\ttrue\n\ninstall:\n\t@cmd\n");
       return $dir;
     }
-  }
-
-  # Construct a Makefile to invoke setup.py on behalf of certain Python source
-  # packages (notably BitTorrent):
-  if(-r(path($dir, "setup.py")))
-  {
-    writefile
-    (
-      path($dir, "Makefile"),
-      "# $genby\n\n",
-      "all:\n\tpython setup.py build\n\n",
-      "install:\n\tpython setup.py install " .
-          "--prefix=\Q$prefix\E --root=\$(DESTDIR)\n",
-    );
-    return $dir;
   }
 
   # SCons replaces make entirely; wrap it in a Makefile (e.g. klick)
