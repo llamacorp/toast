@@ -1428,6 +1428,7 @@ sub guessnv(@)
 {
   my(@urls) = @_;
   s/^(cvs.*)\#(\d+)$/$1-$2/ for @urls;
+  /^git:/ && s/(\.git)?#/./g for @urls;
   my($base) = collapse(map(stripext(basename(stripquery($_))), @urls));
   $base =~ /^([\w]+[\w\-]*[a-z]+)[-_]v?(\d[\w\.\+\-]+)$/i  # Cryptix_src_3-1-1
       || $base =~ /^([a-z][a-z_-]*[a-z])\.(\d[\d\.]+)$/i #device-mapper.1.00.07
@@ -2612,6 +2613,40 @@ sub smartgeturl($$)
     return $url;
   }
 
+  if($url =~ m!^git:([^#]+)(\#([^\-]\S*))?$!)
+  {
+    error("bad git url: $url") if $2 && !$3;
+    my($repo, $rev) = ($1, $3);
+    $repo = "git:$repo" if $repo =~ m!^//!;
+    my($commit) = $rev || "";
+    $commit =~ s/^\d+\#//;
+    my($tmpdir) = path($dir, "toast.git.d");
+    my($subdir) = path($tmpdir, "repo");
+    md($tmpdir);
+    chownnonroot($tmpdir);
+    cdrunnonroot($tmpdir, qw[git clone -q --], $repo, "repo");
+    if($commit ne "")
+    {
+      cdrunnonroot($subdir, qw[git reset --hard -q], $commit);
+    }
+    else
+    {
+      cdrunnonroot($subdir, "git rev-list --timestamp -n 1 HEAD > ../rev");
+      my(@revlist) = readfile(path($tmpdir, "rev"));
+      error("trouble parsing git rev-list") unless scalar(@revlist) == 1 &&
+          $revlist[0] =~ /^(\d+) (\w+)$/;
+      $rev = "$1#$2";
+      $url .= "#$rev";
+    }
+    rmall(path($subdir, ".git"));
+    my($name) = basename($repo);
+    $name = $name eq "." ? $rev : "$name-$rev";
+    $name =~ s/#/./g;
+    cdrun($subdir, qw(tar czf), "../../$name.tar.gz", ".");
+    rmall($tmpdir);
+    return $url;
+  }
+
   my(%visited);
   for(1..5)
   {
@@ -2730,7 +2765,7 @@ sub get(@)
   for(@urls)
   {
     my($newurl) = smartgeturl($_, $tempdir);
-    if($newurl ne $_ && autochange)
+    if($newurl ne $_ && (/^git:/ || autochange))
     {
       $_ = $newurl;
       $changed = true;
@@ -6937,6 +6972,9 @@ URLs of the form C<ssh://[username@]hostname/absolute/path/to/file>.
 If B<cvs> is available, B<toast get> can also handle (even less standard)
 URLs of the form C<cvsroot[+ssh]:$CVSROOT/module[#unixtime]>; note that
 $CVSROOT often starts with a colon, resulting in two colons in a row.
+If B<git> is available, B<toast get> can handle similar non-standard
+URLs of the form C<git:repository[#commit]>; this feature is experimental
+and details of its behavior remain subject to change.
 
 =item S<B<toast build> [ I<PACKAGE> ...]>
 
