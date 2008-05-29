@@ -3328,7 +3328,7 @@ sub inithelpers($$$)
 
   helprewrite($srcdir, $rootdir, $helperdir, $_, false)
       for (qw[mkdir rmdir touch cp rm ln install chmod test ranlib gzip
-      xmlcatalog pkg-config], "[");
+      xmlcatalog pkg-config gcc], "[");
   helprewrite($srcdir, $rootdir, $helperdir, $_, true) for (qw[mv]);
   helpnop($helperdir, $_) for (qw[chown chgrp ldconfig install-info mknod]);
   helphspkg($rootdir, $helperdir, $_) for (qw[ghc-pkg]);
