@@ -1709,6 +1709,7 @@ sub magicstring($)
       || /\x00ustar[ \x00]/;
   return ".shar" if m:^(\#!/bin/sh\n)?\# This is a shell archive:;
   return ".patch" if /^(diff |\*\*\* |Only in |Common subdirectories: |--- )/m;
+  return "script" if m:^#!/\w+/\w:;
 
   return "";
 }
@@ -2064,6 +2065,12 @@ sub extractfile($$)
   {
     silentcd($outdir);
     safeexec("unzip", "-qo", $infile) if $type eq ".zip";
+    if($type eq "script")
+    {
+      md("bin");
+      writescript(path("bin", basename($infile)), readfile($infile));
+      exit(0);
+    }
     safeopen(*STDIN, "<", $infile);
     extractstdin($type);
     error;
