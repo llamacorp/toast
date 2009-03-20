@@ -2341,6 +2341,7 @@ sub findnewpkg($$)
   my(@sites) =
   (
     "freshmeat" => "http://freshmeat.net/projects-xml/$lcname/$lcname.xml",
+    "googlecode" => "http://code.google.com/p/$lcname/downloads/list",
     "sourceforge" => "http://prdownloads.sourceforge.net/$lcname/",
     "gnu" => "http://ftp.gnu.org/gnu/$lcname/",
     "cpan" => "http://cpan.uwinnipeg.ca/module/$perlname",
@@ -7389,10 +7390,10 @@ Default: C<reconfigure confappend makeappend compilecmd installcmd>.
 =item B<--findsites=>I<SITELIST>
 
 Set the list of web sites or other locations searched by B<toast
-find> for packages that have not already been added.  I<SITELIST>
-is a space-separated list of URLs and/or special words taken from the
-following list: C<freshmeat>, C<sourceforge>, C<gnu>, C<cpan>, or C<all>
-(which stands for all of the preceding words in the order given).
+find> for packages that have not already been added.  I<SITELIST> is a
+space-separated list of URLs and/or special words taken from the following
+list: C<freshmeat>, C<googlecode>, C<sourceforge>, C<gnu>, C<cpan>, or
+C<all> (which stands for all of the preceding words in the order given).
 The C<*> character will be replaced by the name of the package to find
 wherever it occurs.  If you want a literal C<*> character, too bad.
 Default: C<all>.
