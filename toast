@@ -2351,7 +2351,7 @@ sub findnewpkg($$)
   my(@findsites) = split(/\s+/, findsites);
   @findsites = map { ($_ eq "all") ? @all : $_ } @findsites;
   @findsites = map { exists($sites{$_}) ? $sites{$_} : $_ } @findsites;
-  s/\*/\Q$name\E/g for @findsites;
+  s/\*/$name/g for @findsites;
   @findsites = $myurl if $lcname eq $myname;
   @findsites = uniq(@findsites);
 
