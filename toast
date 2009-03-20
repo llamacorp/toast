@@ -2337,12 +2337,16 @@ sub findnewpkg($$)
   my($lcname) = lc($name);
   my($perlname) = $name;
   $perlname =~ s/-/::/g;
+  my($sfname) = $lcname;
+  $sfname = substr($sfname,0,1) . '/' . substr($sfname,0,2) . '/' . $sfname
+      if length($sfname)>2;
 
   my(@sites) =
   (
     "freshmeat" => "http://freshmeat.net/projects-xml/$lcname/$lcname.xml",
     "googlecode" => "http://code.google.com/p/$lcname/downloads/list",
-    "sourceforge" => "http://prdownloads.sourceforge.net/$lcname/",
+    "sourceforge" => "http://www.mirrorservice.org/sites/" .
+        "download.sourceforge.net/pub/sourceforge/$sfname/",
     "gnu" => "http://ftp.gnu.org/gnu/$lcname/",
     "cpan" => "http://cpan.uwinnipeg.ca/module/$perlname",
   );
