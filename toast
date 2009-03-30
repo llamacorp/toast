@@ -2350,7 +2350,7 @@ sub findnewpkg($$)
 
   my(@sites) =
   (
-    "freshmeat" => "http://freshmeat.net/projects-xml/$lcname/$lcname.xml",
+    "freshmeat" => "http://freshmeat.net/projects/$lcname",
     "googlecode" => "http://code.google.com/p/$lcname/downloads/list",
     "sourceforge" => "http://www.mirrorservice.org/sites/" .
         "download.sourceforge.net/pub/sourceforge/$sfname/",
@@ -2373,29 +2373,30 @@ sub findnewpkg($$)
     my(@ret) = eval
     {
       my($tries) = 1;
-      if($url =~ m!^http://(freshmeat.net)/.*\.xml$!)
+      if($url =~ m!^http://(freshmeat.net)/projects/[^/]+$!)
       {
-        local(*XML, $_);
+        local(*HTML, $_);
         my($sitename) = $1;
-        openurl(*XML, $url);
-        my($notfound, %fmurl);
-        while(<XML>)
+        openurl(*HTML, $url);
+        my($notfound, $fmurl);
+        while(<HTML>)
         {
-          $notfound = /^Error: project not found/i ? 1 : 0
-              if !defined($notfound);
-          $fmurl{$1} = $2 while m!<url_(\w+)>([^<]+)</!g;
+          $notfound ||= /^404 Not Found/i;
+          if(m!>Download</a>!i)
+          {
+            ($fmurl) = linksfromstring($_, $url);
+            last;
+          }
         }
-        close(XML) || error("unable to contact $sitename");
+        close(HTML) || error("unable to contact $sitename");
 
-        error("no listing for package $name on $sitename") if $notfound;
+        error("no listing for package $name on $sitename")
+            if $notfound && !$fmurl;
+        $fmurl || error("no suitable URL for package $name on $sitename");
 
-        my($redirurl);
-        $redirurl ||= $fmurl{$_} for qw(bz2 tgz zip deb rpm homepage);
-        $redirurl || error("no suitable URL for package $name on $sitename");
-
-        my($redirhead) = httphead($redirurl);
+        my($redirhead) = httphead($fmurl);
         $redirhead =~ /^Location: ([^\r\n]+)/im ||
-            error("unexpected response from $redirurl");
+            error("unexpected response from $fmurl");
         $url = $1;
         # wget can't always get FTP directory listing w/o trailing slash
         $url .= "/" if $url =~ m!^ftp:.*/[^/\.]+$!; # e.g. atop
