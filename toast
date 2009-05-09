@@ -1156,7 +1156,7 @@ sub geturl($$)
   } if $url !~ /^(file|ssh)/;
   error($@) if $@ && defined($newurl);
   return $newurl if $newurl;
-  
+
   local(*SOURCE, *DEST);
   explain("creating $dest");
   safeopen(*DEST, ">", $dest);
@@ -1271,10 +1271,10 @@ sub abspath($)
 sub findrelpath($$)
 {
   my($from, $to) = @_;
-  
+
   # allow last component of $to to be missing or not a directory
   my(@append);
-  if(!-d($to)) 
+  if(!-d($to))
   {
     push(@append, basename($to));
     $to = dirname($to);
@@ -2509,7 +2509,7 @@ sub choose($@)
     ++$i;
     my($name, $version, $build, @urls) = @$_;
     my($margin) = "   ";
-    ($cvi, $margin) = ($i, "0) ") 
+    ($cvi, $margin) = ($i, "0) ")
         if !$cvi && $curver && $version && $curver eq $version;
     print("$margin$i) ",
         join(" ", map(substr($_, $pl, $sl ? -$sl : 9999), @urls)), "\n");
@@ -2958,7 +2958,7 @@ name=], time() . "-$$", q[
 PATH=], quote($ENV{"PATH"}), q[
 
 ghc-pkg "$@" --user # let --auto-ghci-libs do its thing
- 
+
 for arg; do
   case "$arg" in
     -*) ;;
@@ -6183,7 +6183,7 @@ modification follow.
 
   "Copyright" also means copyright-like laws that apply to other kinds of
 works, such as semiconductor masks.
- 
+
   "The Program" refers to any copyrightable work licensed under this
 License.  Each licensee is addressed as "you".  "Licensees" and
 "recipients" may be individuals or organizations.
@@ -6616,7 +6616,7 @@ actual knowledge that, but for the patent license, your conveying the
 covered work in a country, or your recipient's use of the covered work
 in a country, would infringe one or more identifiable patents in that
 country that you have reason to believe are valid.
-  
+
   If, pursuant to or in connection with a single transaction or
 arrangement, you convey, or propagate by procuring conveyance of, a
 covered work, and grant a patent license to some of the parties
@@ -6791,7 +6791,7 @@ $0 =~ /\bconfigure$/i ? selfconfigure(@ARGV) : main(@ARGV);
 
 =head1 NAME
 
-toast - simple source-and-symlinks package manager for root and non-root users
+toast - packageless package manager for Unix systems and non-root users
 
 =head1 SYNOPSIS
 
@@ -6800,11 +6800,13 @@ B<toast> S<[ I<OPTION> ... ]> S<[ I<COMMAND> ]> S<[ I<ARGUMENT> ... ]>
 =head1 DESCRIPTION
 
 B<toast> is a simple, self-contained tool for downloading, building,
-installing, uninstalling and managing software packages.  Unlike
-traditional package-management systems, B<toast> is primarily intended
-to work directly with software distributed as source code, rather than
-in some precompiled or specialized binary format, such as RPM.  Binary
-packages are also supported.
+installing, cleanly uninstalling, and managing software packages.
+Unprivileged users can use it to install software in their home
+directories.  System administrators can use it to temporarily or
+permanently install software system-wide in a customizable location.
+Unlike traditional package-management systems, B<toast> works directly
+with software distributed as source code rather than requiring precompiled
+binary packages from a central authority (though it can use those too).
 
 =head2 Purpose
 
@@ -6819,35 +6821,28 @@ B<toast> is designed to be used in any of three ways:
 
 =item 1.
 
-Installing and managing software in the home directory of a non-root user
-on a multi-user system.  For example, I like to be able to run valgrind,
-xdaliclock, Opera, and a few other programs on the Linux cluster at work
-without having to bother the IT department about installing or supporting
-those packages.
+Installing and managing software in a non-root user's home directory.
+Need to grab something recent or obscure in a hurry?  You don't need
+to bug your distribution's maintainers or the IT department at work,
+and you don't need to build it or even find and download it yourself;
+B<toast arm FOO> does it all.
 
 =item 2.
 
-Installing and managing software packages in parallel to those installed
-by a conventional package manager.  For example, if I were maintaining a
-computer system running some kind of mainstream Unix-like OS, it might be
-convenient to be able to quickly install the latest OpenSSH from source
-into C</usr/local> in order to work around a security vulnerability,
-and then conveniently remove it once my vendor or distribution releases
-an official package for that version.
+Installing and managing software packages as root, in parallel to those
+installed by a conventional package manager.  For instance, I can install
+the latest OpenSSH client system-wide (in C</usr/local>) with B<sudo
+toast arm openssh>, then cleanly remove it after my distribution or
+vendor releases an official package with B<sudo toast remove openssh>.
 
 =item 3.
 
 Installing and managing all software for an entire Unix system; that is,
-using B<toast> as the one true package manager for the system.  This is
-what I do on my (single-user) Linux box at home.
+using B<toast> as the one true package manager for the system.  Not a
+common use case, to be sure, but isn't it nice to know that the tool
+you're using is up to the task?
 
 =back
-
-Use #1 seems to be by far the most common in practice.  As far as I know,
-I'm the only one crazy enough to attempt #3, and no one bothers with #2.
-In general, it's probably a good idea to use a real distribution (such
-as Debian), and to use its native package management system whenever
-possible, rather than using B<toast> to replace it or go behind its back.
 
 =head2 Requirements
 
@@ -6898,16 +6893,20 @@ whatnot, so that your environment variables will be set up automatically
 whenever you log in.  For more information, run C<toast help env>,
 or just C<toast env> to see what variables would be set.
 
-To have B<toast> install itself as root under C</toast> with symlinks in
-C</usr/local>, you should first either create a user called C<toast> whose
-UID and GID will be used when building packages, or create a configuration
-file specifying an alternate username (C<fred> in this example):
+Before using B<toast> to install itself as root, it is recommended (but
+not required) that you create a C<toast> user for building packages,
+or create a configuration file specifying an alternate username (C<fred>
+in this example):
 
   echo 'username=fred' >> /etc/toast.conf
 
-If you want to use directories other than C</toast> and C</usr/local>,
-now would be a good time to specify those as well, since relocating
-armed packages can be tricky and time-consuming:
+If you skip this step, B<toast> will search for an unused UID and GID,
+which could conceivably cause security warnings or other problems.
+
+If you want to use directories other than C</toast> for the package
+repository and C</usr/local> for symlinks to armed packages, now would
+be a good time to specify those as well, since relocating armed packages
+can be tricky and time-consuming:
 
   echo 'storedir=/path/to/use/to/store/files' >> /etc/toast.conf
   echo 'armdir=/place/to/put/symlinks/to/armed/packages' >> /etc/toast.conf
@@ -6927,7 +6926,7 @@ download at C<http://www.toastball.net/toast/>. The unmodified B<toast>
 script can be copied to and run from any location, and you can use
 B<toast man> to view the man page without having to install it first.
 The default option settings should be sensible, and any necessary
-directories will be created on demand.
+directories will be created as needed.
 
 A GNU-like C<configure> program (OK, symbolic link) is also provided
 with the official B<toast> distribution for your convenience.  You can
@@ -6935,9 +6934,10 @@ supply an alternate installation directory prefix with C<./configure
 --prefix=foo>, or keep the default prefix of C</usr> by running
 C<./configure> without arguments.  Then run C<make>, become root if
 necessary, and run C<make install>, which will install both the B<toast>
-program and a man page.  Sadly, B<toast>'s C<configure> script does
-not support most of the other command-line options and features of
-B<configure> scripts produced by the real GNU autoconf.
+program and a man page.  C<DESTDIR> also works as expected.  Sadly,
+B<toast>'s C<configure> script does not support most of the other
+command-line options and features of B<configure> scripts produced by
+the real GNU autoconf.
 
 =head2 Commands
 
