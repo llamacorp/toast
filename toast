@@ -1538,14 +1538,20 @@ BEGIN
   sub dropprivs()
   {
     return true unless superuser;
+    error if $^V && eval('${^TAINT}');
     initnonroot;
     explain("running as user $usertext");
     $uid || error("refusing to run as root");
+    $! = undef;
     $( = $gid;
+    error("can't set GID: $!") if $!;
     $) = "$gid $gid";
-    ($<, $>) = ($uid, $uid);
+    error("can't set groups: $!") if $!;
+    ($>, $<) = ($uid, $uid);
+    error("can't set UID: $!") if $!;
     $> == $< || error("real and effective UIDs do not match");
     $> == $uid || error("uid is not set correctly");
+    error if $^V && eval('${^TAINT}');
   }
 }
 
