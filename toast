@@ -3978,9 +3978,16 @@ sub mkrootdir($$)
   mdp(path($rootdir, $_)) foreach stddirs;
   my(%link) = rootlinks;
   ln($link{$_}, path($rootdir, $_)) foreach keys(%link);
-  my($p) = $rootdir;
-  optrelln($rootdir, $p = path($p, $_)) for unpath($armdir), unpath($rootdir);
-  s!^/!! and mdp(path($rootdir, $_)) for @INC; # PDFlib-Lite/7.0.3
+
+  # make $rootdir/$rootdir and $rootdir/$armdir point back at $rootdir,
+  # without running afoul of Cygwin's 10-symlink limit:
+warning("XXX");
+  (mdp(path($rootdir, unpath(dirname($_)))),
+      optrelln($rootdir, path($rootdir, unpath($_)))) for ($armdir, $rootdir);
+warning("YYY");
+
+  my(@inc) = @INC; # don't modify @INC!
+  s!^/!! and mdp(path($rootdir, $_)) for @inc; # PDFlib-Lite/7.0.3
 }
 
 sub mkxmlcatalog($@)
@@ -4115,7 +4122,7 @@ sub polishrootdir($$)
 
   my(%link) = rootlinks;
   -l && rm($_) foreach map { path($rootdir, $_) }
-      (keys(%link), unpath($rootdir), unpath($armdir));
+      (keys(%link), path(unpath($rootdir)), path(unpath($armdir)));
 
   optrmall(path($rootdir, "info", "dir"));
 
@@ -6883,7 +6890,7 @@ only on Perl with no modules at all.
 Of course, if you already have a previous version of B<toast> up and
 running, just type C<toast upgrade toast>.  If B<toast> is installed
 system-wide, but you want to install the latest version in your home
-directory, try B<toast arm toast>.
+directory, try C<toast arm toast>.
 
 B<toast> should now have installed itself and everything it
 needs under C<I<$HOME>/.toast>.  You'll probably need to add
