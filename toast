@@ -3981,10 +3981,8 @@ sub mkrootdir($$)
 
   # make $rootdir/$rootdir and $rootdir/$armdir point back at $rootdir,
   # without running afoul of Cygwin's 10-symlink limit:
-warning("XXX");
   (mdp(path($rootdir, unpath(dirname($_)))),
       optrelln($rootdir, path($rootdir, unpath($_)))) for ($armdir, $rootdir);
-warning("YYY");
 
   my(@inc) = @INC; # don't modify @INC!
   s!^/!! and mdp(path($rootdir, $_)) for @inc; # PDFlib-Lite/7.0.3
