@@ -20,7 +20,8 @@ exit 1
 ##############################################################################
 
 #!perl
-&the_correct_line_number_for_this_line_is(23); # perl thinks this is line 2...
+#line 24
+# the #line directive above tells perl that this is line 24, not line 3
 
 use 5; # oldest version that actually works might be 5.003; not sure....
 
@@ -49,31 +50,16 @@ $myname eq "toast" && $myauthor eq "zaphod" || die; # avoid accidents w/ CVS
 
 ##############################################################################
 
-BEGIN
+sub trace(;$)
 {
-  my($linedelta, $filedelta);
-
-  sub the_correct_line_number_for_this_line_is($)
+  my($i, $out, $prev) = (shift || 1, "", "");
+  while(my($package, $file, $line) = caller($i++))
   {
-    my($realline) = @_;
-    my($package, $file, $line) = caller(0);
-    $linedelta = $realline - $line;
-    $filedelta = $file;
+    $out .= ($prev eq $file ? "/" : $out ? "; $file: " : "$file: ") . $line;
+    $prev = $file;
   }
-
-  sub trace(;$)
-  {
-    my($i, $out, $prev) = (shift || 1, "", "");
-    while(my($package, $file, $line) = caller($i++))
-    {
-      $line += $linedelta if defined($linedelta) && $file eq $filedelta;
-      $out .= ($prev eq $file ? "/" : $out ? "; $file: " : "$file: ") . $line;
-      $prev = $file;
-    }
-    $out .= " (from #!perl line)" unless defined($linedelta);
-    $out .= " v$myversion";
-    return $out;
-  }
+  $out .= " v$myversion";
+  return $out;
 }
 
 sub msg($@)
