@@ -1012,6 +1012,7 @@ sub openhttpurl(*$;$)
     openhttp(*HANDLE, $url, undef, $proxy);
     local($_);
     $_ = <HANDLE>;
+    error("$url: unexpected EOF") unless defined($_);
     s/\r?\n?$//;
     m|^HTTP/[\w\.]+ [23]0[01237] | || error("$url: $_");
     my($redirect);
