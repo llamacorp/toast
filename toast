@@ -977,7 +977,6 @@ sub openhttp(*$;$;$;$;$)
       "User-Agent: $uagent\r\nAccept: */*\r\n$clen\r\n$body";
   tcpconnect(*HANDLE, $host, $port);
   print HANDLE $request || error("write to $host:$port: $!");
-  shutdown(HANDLE, 1) || error("shutdown write $host:$port: $!");
 }
 
 sub httphead($)
