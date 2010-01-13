@@ -1006,14 +1006,14 @@ sub openhttpurl(*$;$)
 {
   local(*HANDLE) = shift;
   my($url, $proxy) = @_;
+  local($_);
   for(1..5)
   {
     openhttp(*HANDLE, $url, undef, $proxy);
     local($_);
     $! = undef;
     $_ = <HANDLE>;
-    error("$url: $!") if $!;
-    error("$url: unexpected EOF") unless defined($_);
+    error($! ? "$url: $!" : "$url: unexpected EOF") unless defined($_);
     s/\r?\n?$//;
     m|^HTTP/[\w\.]+ [23]0[01237] | || error("$url: $_");
     my($redirect);
@@ -1022,7 +1022,6 @@ sub openhttpurl(*$;$)
       $redirect = $1 if /^location:\s*(\S+)/i;
       last if /^\r?\n?$/;
     }
-    error("$url: $!") if $!;
     return $url unless $redirect;
     ($url) = linksfromstring("<a href=$redirect>", $url); # *wince*
   }
