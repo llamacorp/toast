@@ -3945,6 +3945,8 @@ sub install($$)
   push(@targets, "RUN_QUERY_LOADER_TEST=true", "RUN_QUERY_IMMODULES_TEST=true")
       if -d(path($makedir, "gdk-pixbuf")); # gtk+
   push(@targets, "modules_install", "INSTALL_MOD_PATH=$rootdir") if $modules;
+  -r and safechmod(getmode($_) | 0111, $_) for map(path($makedir, $_),
+      qw(install.sh install-sh)); # e.g. ht 2.0.18 under OS X
   tracecdrun($makedir, "make", @targets);
   run("sh", "-c", "cp -R '$netpbm'/*/ '$rootdir'") if $netpbm;
 }
