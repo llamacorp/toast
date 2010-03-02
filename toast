@@ -941,15 +941,21 @@ sub urlunescape($)
 sub tcpconnect(*$$;$)
 {
   local(*HANDLE) = shift;
-  my($host, $port, $ip) = @_;
-  $ip = gethostbyname($host) || error("gethostbyname $host: $!")
-      unless defined($ip);
-  socket(HANDLE, 2, 1, 0) || error("$!");
+  my($host, $port, $iaddr) = @_;
+  $iaddr = gethostbyname($host) || error("gethostbyname $host: $!")
+      unless defined($iaddr);
+  my($pf, $type, $proto, $paddr) = (2, 1, 0, pack("Sna4x8", 2, $port, $iaddr));
+  eval q{
+    use Socket;
+    $paddr = sockaddr_in($port, $iaddr);
+    ($pf, $type) = (PF_INET, SOCK_STREAM);
+    $proto = getprotobyname("tcp");
+  };
+  socket(HANDLE, $pf, $type, $proto) || error("$!");
   binmode(HANDLE) || error("binmode: $!"); # perl 5.8.0 utf8 bug
-  connect(HANDLE, pack("Sna4x8", 2, $port, $ip)) ||
-      error("connect $host:$port: $!");
+  connect(HANDLE, $paddr) || error("connect $host:$port: $!");
   unbuffer(HANDLE);
-  return $ip;
+  return $iaddr;
 }
 
 sub openhttp(*$;$;$;$;$)
@@ -976,7 +982,7 @@ sub openhttp(*$;$;$;$;$)
   my($request) = "$method $path HTTP/1.0\r\nHost: $hdrhost\r\n".
       "User-Agent: $uagent\r\nAccept: */*\r\n$clen\r\n$body";
   tcpconnect(*HANDLE, $host, $port);
-  print HANDLE $request || error("write to $host:$port: $!");
+  print HANDLE $request or error("write to $host:$port: $!");
 }
 
 sub httphead($)
