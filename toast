@@ -2999,11 +2999,12 @@ sub helpccache($$$)
   $found ||= -x(laxpath($_, "ccache")) for split(/:/, $path);
   return true unless $found;
 
+  my $qpath = quote($path);
   for($cmd, "$cmd.helper")
   {
     writescript(path($helperdir, $_), qq[#!/bin/sh
 # $genby
-PATH=$path
+PATH=$qpath
 exec ccache $cmd "\$\@"
 ]);
   }
