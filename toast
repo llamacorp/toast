@@ -1572,9 +1572,11 @@ BEGIN
 sub optwhich($)
 {
   my($prog) = @_;
+  local($_);
   for(split(/:/, $ENV{"PATH"}))
   {
-    my($path) = path($_, $prog);
+    next if $_ eq "";
+    my($path) = laxpath($_, $prog);
     $path = abspath($path) unless $path =~ m!^/!;
     return $path if -x($path);
   }
@@ -2992,14 +2994,9 @@ exec cat > "$rootdir/hspkg/$name"
 sub helpccache($$$)
 {
   my($rootdir, $helperdir, $cmd) = @_;
-  return true unless ccache;
+  return true unless ccache && optwhich("ccache");
 
-  my($path) = $ENV{"PATH"};
-  my($found);
-  $found ||= -x(laxpath($_, "ccache")) for split(/:/, $path);
-  return true unless $found;
-
-  my $qpath = quote($path);
+  my $qpath = quote($ENV{"PATH"});
   for($cmd, "$cmd.helper")
   {
     writescript(path($helperdir, $_), qq[#!/bin/sh
