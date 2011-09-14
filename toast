@@ -3214,6 +3214,8 @@ static const char *rewrite(const char *pathname, char *buffer)
     suppress int chown(const char *pathname, int user, int group);
     suppress int lchown(const char *pathname, int user, int group);
     suppress int fchown(int fd, int user, int group);
+    suppress int getuid();
+    suppress int geteuid();
   ]);
 
   for(@decls)
