@@ -292,6 +292,7 @@ BEGIN
     "ignorecase" => "true",
     "showurls" => "true",
     "showopts" => "true",
+    "libvar" => "LD_LIBRARY_PATH",
     "infodir" => "true",
     "xmlcatalog" => "true",
     "hspkg" => "false",
@@ -1630,9 +1631,9 @@ sub newenv()
   push(@vars, newenvvar("INFOPATH", "info", "")) if infodir;
   push(@vars, newenvvar("CPATH", "include"));
   push(@vars, newenvvar("LIBRARY_PATH", "lib"));
+  push(@vars, newenvvar(libvar, "lib")) if libvar;
   push(@vars, newenvvar("XML_CATALOG_FILES", $x, "/$x", " ")) if xmlcatalog;
   push(@vars, newenvvar("GHC_PACKAGE_PATH", $hspkgdir, "")) if hspkg;
-  # there's also a LIBRARY_RUN_PATH or something that affects ld somehow...
   return @vars;
 }
 
@@ -7233,14 +7234,16 @@ of being added or moved to the front of B<PATH>.  Other environment
 variables are similarly affected: C<MANPATH> (used to find man pages),
 C<INFOPATH> (used by GNU info), C<CPATH> (used by gcc to find include
 files), C<XML_CATALOG_FILES> (used by DocBook and other tools to locate
-XML catalogs), and C<LIBRARY_PATH> (used by GNU ld to find libraries;
-not to be confused with C<LD_LIBRARY_PATH>, which also affects shared
-library loading at run time).  Note that if C<MANPATH> in particular is
-unset, B<toast env> will run C<man -w> to try to get the default value; if
-this causes problems, it may help to ensure that C<MANPATH> is set before
-invoking B<toast env>.  This command assumes a Bourne-like shell -- zsh
-and bash will work, tcsh won't.  None of this is likely to be necessary if
-I<ARMDIR> is C</usr> or C</usr/local> (the default when running as root).
+XML catalogs), C<LIBRARY_PATH> (used by GNU ld to find libraries), and
+C<LD_LIBRARY_PATH> (which has the same effect as C<LIBRARY_PATH> and
+additionally affects all shared library loading at run time; see B<toast
+help libvar> for less drastic alternatives).  Note that if C<MANPATH>
+in particular is unset, B<toast env> will run C<man -w> to try to get
+the default value; if this causes problems, it may help to ensure that
+C<MANPATH> is set before invoking B<toast env>.  This command assumes
+a Bourne-like shell -- zsh and bash will work, tcsh won't.  None of
+this is likely to be necessary if I<ARMDIR> is C</usr> or C</usr/local>
+(the default when running as root).
 
 =item S<B<toast help> [ I<TOPIC> ] ...>
 
@@ -7826,6 +7829,25 @@ When B<showopts> is enabled, B<toast status> always displays any stored
 options associated with each displayed package.  If B<showopts> is
 disabled, B<toast status> never displays this information.  Default:
 enabled.
+
+=item B<--libvar=>I<VAR>
+
+Optionally tells B<toast env> to set an additional variable I<VAR>
+that points into the C<lib> subdirectory of each I<ALTARMDIR>.
+You would typically set this to the empty string, C<LD_RUN_PATH>,
+or C<LD_LIBRARY_PATH>.  C<LD_RUN_PATH> typically instructs ld to
+compile the current I<ALTARMDIR>s into any newly-built programs, such
+that those programs will search those directories for shared libraries.
+C<LD_LIBRARY_PATH> has a more radical effect: in addition to influencing
+ld, it essentially instructs all dynamically linked programs to search
+the I<ALTARMDIR>s for shared libraries.  (This often works, but can
+cause terrible problems if you use toast to build a library that is
+sufficiently similar to a pre-existing library installed in one of the
+default locations.)  If I<VAR> is the empty string, B<toast env> sets
+neither variable.  Note that B<toast env> always sets the relatively
+uncontroversial C<LIBRARY_PATH> environment variable, which will at least
+allow ld to find both shared and static libraries in I<ALTARMDIR>s at
+compile time.  Default: C<LD_LIBRARY_PATH>.
 
 =item S<B<--infodir> | B<--noinfodir>>
 
