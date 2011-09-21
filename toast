@@ -6943,13 +6943,12 @@ C<I<$HOME>/.toast/armed/bin> to your C<PATH> environment variable in order
 to be able to use B<toast> and any other packages it installs.  You can
 adjust C<PATH> (and a few other useful variables) with this command:
 
-  eval `$HOME/.toast/armed/bin/toast env`
+  eval $($HOME/.toast/armed/bin/toast env)
 
-(Note that those are backticks, not single quotes.)  It probably makes
-sense to add the above command to your C<.zshenv> or C<.profile> or
-whatnot, so that your environment variables will be set up automatically
-whenever you log in.  For more information, run C<toast help env>,
-or just C<toast env> to see what variables would be set.
+It probably makes sense to add the above command to your C<.zshenv> or
+C<.profile> or whatnot, so that your environment variables will be set
+up automatically whenever you log in.  For more information, run C<toast
+help env>, or just C<toast env> to see what variables would be set.
 
 Before using B<toast> to install itself as root, it is recommended (but
 not required) that you create a C<toast> user for building packages,
@@ -7223,26 +7222,25 @@ the B<quiet> option is in force).
 =item S<B<toast env>>
 
 Prints shell commands to make armed packages usable.  This command is
-normally invoked with C<eval `toast env`> (note the backticks) from a
-shell initialization file such as C<.zshenv> or C<.profile>.  This will
-add I<ALTARMDIR>C</bin> to the front of C<PATH> for each I<ALTARMDIR>, in
-order.  (By default, I<ALTARMDIR> is the same as I<ARMDIR>, which usually
-defaults to C<~/.toast/armed>; this is the directory that contains a
-merged view of all armed packages.)  If a particular I<ALTARMDIR>C</bin>
-already appears anywhere in C<PATH>, it will remain in its current
-position instead of being added or moved to the front of B<PATH>.
-Other environment variables are similarly affected: C<MANPATH> (used to
-find man pages), C<INFOPATH> (used by GNU info), C<CPATH> (used by gcc
-to find include files), C<XML_CATALOG_FILES> (used by DocBook and other
-tools to locate XML catalogs), and C<LIBRARY_PATH> (used by GNU ld to
-find libraries; not to be confused with C<LD_LIBRARY_PATH>, which also
-affects shared library loading at run time).  Note that if C<MANPATH>
-in particular is unset, B<toast env> will run C<man -w> to try to get
-the default value; if this causes problems, it may help to ensure that
-C<MANPATH> is set before invoking B<toast env>.  This command assumes
-a Bourne-like shell -- zsh and bash will work, tcsh won't.  None of
-this is likely to be necessary if I<ARMDIR> is C</usr> or C</usr/local>
-(the default when running as root).
+normally invoked with C<eval $(toast env)> from a shell initialization
+file such as C<.zshenv> or C<.profile>.  This will add I<ALTARMDIR>C</bin>
+to the front of C<PATH> for each I<ALTARMDIR>, in order.  (By default,
+I<ALTARMDIR> is the same as I<ARMDIR>, which usually defaults to
+C<~/.toast/armed>; this is the directory that contains a merged view of
+all armed packages.)  If a particular I<ALTARMDIR>C</bin> already appears
+anywhere in C<PATH>, it will remain in its current position instead
+of being added or moved to the front of B<PATH>.  Other environment
+variables are similarly affected: C<MANPATH> (used to find man pages),
+C<INFOPATH> (used by GNU info), C<CPATH> (used by gcc to find include
+files), C<XML_CATALOG_FILES> (used by DocBook and other tools to locate
+XML catalogs), and C<LIBRARY_PATH> (used by GNU ld to find libraries;
+not to be confused with C<LD_LIBRARY_PATH>, which also affects shared
+library loading at run time).  Note that if C<MANPATH> in particular is
+unset, B<toast env> will run C<man -w> to try to get the default value; if
+this causes problems, it may help to ensure that C<MANPATH> is set before
+invoking B<toast env>.  This command assumes a Bourne-like shell -- zsh
+and bash will work, tcsh won't.  None of this is likely to be necessary if
+I<ARMDIR> is C</usr> or C</usr/local> (the default when running as root).
 
 =item S<B<toast help> [ I<TOPIC> ] ...>
 
