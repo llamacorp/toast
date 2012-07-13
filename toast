@@ -1595,11 +1595,16 @@ sub which($)
 sub newenvvar($$;$;$)
 {
   my($varname, $subdir, $default, $delim) = @_;
+  my(@subdirs) = ref($subdir) ? (@$subdir) : ($subdir);
   $delim ||= ":";
   my($adirs, @adirs) = altarmdirs;
   push(@adirs, $2 eq "" ? armdir : $2) while $adirs =~ /(^|:)([^:]*)/g;
-  my(@dirs) = map(path($_, $subdir),
-      uniq(map(m!^/! ? $_ : path(storedir, $_), @adirs)));
+  my(@dirs);
+  for $subdir (@subdirs)
+  {
+    push(@dirs, map(path($_, $subdir),
+        uniq(map(m!^/! ? $_ : path(storedir, $_), @adirs))));
+  }
   my($current) = exists($ENV{$varname}) ? $ENV{$varname} : $default;
 
   if(defined($current))
@@ -1632,6 +1637,8 @@ sub newenv()
   push(@vars, newenvvar("CPATH", "include"));
   push(@vars, newenvvar("LIBRARY_PATH", "lib"));
   push(@vars, newenvvar(libvar, "lib")) if libvar;
+  push(@vars,
+      newenvvar("PKG_CONFIG_PATH", ["lib/pkgconfig", "share/pkgconfig"]));
   push(@vars, newenvvar("XML_CATALOG_FILES", $x, "/$x", " ")) if xmlcatalog;
   push(@vars, newenvvar("GHC_PACKAGE_PATH", $hspkgdir, "")) if hspkg;
   return @vars;
@@ -7233,8 +7240,9 @@ anywhere in C<PATH>, it will remain in its current position instead
 of being added or moved to the front of B<PATH>.  Other environment
 variables are similarly affected: C<MANPATH> (used to find man pages),
 C<INFOPATH> (used by GNU info), C<CPATH> (used by gcc to find include
-files), C<XML_CATALOG_FILES> (used by DocBook and other tools to locate
-XML catalogs), C<LIBRARY_PATH> (used by GNU ld to find libraries), and
+files), C<PKG_CONFIG_PATH> (used by pkg-config to find C<.pc> files),
+C<XML_CATALOG_FILES> (used by DocBook and other tools to locate XML
+catalogs), C<LIBRARY_PATH> (used by GNU ld to find libraries), and
 C<LD_LIBRARY_PATH> (which has the same effect as C<LIBRARY_PATH> and
 additionally affects all shared library loading at run time; see B<toast
 help libvar> for less drastic alternatives).  Note that if C<MANPATH>
