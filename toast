@@ -1,27 +1,4 @@
-#!/bin/sh
-
-##############################################################################
-#                                                                            #
-# This entire file is toast, a program for installing and managing software. #
-# Copyright (C) 2003-2010 Jacques Frechet.                                   #
-# This file should also contain version 3 of the GNU General Public License, #
-# which includes its own copyright notice.                                   #
-#                                                                            #
-# For more information on toast, including purpose, usage, licensing, and    #
-# LACK OF ANY WARRANTY, visit http://www.toastball.net/toast/, run "toast"   #
-# without arguments, or refer to the documentation at the end of this file.  #
-#                                                                            #
-##############################################################################
-
-exec perl -x $0 ${1+"$@"}
-echo "Can't find perl in PATH; aborting." >&2
-exit 1
-
-##############################################################################
-
-#!perl
-#line 24
-# the #line directive above tells perl that this is line 24, not line 3
+#! /usr/bin/env perl
 
 use 5; # oldest version that actually works might be 5.003; not sure....
 
