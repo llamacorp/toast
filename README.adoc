@@ -1,0 +1,106 @@
+Toast
+=====
+:Author: Ram Raghunathan
+:Email: ram@llama.is
+
+== What is toast?
+Toast is yummy yummy breakfast, often made by toasting bread (hence
+the name) and spreading a dab of butter on it.
+
+Oh, you meant this program? Well, read on.
+
+From http://toastball.net/toast, we find that toast is ``a simple,
+self-contained tool for downloading, building, installing, cleanly
+uninstalling, and managing software packages''. All these functions
+are done fairly transparently, and toast can figure out how to handle
+a package with no specification from the user (most of the time).
+
+== When would I use toast?
+The maintainer of this repository uses it for two purposes:
+
+. Manage user-level packages without having to resort to the system's
+package manager
+. Manage system-level packages not provided by the system's package
+manager
+
+In my experience, these are the two cases toast is designed for, and
+really shines.
+
+== Why should I use toast?
+Toast greatly simplifies the following steps that are often
+accompanied with installing packages from source:
+
+* Configuring the compilation system (autoconf, `./configure`, etc.)
+* Compilation (usually just `make`)
+* Installation
+* Easy enabling and disabling of packages (called `arm' and `disarm'
+  in toast)
+* Handling multiple versions of packages
+* Uninstalling packages cleanly
+* Updating relevant environment variables to allow for transparent
+  access of programs, manpages, libraries, etc.
+
+In the rare circumstance where toast does not know how to handle a
+package, it offers persistent options that are fine-grained enough to
+tell toast how to handle the package within its framework.
+
+== Who made toast?
+As can be seen from http://toastball.net/toast, toast has been
+diligently maintained by Jacques Frechet since 2003, with the last
+update in mid-2012. I (Ram Raghunathan, the maintainer of this
+gitrepo) do not have any connection to Mr. Frechet, but forked toast
+to add in my enhancements and updates. To keep the commit history, I
+imported Mr. Frechet's work as faithfully as I could into this
+gitrepo.
+
+== I am sold. How do I use toast?
+To install toast you can do one of three things:
+
+* Clone this repository and run `toast/toast arm toast`.
+* Clone this repository and run `./configure
+  --prefix=${HOME}/.toast/armed && make install` like you
+  would most other programs you install from source.
+* Run `curl 'https://github.com/ramLlama/toast/raw/master/toast' |
+  perl - arm toast`. You can replace `curl' with the equivalent `wget'
+  or `GET' command to output the page to STDOUT.
+
+All three methods achieve the same result of installing toast into
+it's directory structure under `${HOME}/.toast`. Toast can also be
+installed as root to manage system-level packages. Please see the
+manpage for more information about installation and the directory
+structure.
+
+Once you have installed toast, start off by either running `toast`
+with no arguments, or looking at the manpage with `man toast`,
+however you roll. Remember that until you source the result of `toast
+env`, toast will not be in your `$PATH`, so you will have to enter the
+path to the executable yourself. Some of the more useful commands at
+the beginning are `arm`, `disarm`, `add`, `remove`, and `env`.
+
+== By the way, why is it called toast?!
+A question I too long wondered. As the original author (Jacques
+Frechet) explains in a fairly long blogpost
+http://jf64.wordpress.com/2009/10/04/a-brief-history-of-toastball/[here],
+he has a tradition of naming his computers `toastball' and he created
+the program `toast' to install software on them. I thought about
+changing the name, but honestly, toast is a short, sweet name that is
+unique enough to remember, and this is largely Mr. Frechet's work
+after all!
+
+== Help! Monkeys are attacking my face and I don't know what to do!
+Sadly, I don't know of an effective monkey repellent. That being said,
+if you have a question or issue with toast,
+https://github.com/ramLlama/toast/issues[open an issue] here on
+github! Alternatively, email me at ram@llama.is with the subject
+prefix `[toast]` so that I know to see your message.
+
+== Toast has made life beautiful again, and I want to give back
+Awesome! I like nothing more than to see that my work, (and Mr. Frechet's,
+of course!) has helped you. If you would like to contribute back,
+please open up a pull request here on github and I'll see what I can
+do!
+
+Just a note: while toast is remarkable in its adaptability, it is
+quite the magician. After all, the program is over 8000 lines of code,
+written over more than a decade. Be careful where you tread, for here
+be dragons.
