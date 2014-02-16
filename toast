@@ -1625,14 +1625,47 @@ sub newenv()
   return @vars;
 }
 
-sub printnewenv()
+
+sub stringifyenvvar_posix($$$)
 {
+  my($key, $value, $export) = @_;
+  return "$key=$value;" . ($export ? " export $key;" : "");
+}
+
+sub stringifyenvvar_fish($$$)
+{
+  my($key, $value, $export) = @_;
+
+  # fish sets up arrays as space-delimited, so split the value. Colon
+  # is always a array delimiter, so I don't have to worry about
+  # escaped colons
+  return 'set ' . ($export ? '-x ' : '') . "$key " . ($value =~ s/:/ /gr) . ';';
+}
+
+my %stringifyenvvar =
+(
+ "bash" => \&stringifyenvvar_posix,
+ "dash" => \&stringifyenvvar_posix,
+ "fish" => \&stringifyenvvar_fish,
+ "ksh"	=> \&stringifyenvvar_posix,
+ "sh"	=> \&stringifyenvvar_posix,
+ "zsh"  => \&stringifyenvvar_posix
+);
+
+sub printnewenv(;$)
+{
+  my($shell) = @_;
+  $shell //= basename($ENV{SHELL});
+
   my(@vars) = newenv;
   while(@vars)
   {
     my($key, $value) = (shift(@vars), shellescape(shift(@vars)));
-    my($export) = exists($ENV{$key}) ? "" : " export $key;";
-    print("$key=$value;$export\n");
+    my($export) = !exists($ENV{$key});
+    my($envvarstring) = exists($stringifyenvvar{$shell}) ?
+      $stringifyenvvar{$shell}->($key, $value, $export) :
+      stringifyenvvar_posix($key, $value, $export);
+    print($envvarstring . "\n");
   }
   return @vars;
 }
@@ -1646,8 +1679,8 @@ sub setbuildenv()
 
 sub env(@)
 {
-  @_ && error;
-  printnewenv;
+  (1 >= scalar(@_)) or error;
+  printnewenv($_[0]);
   return true;
 }
 
@@ -5731,6 +5764,12 @@ sub rejectall(@)
   [];
 }
 
+sub allowone(@)
+{
+  (1 >= scalar(@_)) or error("more than one argument");
+  \@_;
+}
+
 sub allowall(@)
 {
   my(@args) = @_;
@@ -5828,7 +5867,7 @@ sub parse_change(@) { requireurls(rejectempty(rejectmissing(uselatestversion(rej
 sub parse_status(@) { allowempty(rejectmissing(parse(@_))); }
 sub parse_bug(@) { allowempty(rejectmissing(parse(@_))); }
 sub parse_check(@) { rejectall(@_); }
-sub parse_env(@) { rejectall(@_); }
+sub parse_env(@) { allowone(@_); }
 sub parse_help(@) { allowall(@_); }
 sub parse_man(@) { rejectall(@_); }
 
@@ -7219,31 +7258,35 @@ somewhere under I<STOREDIR>; each file contains full output from the
 build subprocess (the indented lines printed by B<toast build> unless
 the B<quiet> option is in force).
 
-=item S<B<toast env>>
+=item S<B<toast env> [ I<SHELL> ]>
 
 Prints shell commands to make armed packages usable.  This command is
-normally invoked with C<eval $(toast env)> from a shell initialization
-file such as C<.zshenv> or C<.profile>.  This will add I<ALTARMDIR>C</bin>
-to the front of C<PATH> for each I<ALTARMDIR>, in order.  (By default,
-I<ALTARMDIR> is the same as I<ARMDIR>, which usually defaults to
-C<~/.toast/armed>; this is the directory that contains a merged view of
-all armed packages.)  If a particular I<ALTARMDIR>C</bin> already appears
-anywhere in C<PATH>, it will remain in its current position instead
-of being added or moved to the front of B<PATH>.  Other environment
-variables are similarly affected: C<MANPATH> (used to find man pages),
-C<INFOPATH> (used by GNU info), C<CPATH> (used by gcc to find include
-files), C<PKG_CONFIG_PATH> (used by pkg-config to find C<.pc> files),
-C<XML_CATALOG_FILES> (used by DocBook and other tools to locate XML
-catalogs), C<LIBRARY_PATH> (used by GNU ld to find libraries), and
-C<LD_LIBRARY_PATH> (which has the same effect as C<LIBRARY_PATH> and
-additionally affects all shared library loading at run time; see B<toast
-help libvar> for less drastic alternatives).  Note that if C<MANPATH>
-in particular is unset, B<toast env> will run C<man -w> to try to get
-the default value; if this causes problems, it may help to ensure that
-C<MANPATH> is set before invoking B<toast env>.  This command assumes
-a Bourne-like shell -- zsh and bash will work, tcsh won't.  None of
-this is likely to be necessary if I<ARMDIR> is C</usr> or C</usr/local>
-(the default when running as root).
+normally invoked with some form of C<eval $(toast env)> from a shell
+initialization file such as C<.zshenv> or C<.profile>.  This will add
+I<ALTARMDIR>C</bin> to the front of C<PATH> for each I<ALTARMDIR>, in
+order.  (By default, I<ALTARMDIR> is the same as I<ARMDIR>, which
+usually defaults to C<~/.toast/armed>; this is the directory that
+contains a merged view of all armed packages.)  If a particular
+I<ALTARMDIR>C</bin> already appears anywhere in C<PATH>, it will
+remain in its current position instead of being added or moved to the
+front of B<PATH>.  Other environment variables are similarly affected:
+C<MANPATH> (used to find man pages), C<INFOPATH> (used by GNU info),
+C<CPATH> (used by gcc to find include files), C<PKG_CONFIG_PATH> (used
+by pkg-config to find C<.pc> files), C<XML_CATALOG_FILES> (used by
+DocBook and other tools to locate XML catalogs), C<LIBRARY_PATH> (used
+by GNU ld to find libraries), and C<LD_LIBRARY_PATH> (which has the
+same effect as C<LIBRARY_PATH> and additionally affects all shared
+library loading at run time; see B<toast help libvar> for less drastic
+alternatives).  Note that if C<MANPATH> in particular is unset,
+B<toast env> will run C<man -w> to try to get the default value; if
+this causes problems, it may help to ensure that C<MANPATH> is set
+before invoking B<toast env>.  If invoked without arguments, it will
+output commands for the shell specified by the $SHELL environment
+variable.  Otherwise, it will print command for the shell specified as
+the argument. If the shell is unknown, it will print out POSIX
+(Bourne-compatible) commands.  None of this is likely to be necessary
+if I<ARMDIR> is C</usr> or C</usr/local> (the default when running as
+root).
 
 =item S<B<toast help> [ I<TOPIC> ] ...>
 
