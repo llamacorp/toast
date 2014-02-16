@@ -7246,13 +7246,13 @@ by B<toast build> have not yet been removed by C<toast clean>.
 
 =item S<B<toast bug> [ I<BUILD> | I<PACKAGE> ] ...>
 
-Sends a bug report about a broken build.  Use this command to let
-me know when you think B<toast> ought to be able to build a package,
-but it isn't working.  If you would like to hear back from me about
-your bug report, or if there's anything else you think I should know,
-email me at C<toast-bugs@toastball.net>.  If invoked without arguments,
-sends build output from the most recent broken build; otherwise, sends
-build output from the most recent broken build for each argument.  Build
+Sends a bug report about a broken build.  Use this command to let me
+know when you think B<toast> ought to be able to build a package, but
+it isn't working.  If you would like to hear back from me about your
+bug report, or if there's anything else you think I should know, email
+me at C<toast-bugs@llama.is>.  If invoked without arguments, sends build
+output from the most recent broken build; otherwise, sends build
+output from the most recent broken build for each argument.  Build
 output for each broken build is stored in a file called B<broken.log>
 somewhere under I<STOREDIR>; each file contains full output from the
 build subprocess (the indented lines printed by B<toast build> unless
