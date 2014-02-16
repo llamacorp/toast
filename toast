@@ -1696,6 +1696,7 @@ sub magicstring($)
   return ".gz" if /^\x1f\x8b/;
   return ".bz2" if /^BZ/;
   return ".zip" if /^PK\x03\x04/;
+  return ".xz" if /^\xfd7zXZ\x00/;
   return ".rpm" if /^\xed\xab\xee\xdb/;
   return ".deb" if /^\!\<arch\>\n/;
   return ".cpio" if /^07070[a-f\d]{30}/i;
@@ -1718,6 +1719,7 @@ sub magicfile($)
   my($type) = magicstring($buf);
   if(!$type && length($buf) >= magicbufsize)
   {
+    # May be a zip file?
     seek(FILE, -22, 2) || error("seek $file: $!");
     defined(read(FILE, $buf = "", 22)) || error("read $file: $!");
     $type = ".zip" if $buf =~ /^PK\x05\x06/; # end-of-directory signature
@@ -2028,9 +2030,18 @@ sub extractstdin($)
   rpmextractstdin if $type eq ".rpm";
   debextractstdin if $type eq ".deb";
 
-  if($type =~ /^\.(Z|gz|bz2)$/)
+  if($type =~ /^\.(Z|gz|bz2|xz)$/)
   {
-    my($prog) = $type eq ".bz2" ? "bunzip2" : "gunzip";
+    # Find out which program to use to uncompress
+    my($prog) = undef;
+    if ((".Z" eq $type) || (".gz" eq $type)) {
+      $prog = "gunzip";
+    } elsif (".bz2" eq $type) {
+      $prog = "bunzip2";
+    } elsif (".xz" eq $type) {
+      $prog = "unxz";
+    }
+
     open(STDIN, "$prog |") || $prog eq "gunzip" && zfork || error("$prog: $!");
     binmode(STDIN) || error("binmode stdin: $!"); # perl 5.8.0 utf8 bug
     autoextractstdin;
