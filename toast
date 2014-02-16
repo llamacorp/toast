@@ -18,6 +18,8 @@ use 5.006_000; # Need 5.6 for use warnings below
 use warnings;
 use strict;
 
+use File::Basename;
+
 ##############################################################################
 
 my($rcsid) = q$Id: toast,v 1.245 2003/11/24 00:46:28 zaphod Exp $;
@@ -124,8 +126,6 @@ sub uniq(@)
 
 ##############################################################################
 
-sub dirname($) { my($arg) = @_; $arg =~ s|/[^/]*$|| ? $arg : "."; }
-sub basename($) { my($arg) = @_; $arg =~ s|.*/||g; $arg; }
 sub stripext($) { my($a)=@_;$a=~s/(\.(t|sh)ar(\.g?z)?)?(\.[a-z]\w*)?$//i;$a }
 sub stripquery($) { my($arg) = @_; $arg =~ s/\?.*$//; $arg; }
 
