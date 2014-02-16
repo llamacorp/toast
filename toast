@@ -1,18 +1,7 @@
 #! /usr/bin/env perl
-
-use 5; # oldest version that actually works might be 5.003; not sure....
-
-# allow script to run even in the absence of strict.pm, etc.
-BEGIN { $^W = 1 } # use warnings
-BEGIN { $^H |= 0x602 } # use strict
-
-# warn if "use warnings" and "use strict" are not both in effect
-if($^V && %SIG) # test requires perl 5.6.0 with working %SIG (not microperl)
-{
-  { my($ok); { local $SIG{'__WARN__'} = sub { die };
-      $ok = !eval('1 + "a"') } $ok || warn("use warnings"); }
-  { eval('$foo = 1') && warn("use strict"); $@ = undef }
-}
+use 5.006_000; # Need 5.6 for use warnings below
+use warnings;
+use strict;
 
 ##############################################################################
 
@@ -805,7 +794,7 @@ sub safeexec(@)
 {
   my(@prog) = @_;
   {
-    local($^W) = false; # suppress misguided exec failure warning
+    no warnings 'exec';
     exec(@prog);
   }
   error("exec @prog: $!");
@@ -817,7 +806,7 @@ sub runimpl(@)
   announce(@prog);
   my($result);
   {
-    local($^W) = false; # suppress misguided exec failure warning
+    no warnings 'exec';
     $result = system(@prog);
   }
   return "exec @prog: $!" unless defined($result) && $result != -1;
@@ -897,7 +886,7 @@ sub openprog(*$@)
   announce($prog, @args);
   @args = shellescape(@args);
   {
-    local($^W) = false; # suppress misguided exec failure warning
+    no warnings 'exec';
     if(!open(HANDLE, "$prog @args |"))
     {
       explain("failed to exec $prog: $!");
@@ -3494,7 +3483,7 @@ sub configure($$)
     $noprefix ||= -x(path($dir, "installnetpbm")); # netpbm 10.19
     if($mozilla)
     {
-      local($^W) = false; # suppress misguided exec failure warning
+      no warnings 'exec';
       $confopts{"$mozilla=gtk2"} ||= system(qw(pkg-config gtk+)) == 0;
     }
 
