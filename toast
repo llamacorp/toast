@@ -9,7 +9,7 @@
 # which includes its own copyright notice.                                   #
 #                                                                            #
 # For more information on toast, including purpose, usage, licensing, and    #
-# LACK OF ANY WARRANTY, visit http://github.com/ramLlama/toast, run "toast"  #
+# LACK OF ANY WARRANTY, visit https://github.com/ramLlama/toast, run "toast" #
 # without arguments, or refer to the documentation at the end of this file.  #
 #                                                                            #
 ##############################################################################
@@ -27,8 +27,8 @@ my $toast_version = '$VERSION$';
 my $toast_build_time = '$BUILD_DATE$';
 my $toast_builder = '$BUILDER';
 
-my $toast_webpage_url = "http://github.com/ramLlama/toast";
-my $toast_issues_url = "http://github.com/ramLlama/toast/issues";
+my $toast_webpage_url = "https://github.com/ramLlama/toast";
+my $toast_issues_url = "https://github.com/ramLlama/toast/issues";
 my $toast_copyright = <<'EOF';
 Copyright (C)      2014 Ram Raghunathan
 Copyright (C) 2003-2010 Jacques Frechet
@@ -6964,14 +6964,11 @@ with the LWP Perl module.  The third command is broken over three lines,
 though your shell should let you paste it exactly as written; it relies
 only on Perl with no modules at all.
 
-  wget -O- http://toastball.net/toast/toast|perl -x - arm toast
+  curl -L https://github.com/ramLlama/toast/raw/master/toast | perl - arm toast
 
-  GET http://toastball.net/toast/toast|perl -x - arm toast
+  wget -O - https://github.com/ramLlama/toast/raw/master/toast | perl - arm toast
 
-  perl -e 'socket(S,2,1,0)&&connect(S,pack("Sna4x8",2,80,gethostbyname(
-      $h="toastball.net")||die("dns")))&&syswrite(S,"GET /toast/toast "
-      ."HTTP/1.0\nHost: $h\n\n")&&open(STDIN,"<&S")&&exec($^X,qw(-x -
-      arm toast))||die($!)'
+  GET https://github.com/ramLlama/toast/raw/master/toast | perl - arm toast
 
 Of course, if you already have a previous version of B<toast> up and
 running, just type C<toast upgrade toast>.  If B<toast> is installed
@@ -7017,10 +7014,14 @@ B<toast env> stuff described above, but when using another location,
 you may wish to put some variation on the B<toast env> command given
 above in C</etc/profile> or something.
 
-The above procedure is by no means required in order to install or
-use B<toast>.  Both the uncompressed B<toast> script and an official
-compressed tarball distribution containing B<toast> are available for
-download at C<http://www.toastball.net/toast/>. The unmodified B<toast>
+The above procedure is by no means required in order to install or use
+B<toast>.  An official compressed tarball distribution containing
+B<toast> are available for download at
+C<https://github.com/ramLlama/toast/releases>.  An uncompressed
+version can be found at
+C<https://github.com/ramLlama/toast/raw/$VERSION/toast> where $VERSION
+is tag/name of the release, as seen on
+C<https://github.com/ramLlama/toast/releases>.  The unmodified B<toast>
 script can be copied to and run from any location, and you can use
 B<toast man> to view the man page without having to install it first.
 The default option settings should be sensible, and any necessary
