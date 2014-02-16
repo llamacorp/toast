@@ -1,0 +1,2543 @@
+INFO: Starting on version 1.169
+DEBUG: curl --silent http://toastball.net/toast/toast-1.169.tar.gz | tar -xz --strip-components=1 -C /home/ram/github/mine/toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-08-09T00:00:00Z" git commit -a -m Update to version 1.169 -m fixed make dist bug: strip leading 0 from date components to force decimal
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-08-09T00:00:00Z" git tag -a v1.169 -m Toast Version 1.169
+INFO: Completed version 1.169
+--------------------------------------------------------------------------
+INFO: Starting on version 1.170
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-08-09T19:33:29-0700" git commit -a -m Update to version 1.170 -m tweaked man page
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-08-09T19:33:29-0700" git tag -a v1.170 -m Toast Version 1.170
+INFO: Completed version 1.170
+--------------------------------------------------------------------------
+INFO: Starting on version 1.171
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-08-10T23:50:48-0700" git commit -a -m Update to version 1.171 -m work under perl 5.005_03; don't rely on warnings.pm or strict.pm
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-08-10T23:50:48-0700" git tag -a v1.171 -m Toast Version 1.171
+INFO: Completed version 1.171
+--------------------------------------------------------------------------
+INFO: Starting on version 1.172
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-08-11T20:36:42-0700" git commit -a -m Update to version 1.172 -m link rewrite.so with -ldl under Linux only; toast build URL for existing broken pkg no longer tries to re-get
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-08-11T20:36:42-0700" git tag -a v1.172 -m Toast Version 1.172
+INFO: Completed version 1.172
+--------------------------------------------------------------------------
+INFO: Starting on version 1.173
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-08-11T21:05:01-0700" git commit -a -m Update to version 1.173 -m provide non-root users with sensible defaults
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-08-11T21:05:01-0700" git tag -a v1.173 -m Toast Version 1.173
+INFO: Completed version 1.173
+--------------------------------------------------------------------------
+INFO: Starting on version 1.174
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-08-12T01:00:13-0700" git commit -a -m Update to version 1.174 -m added autofind option; tweaked man page
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-08-12T01:00:13-0700" git tag -a v1.174 -m Toast Version 1.174
+INFO: Completed version 1.174
+--------------------------------------------------------------------------
+INFO: Starting on version 1.175
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-08-24T22:44:22-0700" git commit -a -m Update to version 1.175 -m make toast's Makefile more portable; let toast build under itself
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-08-24T22:44:22-0700" git tag -a v1.175 -m Toast Version 1.175
+INFO: Completed version 1.175
+--------------------------------------------------------------------------
+INFO: Starting on version 1.176
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-08-24T23:25:11-0700" git commit -a -m Update to version 1.176 -m more Makefile fixes; work with ancient pod2man
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-08-24T23:25:11-0700" git tag -a v1.176 -m Toast Version 1.176
+INFO: Completed version 1.176
+--------------------------------------------------------------------------
+INFO: Starting on version 1.177
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-08-24T23:31:55-0700" git commit -a -m Update to version 1.177 -m parse package names even if storedir doesn't exist
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-08-24T23:31:55-0700" git tag -a v1.177 -m Toast Version 1.177
+INFO: Completed version 1.177
+--------------------------------------------------------------------------
+INFO: Starting on version 1.178
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-08-24T23:37:53-0700" git commit -a -m Update to version 1.178 -m -B doesn't work on filehandles in old versions of perl
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-08-24T23:37:53-0700" git tag -a v1.178 -m Toast Version 1.178
+INFO: Completed version 1.178
+--------------------------------------------------------------------------
+INFO: Starting on version 1.179
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-08-24T23:44:33-0700" git commit -a -m Update to version 1.179 -m corrected man page
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-08-24T23:44:33-0700" git tag -a v1.179 -m Toast Version 1.179
+INFO: Completed version 1.179
+--------------------------------------------------------------------------
+INFO: Starting on version 1.180
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-08-24T23:48:52-0700" git commit -a -m Update to version 1.180 -m greatly improved autofind logic
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-08-24T23:48:52-0700" git tag -a v1.180 -m Toast Version 1.180
+INFO: Completed version 1.180
+--------------------------------------------------------------------------
+INFO: Starting on version 1.181
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-08-25T05:06:36-0700" git commit -a -m Update to version 1.181 -m removed autofind debug spew
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-08-25T05:06:36-0700" git tag -a v1.181 -m Toast Version 1.181
+INFO: Completed version 1.181
+--------------------------------------------------------------------------
+INFO: Starting on version 1.182
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-08-25T17:23:59-0700" git commit -a -m Update to version 1.182 -m improved handling of URLs that end in slash and/or point to HTML
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-08-25T17:23:59-0700" git tag -a v1.182 -m Toast Version 1.182
+INFO: Completed version 1.182
+--------------------------------------------------------------------------
+INFO: Starting on version 1.183
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-08-25T23:51:27-0700" git commit -a -m Update to version 1.183 -m debugrewrite now uses ktrace instead of strace under *BSD
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-08-25T23:51:27-0700" git tag -a v1.183 -m Toast Version 1.183
+INFO: Completed version 1.183
+--------------------------------------------------------------------------
+INFO: Starting on version 1.184
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-08-26T18:44:01-0700" git commit -a -m Update to version 1.184 -m allow dashes in autofind package names (e.g. man-pages)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-08-26T18:44:01-0700" git tag -a v1.184 -m Toast Version 1.184
+INFO: Completed version 1.184
+--------------------------------------------------------------------------
+INFO: Starting on version 1.185
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-08-26T18:47:29-0700" git commit -a -m Update to version 1.185 -m don't wrap dlopen() under FreeBSD; use ktrace -i for debugrewrite
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-08-26T18:47:29-0700" git tag -a v1.185 -m Toast Version 1.185
+INFO: Completed version 1.185
+--------------------------------------------------------------------------
+INFO: Starting on version 1.186
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-08-26T23:21:16-0700" git commit -a -m Update to version 1.186 -m added toast upgrade; exposed (and documented!) autorename option
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-08-26T23:21:16-0700" git tag -a v1.186 -m Toast Version 1.186
+INFO: Completed version 1.186
+--------------------------------------------------------------------------
+INFO: Starting on version 1.187
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-08-30T06:47:16-0700" git commit -a -m Update to version 1.187 -m toast get no longer chases URLs in a loop (e.g. apache)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-08-30T06:47:16-0700" git tag -a v1.187 -m Toast Version 1.187
+INFO: Completed version 1.187
+--------------------------------------------------------------------------
+INFO: Starting on version 1.188
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-08-31T20:18:38-0700" git commit -a -m Update to version 1.188 -m added toast change and autochange option
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-08-31T20:18:38-0700" git tag -a v1.188 -m Toast Version 1.188
+INFO: Completed version 1.188
+--------------------------------------------------------------------------
+INFO: Starting on version 1.189
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-08-31T23:03:34-0700" git commit -a -m Update to version 1.189 -m refuse to upgrade packages with version-neutral URLs
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-08-31T23:03:34-0700" git tag -a v1.189 -m Toast Version 1.189
+INFO: Completed version 1.189
+--------------------------------------------------------------------------
+INFO: Starting on version 1.190
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-08-31T23:25:35-0700" git commit -a -m Update to version 1.190 -m bend over backwards for netpbm
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-08-31T23:25:35-0700" git tag -a v1.190 -m Toast Version 1.190
+INFO: Completed version 1.190
+--------------------------------------------------------------------------
+INFO: Starting on version 1.191
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-09-01T22:25:59-0700" git commit -a -m Update to version 1.191 -m debugged/extended command-line parsing; added defaultcmd option
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-09-01T22:25:59-0700" git tag -a v1.191 -m Toast Version 1.191
+INFO: Completed version 1.191
+--------------------------------------------------------------------------
+INFO: Starting on version 1.192
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-09-02T03:31:06-0700" git commit -a -m Update to version 1.192 -m fixed typo in debugrewrite docs
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-09-02T03:31:06-0700" git tag -a v1.192 -m Toast Version 1.192
+INFO: Completed version 1.192
+--------------------------------------------------------------------------
+INFO: Starting on version 1.193
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-09-02T18:03:09-0700" git commit -a -m Update to version 1.193 -m "perl - arm foo < toast" should work now
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-09-02T18:03:09-0700" git tag -a v1.193 -m Toast Version 1.193
+INFO: Completed version 1.193
+--------------------------------------------------------------------------
+INFO: Starting on version 1.194
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-09-03T02:41:43-0700" git commit -a -m Update to version 1.194 -m fixed toast change
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-09-03T02:41:43-0700" git tag -a v1.194 -m Toast Version 1.194
+INFO: Completed version 1.194
+--------------------------------------------------------------------------
+INFO: Starting on version 1.195
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-09-03T05:08:59-0700" git commit -a -m Update to version 1.195 -m handle binary packages with spurious parent directories
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-09-03T05:08:59-0700" git tag -a v1.195 -m Toast Version 1.195
+INFO: Completed version 1.195
+--------------------------------------------------------------------------
+INFO: Starting on version 1.196
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-09-04T00:26:29-0700" git commit -a -m Update to version 1.196 -m support non-gzip .rpm archives
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-09-04T00:26:29-0700" git tag -a v1.196 -m Toast Version 1.196
+INFO: Completed version 1.196
+--------------------------------------------------------------------------
+INFO: Starting on version 1.197
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-09-04T02:51:19-0700" git commit -a -m Update to version 1.197 -m look for install.sh (e.g. Opera)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-09-04T02:51:19-0700" git tag -a v1.197 -m Toast Version 1.197
+INFO: Completed version 1.197
+--------------------------------------------------------------------------
+INFO: Starting on version 1.198
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-09-05T00:08:19-0700" git commit -a -m Update to version 1.198 -m added missing newline to "created directory" messages; toast purge now accepts URLs correctly; toast arm no longer forces redundant build when given URLs
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-09-05T00:08:19-0700" git tag -a v1.198 -m Toast Version 1.198
+INFO: Completed version 1.198
+--------------------------------------------------------------------------
+INFO: Starting on version 1.199
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-09-09T01:19:04-0700" git commit -a -m Update to version 1.199 -m toast demolish and toast purge now accept URLs correctly; add symlink to armdir: X11R6 -> .
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-09-09T01:19:04-0700" git tag -a v1.199 -m Toast Version 1.199
+INFO: Completed version 1.199
+--------------------------------------------------------------------------
+INFO: Starting on version 1.200
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-09-09T22:19:31-0700" git commit -a -m Update to version 1.200 -m deal with acroread
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-09-09T22:19:31-0700" git tag -a v1.200 -m Toast Version 1.200
+INFO: Completed version 1.200
+--------------------------------------------------------------------------
+INFO: Starting on version 1.201
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-09-10T23:09:32-0700" git commit -a -m Update to version 1.201 -m add armdir symlink: games -> bin
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-09-10T23:09:32-0700" git tag -a v1.201 -m Toast Version 1.201
+INFO: Completed version 1.201
+--------------------------------------------------------------------------
+INFO: Starting on version 1.202
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-09-12T00:52:29-0700" git commit -a -m Update to version 1.202 -m samba
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-09-12T00:52:29-0700" git tag -a v1.202 -m Toast Version 1.202
+INFO: Completed version 1.202
+--------------------------------------------------------------------------
+INFO: Starting on version 1.203
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-09-15T04:49:20-0700" git commit -a -m Update to version 1.203 -m treat .diff files as patches w/r/t order of extraction
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-09-15T04:49:20-0700" git tag -a v1.203 -m Toast Version 1.203
+INFO: Completed version 1.203
+--------------------------------------------------------------------------
+INFO: Starting on version 1.204
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-09-15T22:20:09-0700" git commit -a -m Update to version 1.204 -m fixed spurious "can't find consistent URLs" error in toast upgrade
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-09-15T22:20:09-0700" git tag -a v1.204 -m Toast Version 1.204
+INFO: Completed version 1.204
+--------------------------------------------------------------------------
+INFO: Starting on version 1.205
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-09-16T01:22:30-0700" git commit -a -m Update to version 1.205 -m autofind now ignores version information in freshmeat.net records
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-09-16T01:22:30-0700" git tag -a v1.205 -m Toast Version 1.205
+INFO: Completed version 1.205
+--------------------------------------------------------------------------
+INFO: Starting on version 1.206
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-09-16T20:47:02-0700" git commit -a -m Update to version 1.206 -m improved version comparison so that 1.1a < 1.1.1a
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-09-16T20:47:02-0700" git tag -a v1.206 -m Toast Version 1.206
+INFO: Completed version 1.206
+--------------------------------------------------------------------------
+INFO: Starting on version 1.207
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-09-17T02:58:57-0700" git commit -a -m Update to version 1.207 -m mpg123
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-09-17T02:58:57-0700" git tag -a v1.207 -m Toast Version 1.207
+INFO: Completed version 1.207
+--------------------------------------------------------------------------
+INFO: Starting on version 1.208
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-09-19T05:50:09-0700" git commit -a -m Update to version 1.208 -m reconfigure option is now more conservative (fixes mplayer)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-09-19T05:50:09-0700" git tag -a v1.208 -m Toast Version 1.208
+INFO: Completed version 1.208
+--------------------------------------------------------------------------
+INFO: Starting on version 1.209
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-09-22T19:00:19-0700" git commit -a -m Update to version 1.209 -m added edit command (unfinished, undocumented, experimental, watch out, etc.)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-09-22T19:00:19-0700" git tag -a v1.209 -m Toast Version 1.209
+INFO: Completed version 1.209
+--------------------------------------------------------------------------
+INFO: Starting on version 1.210
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-09-24T01:41:53-0700" git commit -a -m Update to version 1.210 -m define missing RTLD_NEXT under cygwin if needed
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-09-24T01:41:53-0700" git tag -a v1.210 -m Toast Version 1.210
+INFO: Completed version 1.210
+--------------------------------------------------------------------------
+INFO: Starting on version 1.211
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-10-05T19:08:29-0700" git commit -a -m Update to version 1.211 -m added useflock option (disabled under cygwin); misc. minor tweaks
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-10-05T19:08:29-0700" git tag -a v1.211 -m Toast Version 1.211
+INFO: Completed version 1.211
+--------------------------------------------------------------------------
+INFO: Starting on version 1.212
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-10-05T20:14:32-0700" git commit -a -m Update to version 1.212 -m use larger buffer when guessing file type (may help w/ some patches)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-10-05T20:14:32-0700" git tag -a v1.212 -m Toast Version 1.212
+INFO: Completed version 1.212
+--------------------------------------------------------------------------
+INFO: Starting on version 1.213
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-10-05T22:53:42-0700" git commit -a -m Update to version 1.213 -m toast arm was failing for some packages with hard-to-guess names
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-10-05T22:53:42-0700" git tag -a v1.213 -m Toast Version 1.213
+INFO: Completed version 1.213
+--------------------------------------------------------------------------
+INFO: Starting on version 1.214
+WARN: Could not fetch diff at http://toastball.net/toast/diff-1.214
+DEBUG: curl --silent http://toastball.net/toast/toast-1.214.tar.gz | tar -xz --strip-components=1 -C /home/ram/github/mine/toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-10-12T00:00:00Z" git commit -a -m Update to version 1.214 -m improved tar file recognition (should work better with large buffer)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-10-12T00:00:00Z" git tag -a v1.214 -m Toast Version 1.214
+INFO: Completed version 1.214
+--------------------------------------------------------------------------
+INFO: Starting on version 1.215
+WARN: Could not fetch diff at http://toastball.net/toast/diff-1.215
+DEBUG: curl --silent http://toastball.net/toast/toast-1.215.tar.gz | tar -xz --strip-components=1 -C /home/ram/github/mine/toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-10-12T00:00:00Z" git commit -a -m Update to version 1.215 -m ocaml
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-10-12T00:00:00Z" git tag -a v1.215 -m Toast Version 1.215
+INFO: Completed version 1.215
+--------------------------------------------------------------------------
+INFO: Starting on version 1.216
+WARN: Could not fetch diff at http://toastball.net/toast/diff-1.216
+DEBUG: curl --silent http://toastball.net/toast/toast-1.216.tar.gz | tar -xz --strip-components=1 -C /home/ram/github/mine/toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-10-12T00:00:00Z" git commit -a -m Update to version 1.216 -m include version number in stack trace
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-10-12T00:00:00Z" git tag -a v1.216 -m Toast Version 1.216
+INFO: Completed version 1.216
+--------------------------------------------------------------------------
+INFO: Starting on version 1.217
+WARN: Could not fetch diff at http://toastball.net/toast/diff-1.217
+DEBUG: curl --silent http://toastball.net/toast/toast-1.217.tar.gz | tar -xz --strip-components=1 -C /home/ram/github/mine/toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-10-12T00:00:00Z" git commit -a -m Update to version 1.217 -m fixed more parsing flakiness with bare URLs and hard-to-guess names
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-10-12T00:00:00Z" git tag -a v1.217 -m Toast Version 1.217
+INFO: Completed version 1.217
+--------------------------------------------------------------------------
+INFO: Starting on version 1.218
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-10-13T05:35:37-0700" git commit -a -m Update to version 1.218 -m cleaned up spurious warnings emitted by autofind for some packages
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-10-13T05:35:37-0700" git tag -a v1.218 -m Toast Version 1.218
+INFO: Completed version 1.218
+--------------------------------------------------------------------------
+INFO: Starting on version 1.219
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-10-19T18:45:08-0700" git commit -a -m Update to version 1.219 -m autofind now tries harder (e.g. bzip2, pkgconfig)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-10-19T18:45:08-0700" git tag -a v1.219 -m Toast Version 1.219
+INFO: Completed version 1.219
+--------------------------------------------------------------------------
+INFO: Starting on version 1.220
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-10-19T21:03:47-0700" git commit -a -m Update to version 1.220 -m look for install.pl (e.g. dailystrips)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-10-19T21:03:47-0700" git tag -a v1.220 -m Toast Version 1.220
+INFO: Completed version 1.220
+--------------------------------------------------------------------------
+INFO: Starting on version 1.221
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-10-20T00:32:55-0700" git commit -a -m Update to version 1.221 -m restored compatibility with older versions of perl (broken in 1.209?)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-10-20T00:32:55-0700" git tag -a v1.221 -m Toast Version 1.221
+INFO: Completed version 1.221
+--------------------------------------------------------------------------
+INFO: Starting on version 1.222
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-10-20T22:07:50-0700" git commit -a -m Update to version 1.222 -m figlet
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-10-20T22:07:50-0700" git tag -a v1.222 -m Toast Version 1.222
+INFO: Completed version 1.222
+--------------------------------------------------------------------------
+INFO: Starting on version 1.223
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-10-23T05:46:34-0700" git commit -a -m Update to version 1.223 -m work around wget FTP listing bug with no trailing slash on some servers; autofind now chooses atop-1.10.tar.gz over atop-1.10-1.src.rpm; conditionally set DESTDIR on make cmdline to fix atop w/o breaking libtiff
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-10-23T05:46:34-0700" git tag -a v1.223 -m Toast Version 1.223
+INFO: Completed version 1.223
+--------------------------------------------------------------------------
+INFO: Starting on version 1.224
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-10-24T03:32:26-0700" git commit -a -m Update to version 1.224 -m don't configure arch in source directory (untested)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-10-24T03:32:26-0700" git tag -a v1.224 -m Toast Version 1.224
+INFO: Completed version 1.224
+--------------------------------------------------------------------------
+INFO: Starting on version 1.225
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-10-24T18:33:37-0700" git commit -a -m Update to version 1.225 -m don't configure arch in source directory (tested)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-10-24T18:33:37-0700" git tag -a v1.225 -m Toast Version 1.225
+INFO: Completed version 1.225
+--------------------------------------------------------------------------
+INFO: Starting on version 1.226
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-10-25T02:51:52-0700" git commit -a -m Update to version 1.226 -m toast's own Makefile now correctly honors DESTDIR
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-10-25T02:51:52-0700" git tag -a v1.226 -m Toast Version 1.226
+INFO: Completed version 1.226
+--------------------------------------------------------------------------
+INFO: Starting on version 1.227
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-10-25T22:38:34-0700" git commit -a -m Update to version 1.227 -m use full path to perl in wrappers even when bootstrapping
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-10-25T22:38:34-0700" git tag -a v1.227 -m Toast Version 1.227
+INFO: Completed version 1.227
+--------------------------------------------------------------------------
+INFO: Starting on version 1.228
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-10-25T22:43:34-0700" git commit -a -m Update to version 1.228 -m new doc sections: ENVIRONMENT, FILES, AVAILABILITY, BUGS, SEE ALSO
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-10-25T22:43:34-0700" git tag -a v1.228 -m Toast Version 1.228
+INFO: Completed version 1.228
+--------------------------------------------------------------------------
+INFO: Starting on version 1.229
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-10-26T02:04:12-0800" git commit -a -m Update to version 1.229 -m inconsequential doc changes
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-10-26T02:04:12-0800" git tag -a v1.229 -m Toast Version 1.229
+INFO: Completed version 1.229
+--------------------------------------------------------------------------
+INFO: Starting on version 1.230
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-10-26T18:12:46-0800" git commit -a -m Update to version 1.230 -m improved name/version guessing
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-10-26T18:12:46-0800" git tag -a v1.230 -m Toast Version 1.230
+INFO: Completed version 1.230
+--------------------------------------------------------------------------
+INFO: Starting on version 1.231
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-10-26T20:27:45-0800" git commit -a -m Update to version 1.231 -m fixed trivial toast rename glitch; added wishlist item
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-10-26T20:27:45-0800" git tag -a v1.231 -m Toast Version 1.231
+INFO: Completed version 1.231
+--------------------------------------------------------------------------
+INFO: Starting on version 1.232
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-10-26T21:43:17-0800" git commit -a -m Update to version 1.232 -m make "toast upgrade" a bit choosier
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-10-26T21:43:17-0800" git tag -a v1.232 -m Toast Version 1.232
+INFO: Completed version 1.232
+--------------------------------------------------------------------------
+INFO: Starting on version 1.233
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-10-26T22:13:57-0800" git commit -a -m Update to version 1.233 -m added copyright notice, GPL, and --version
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-10-26T22:13:57-0800" git tag -a v1.233 -m Toast Version 1.233
+INFO: Completed version 1.233
+--------------------------------------------------------------------------
+INFO: Starting on version 1.234
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-10-27T04:08:26-0800" git commit -a -m Update to version 1.234 -m autofind improvements (follow homedir link as last resort; prefer URLs with same name as package); make cdrtools (a.k.a. cdrecord) build
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-10-27T04:08:26-0800" git tag -a v1.234 -m Toast Version 1.234
+INFO: Completed version 1.234
+--------------------------------------------------------------------------
+INFO: Starting on version 1.235
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-11-02T03:19:49-0800" git commit -a -m Update to version 1.235 -m split toast build into build and rebuild; tweaked parsing and docs
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-11-02T03:19:49-0800" git tag -a v1.235 -m Toast Version 1.235
+INFO: Completed version 1.235
+--------------------------------------------------------------------------
+INFO: Starting on version 1.236
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-11-02T20:36:31-0800" git commit -a -m Update to version 1.236 -m updated option docs
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-11-02T20:36:31-0800" git tag -a v1.236 -m Toast Version 1.236
+INFO: Completed version 1.236
+--------------------------------------------------------------------------
+INFO: Starting on version 1.237
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-11-02T21:59:05-0800" git commit -a -m Update to version 1.237 -m fixed opendir error when arming new packages (introduced in 1.235); added opera complaint to buglist
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-11-02T21:59:05-0800" git tag -a v1.237 -m Toast Version 1.237
+INFO: Completed version 1.237
+--------------------------------------------------------------------------
+INFO: Starting on version 1.238
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-11-04T03:26:24-0800" git commit -a -m Update to version 1.238 -m fixed build/arm assertion failure introduced in 1.235
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-11-04T03:26:24-0800" git tag -a v1.238 -m Toast Version 1.238
+INFO: Completed version 1.238
+--------------------------------------------------------------------------
+INFO: Starting on version 1.239
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-11-08T21:52:54-0800" git commit -a -m Update to version 1.239 -m more docs
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-11-08T21:52:54-0800" git tag -a v1.239 -m Toast Version 1.239
+INFO: Completed version 1.239
+--------------------------------------------------------------------------
+INFO: Starting on version 1.240
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-11-09T23:43:26-0800" git commit -a -m Update to version 1.240 -m moved __END__ to EOF to help with bootstrapping; added version sorting peeve to bug list
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-11-09T23:43:26-0800" git tag -a v1.240 -m Toast Version 1.240
+INFO: Completed version 1.240
+--------------------------------------------------------------------------
+INFO: Starting on version 1.241
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-11-21T05:05:47-0800" git commit -a -m Update to version 1.241 -m version 1.2.3rc4 now precedes 1.2.3; also 1.2.3-{rc,test,pre}4
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-11-21T05:05:47-0800" git tag -a v1.241 -m Toast Version 1.241
+INFO: Completed version 1.241
+--------------------------------------------------------------------------
+INFO: Starting on version 1.242
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-11-21T05:29:46-0800" git commit -a -m Update to version 1.242 -m minor doc correction
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-11-21T05:29:46-0800" git tag -a v1.242 -m Toast Version 1.242
+INFO: Completed version 1.242
+--------------------------------------------------------------------------
+INFO: Starting on version 1.243
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-11-22T21:17:23-0800" git commit -a -m Update to version 1.243 -m messed with docs
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-11-22T21:17:23-0800" git tag -a v1.243 -m Toast Version 1.243
+INFO: Completed version 1.243
+--------------------------------------------------------------------------
+INFO: Starting on version 1.244
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-11-23T00:34:30-0800" git commit -a -m Update to version 1.244 -m many commands no longer require arguments; toast arm now silently skips armed builds; revised and updated docs
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-11-23T00:34:30-0800" git tag -a v1.244 -m Toast Version 1.244
+INFO: Completed version 1.244
+--------------------------------------------------------------------------
+INFO: Starting on version 1.245
+WARN: Could not fetch diff at http://toastball.net/toast/diff-1.245
+DEBUG: curl --silent http://toastball.net/toast/toast-1.245.tar.gz | tar -xz --strip-components=1 -C /home/ram/github/mine/toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-11-23T00:00:00Z" git commit -a -m Update to version 1.245 -m fixed spurious hyperlink in HTML docs; griped about toast upgrade
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-11-23T00:00:00Z" git tag -a v1.245 -m Toast Version 1.245
+INFO: Completed version 1.245
+--------------------------------------------------------------------------
+INFO: Starting on version 1.246
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-11-24T00:46:28-0800" git commit -a -m Update to version 1.246 -m add support for flash player 6; document new bugs
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-11-24T00:46:28-0800" git tag -a v1.246 -m Toast Version 1.246
+INFO: Completed version 1.246
+--------------------------------------------------------------------------
+INFO: Starting on version 1.247
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-11-27T02:07:26-0800" git commit -a -m Update to version 1.247 -m fixed PATH quoting problems in toast build
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-11-27T02:07:26-0800" git tag -a v1.247 -m Toast Version 1.247
+INFO: Completed version 1.247
+--------------------------------------------------------------------------
+INFO: Starting on version 1.248
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-11-27T02:33:02-0800" git commit -a -m Update to version 1.248 -m ignorecase option was misbehaving when no explicit version was given
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-11-27T02:33:02-0800" git tag -a v1.248 -m Toast Version 1.248
+INFO: Completed version 1.248
+--------------------------------------------------------------------------
+INFO: Starting on version 1.249
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-11-27T02:38:30-0800" git commit -a -m Update to version 1.249 -m glibc works much better now
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-11-27T02:38:30-0800" git tag -a v1.249 -m Toast Version 1.249
+INFO: Completed version 1.249
+--------------------------------------------------------------------------
+INFO: Starting on version 1.250
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-11-28T05:16:49-0800" git commit -a -m Update to version 1.250 -m add support for plugger; update bug list
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-11-28T05:16:49-0800" git tag -a v1.250 -m Toast Version 1.250
+INFO: Completed version 1.250
+--------------------------------------------------------------------------
+INFO: Starting on version 1.251
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-11-28T21:06:42-0800" git commit -a -m Update to version 1.251 -m zlib: build libz.so
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-11-28T21:06:42-0800" git tag -a v1.251 -m Toast Version 1.251
+INFO: Completed version 1.251
+--------------------------------------------------------------------------
+INFO: Starting on version 1.252
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-11-28T22:27:31-0800" git commit -a -m Update to version 1.252 -m fixed rpm extraction bug
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-11-28T22:27:31-0800" git tag -a v1.252 -m Toast Version 1.252
+INFO: Completed version 1.252
+--------------------------------------------------------------------------
+INFO: Starting on version 1.253
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-11-29T00:18:29-0800" git commit -a -m Update to version 1.253 -m fix directory permissions in rootdir
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-11-29T00:18:29-0800" git tag -a v1.253 -m Toast Version 1.253
+INFO: Completed version 1.253
+--------------------------------------------------------------------------
+INFO: Starting on version 1.254
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-11-29T00:33:21-0800" git commit -a -m Update to version 1.254 -m toast now works a bit better under microperl
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-11-29T00:33:21-0800" git tag -a v1.254 -m Toast Version 1.254
+INFO: Completed version 1.254
+--------------------------------------------------------------------------
+INFO: Starting on version 1.255
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-12-01T04:19:59-0800" git commit -a -m Update to version 1.255 -m airhook
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-12-01T04:19:59-0800" git tag -a v1.255 -m Toast Version 1.255
+INFO: Completed version 1.255
+--------------------------------------------------------------------------
+INFO: Starting on version 1.256
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-12-01T04:22:31-0800" git commit -a -m Update to version 1.256 -m UPX (binary)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-12-01T04:22:31-0800" git tag -a v1.256 -m Toast Version 1.256
+INFO: Completed version 1.256
+--------------------------------------------------------------------------
+INFO: Starting on version 1.257
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-12-01T06:46:57-0800" git commit -a -m Update to version 1.257 -m add shell script wrapper; always use actual path to perl in helper scripts; add special case for toast to autofind; code cleanup; updated docs
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-12-01T06:46:57-0800" git tag -a v1.257 -m Toast Version 1.257
+INFO: Completed version 1.257
+--------------------------------------------------------------------------
+INFO: Starting on version 1.258
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-12-01T19:19:28-0800" git commit -a -m Update to version 1.258 -m don't create unnecessary temporary files; reshuffled code to reduce number of places where open() is called; added wishlist item
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-12-01T19:19:28-0800" git tag -a v1.258 -m Toast Version 1.258
+INFO: Completed version 1.258
+--------------------------------------------------------------------------
+INFO: Starting on version 1.259
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-12-04T04:28:20-0800" git commit -a -m Update to version 1.259 -m toast build now collects additional diagnostic and statistical info
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-12-04T04:28:20-0800" git tag -a v1.259 -m Toast Version 1.259
+INFO: Completed version 1.259
+--------------------------------------------------------------------------
+INFO: Starting on version 1.260
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-12-04T07:03:43-0800" git commit -a -m Update to version 1.260 -m fix "can't find perl" build bug w/ older perl (introduced in 1.257)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-12-04T07:03:43-0800" git tag -a v1.260 -m Toast Version 1.260
+INFO: Completed version 1.260
+--------------------------------------------------------------------------
+INFO: Starting on version 1.261
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-12-06T21:20:06-0800" git commit -a -m Update to version 1.261 -m preserve any pre-existing LD_PRELOAD during build; misc. doc tweakage
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-12-06T21:20:06-0800" git tag -a v1.261 -m Toast Version 1.261
+INFO: Completed version 1.261
+--------------------------------------------------------------------------
+INFO: Starting on version 1.262
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-12-07T21:10:30-0800" git commit -a -m Update to version 1.262 -m recent versions of netpbm work now
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-12-07T21:10:30-0800" git tag -a v1.262 -m Toast Version 1.262
+INFO: Completed version 1.262
+--------------------------------------------------------------------------
+INFO: Starting on version 1.263
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-12-07T23:56:35-0800" git commit -a -m Update to version 1.263 -m busybox
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-12-07T23:56:35-0800" git tag -a v1.263 -m Toast Version 1.263
+INFO: Completed version 1.263
+--------------------------------------------------------------------------
+INFO: Starting on version 1.264
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-12-08T01:04:45-0800" git commit -a -m Update to version 1.264 -m "toast help noverbose" now does the same thing as "toast help verbose"
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-12-08T01:04:45-0800" git tag -a v1.264 -m Toast Version 1.264
+INFO: Completed version 1.264
+--------------------------------------------------------------------------
+INFO: Starting on version 1.265
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-12-08T04:42:53-0800" git commit -a -m Update to version 1.265 -m fixed error message line numbers (off since 1.257)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-12-08T04:42:53-0800" git tag -a v1.265 -m Toast Version 1.265
+INFO: Completed version 1.265
+--------------------------------------------------------------------------
+INFO: Starting on version 1.266
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-12-09T02:49:47-0800" git commit -a -m Update to version 1.266 -m removed the seek() that was breaking rpm extraction on some systems; cleaned up some related code a little bit
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-12-09T02:49:47-0800" git tag -a v1.266 -m Toast Version 1.266
+INFO: Completed version 1.266
+--------------------------------------------------------------------------
+INFO: Starting on version 1.267
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-12-09T05:07:32-0800" git commit -a -m Update to version 1.267 -m improved handling of info pages; minor doc adjustments
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-12-09T05:07:32-0800" git tag -a v1.267 -m Toast Version 1.267
+INFO: Completed version 1.267
+--------------------------------------------------------------------------
+INFO: Starting on version 1.268
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-12-10T06:22:00-0800" git commit -a -m Update to version 1.268 -m replaced --noverbose with --quiet
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-12-10T06:22:00-0800" git tag -a v1.268 -m Toast Version 1.268
+INFO: Completed version 1.268
+--------------------------------------------------------------------------
+INFO: Starting on version 1.269
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-12-11T05:16:53-0800" git commit -a -m Update to version 1.269 -m fixed terrible opendir error message (bug introduced in 1.267)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-12-11T05:16:53-0800" git tag -a v1.269 -m Toast Version 1.269
+INFO: Completed version 1.269
+--------------------------------------------------------------------------
+INFO: Starting on version 1.270
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-12-13T02:36:56-0800" git commit -a -m Update to version 1.270 -m added protect option (enabled by default) to make armdir read-only; toast build now makes rootdir files/directories read-only regardless; new bugs in this version are not unlikely, despite my best efforts
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-12-13T02:36:56-0800" git tag -a v1.270 -m Toast Version 1.270
+INFO: Completed version 1.270
+--------------------------------------------------------------------------
+INFO: Starting on version 1.271
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-12-15T00:49:56-0800" git commit -a -m Update to version 1.271 -m fixed potential problems with open() and odd filename characters
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-12-15T00:49:56-0800" git tag -a v1.271 -m Toast Version 1.271
+INFO: Completed version 1.271
+--------------------------------------------------------------------------
+INFO: Starting on version 1.272
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-12-15T07:22:09-0800" git commit -a -m Update to version 1.272 -m added fixliblinks option; show broken link target before removing; added bug list entry
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-12-15T07:22:09-0800" git tag -a v1.272 -m Toast Version 1.272
+INFO: Completed version 1.272
+--------------------------------------------------------------------------
+INFO: Starting on version 1.273
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-12-21T21:01:43-0800" git commit -a -m Update to version 1.273 -m attempted workaround for perl 5.8.0 (only) with UTF-8 locale
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-12-21T21:01:43-0800" git tag -a v1.273 -m Toast Version 1.273
+INFO: Completed version 1.273
+--------------------------------------------------------------------------
+INFO: Starting on version 1.274
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-12-24T23:02:05-0800" git commit -a -m Update to version 1.274 -m fixed tarball problem in previous revision
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-12-24T23:02:05-0800" git tag -a v1.274 -m Toast Version 1.274
+INFO: Completed version 1.274
+--------------------------------------------------------------------------
+INFO: Starting on version 1.275
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-12-28T07:16:52-0800" git commit -a -m Update to version 1.275 -m uClibc
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-12-28T07:16:52-0800" git tag -a v1.275 -m Toast Version 1.275
+INFO: Completed version 1.275
+--------------------------------------------------------------------------
+INFO: Starting on version 1.276
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2003-12-29T00:19:07-0800" git commit -a -m Update to version 1.276 -m doxygen
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2003-12-29T00:19:07-0800" git tag -a v1.276 -m Toast Version 1.276
+INFO: Completed version 1.276
+--------------------------------------------------------------------------
+INFO: Starting on version 1.277
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-01-15T19:39:47-0800" git commit -a -m Update to version 1.277 -m suppress warning if PWD env var is unset; --nostrictpreload works better now
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-01-15T19:39:47-0800" git tag -a v1.277 -m Toast Version 1.277
+INFO: Completed version 1.277
+--------------------------------------------------------------------------
+INFO: Starting on version 1.278
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-01-16T23:59:32-0800" git commit -a -m Update to version 1.278 -m rudimentary .deb support
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-01-16T23:59:32-0800" git tag -a v1.278 -m Toast Version 1.278
+INFO: Completed version 1.278
+--------------------------------------------------------------------------
+INFO: Starting on version 1.279
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-01-18T07:19:26-0800" git commit -a -m Update to version 1.279 -m suppress spurious exec warnings; clarify install-info warning; related cleanups/fixes; add bug to bug list
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-01-18T07:19:26-0800" git tag -a v1.279 -m Toast Version 1.279
+INFO: Completed version 1.279
+--------------------------------------------------------------------------
+INFO: Starting on version 1.280
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-01-29T03:38:25-0800" git commit -a -m Update to version 1.280 -m update copyright date and wishlist; first attempt at SunOS utimes() fix
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-01-29T03:38:25-0800" git tag -a v1.280 -m Toast Version 1.280
+INFO: Completed version 1.280
+--------------------------------------------------------------------------
+INFO: Starting on version 1.281
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-02T00:14:15-0800" git commit -a -m Update to version 1.281 -m second attempt at SunOS utimes() fix
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-02T00:14:15-0800" git tag -a v1.281 -m Toast Version 1.281
+INFO: Completed version 1.281
+--------------------------------------------------------------------------
+INFO: Starting on version 1.282
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-02T00:30:43-0800" git commit -a -m Update to version 1.282 -m possible fix for SunOS/sparc/gcc2 __eprintf problem
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-02T00:30:43-0800" git tag -a v1.282 -m Toast Version 1.282
+INFO: Completed version 1.282
+--------------------------------------------------------------------------
+INFO: Starting on version 1.283
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-02T01:11:05-0800" git commit -a -m Update to version 1.283 -m try using LWP's GET for http if wget fails; updated docs
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-02T01:11:05-0800" git tag -a v1.283 -m Toast Version 1.283
+INFO: Completed version 1.283
+--------------------------------------------------------------------------
+INFO: Starting on version 1.284
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-02T01:45:56-0800" git commit -a -m Update to version 1.284 -m added --httpproxy option
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-02T01:45:56-0800" git tag -a v1.284 -m Toast Version 1.284
+INFO: Completed version 1.284
+--------------------------------------------------------------------------
+INFO: Starting on version 1.285
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-02T05:24:05-0800" git commit -a -m Update to version 1.285 -m try to build elm; updated buglist/wishlist
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-02T05:24:05-0800" git tag -a v1.285 -m Toast Version 1.285
+INFO: Completed version 1.285
+--------------------------------------------------------------------------
+INFO: Starting on version 1.286
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-04T00:16:42-0800" git commit -a -m Update to version 1.286 -m inadequately tested support for building nvi
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-04T00:16:42-0800" git tag -a v1.286 -m Toast Version 1.286
+INFO: Completed version 1.286
+--------------------------------------------------------------------------
+INFO: Starting on version 1.287
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-04T00:38:50-0800" git commit -a -m Update to version 1.287 -m maybe nvi will actually build now!
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-04T00:38:50-0800" git tag -a v1.287 -m Toast Version 1.287
+INFO: Completed version 1.287
+--------------------------------------------------------------------------
+INFO: Starting on version 1.288
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-04T01:34:44-0800" git commit -a -m Update to version 1.288 -m fixed URL unescaping/quoting bugs; tweaked autofind
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-04T01:34:44-0800" git tag -a v1.288 -m Toast Version 1.288
+INFO: Completed version 1.288
+--------------------------------------------------------------------------
+INFO: Starting on version 1.289
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-04T06:06:21-0800" git commit -a -m Update to version 1.289 -m spurious shell escapes were preventing wget fallback from working
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-04T06:06:21-0800" git tag -a v1.289 -m Toast Version 1.289
+INFO: Completed version 1.289
+--------------------------------------------------------------------------
+INFO: Starting on version 1.290
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-04T23:19:21-0800" git commit -a -m Update to version 1.290 -m fixed spurious "url = ..." autofind error introduced in 1.288
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-04T23:19:21-0800" git tag -a v1.290 -m Toast Version 1.290
+INFO: Completed version 1.290
+--------------------------------------------------------------------------
+INFO: Starting on version 1.291
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-05T00:04:15-0800" git commit -a -m Update to version 1.291 -m added built-in FTP and FTP proxy support; fixed incomplete disarming bug
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-05T00:04:15-0800" git tag -a v1.291 -m Toast Version 1.291
+INFO: Completed version 1.291
+--------------------------------------------------------------------------
+INFO: Starting on version 1.292
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-05T07:32:24-0800" git commit -a -m Update to version 1.292 -m fixed boolean option parsing bug introduced in 1.284; build hotplug
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-05T07:32:24-0800" git tag -a v1.292 -m Toast Version 1.292
+INFO: Completed version 1.292
+--------------------------------------------------------------------------
+INFO: Starting on version 1.293
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-08T22:52:56-0800" git commit -a -m Update to version 1.293 -m add support for building perl modules
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-08T22:52:56-0800" git tag -a v1.293 -m Toast Version 1.293
+INFO: Completed version 1.293
+--------------------------------------------------------------------------
+INFO: Starting on version 1.294
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-09T23:27:11-0800" git commit -a -m Update to version 1.294 -m recognize self-extracting .zip files; build j2sdk; tweak man page
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-09T23:27:11-0800" git tag -a v1.294 -m Toast Version 1.294
+INFO: Completed version 1.294
+--------------------------------------------------------------------------
+INFO: Starting on version 1.295
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-11T02:38:10-0800" git commit -a -m Update to version 1.295 -m added toast env; updated/corrected setup docs
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-11T02:38:10-0800" git tag -a v1.295 -m Toast Version 1.295
+INFO: Completed version 1.295
+--------------------------------------------------------------------------
+INFO: Starting on version 1.296
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-13T05:50:09-0800" git commit -a -m Update to version 1.296 -m toast env wasn't properly exporting MANPATH and INFOPATH
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-13T05:50:09-0800" git tag -a v1.296 -m Toast Version 1.296
+INFO: Completed version 1.296
+--------------------------------------------------------------------------
+INFO: Starting on version 1.297
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-14T07:52:25-0800" git commit -a -m Update to version 1.297 -m added --relative
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-14T07:52:25-0800" git tag -a v1.297 -m Toast Version 1.297
+INFO: Completed version 1.297
+--------------------------------------------------------------------------
+INFO: Starting on version 1.298
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-21T04:36:07-0800" git commit -a -m Update to version 1.298 -m fixed Sleepycat/Berkeley db 4 (broken since 1.286); messed around with toast get logic
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-21T04:36:07-0800" git tag -a v1.298 -m Toast Version 1.298
+INFO: Completed version 1.298
+--------------------------------------------------------------------------
+INFO: Starting on version 1.299
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-21T06:27:07-0800" git commit -a -m Update to version 1.299 -m made --relative more robust
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-21T06:27:07-0800" git tag -a v1.299 -m Toast Version 1.299
+INFO: Completed version 1.299
+--------------------------------------------------------------------------
+INFO: Starting on version 1.300
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-21T20:57:20-0800" git commit -a -m Update to version 1.300 -m toast build now records the armdir for which each build was built; added --altarmdirs and --skipmismatched options; toast status can now display additional information about armdirs; fixed a number of minor bugs, including pesky boolean option parse bug
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-21T20:57:20-0800" git tag -a v1.300 -m Toast Version 1.300
+INFO: Completed version 1.300
+--------------------------------------------------------------------------
+INFO: Starting on version 1.301
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-25T05:32:38-0800" git commit -a -m Update to version 1.301 -m 1.300 erroneously claims builds made by earlier versions are "mismatched"
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-25T05:32:38-0800" git tag -a v1.301 -m Toast Version 1.301
+INFO: Completed version 1.301
+--------------------------------------------------------------------------
+INFO: Starting on version 1.302
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-25T05:42:30-0800" git commit -a -m Update to version 1.302 -m improved patch heuristic
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-25T05:42:30-0800" git tag -a v1.302 -m Toast Version 1.302
+INFO: Completed version 1.302
+--------------------------------------------------------------------------
+INFO: Starting on version 1.303
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-25T06:47:25-0800" git commit -a -m Update to version 1.303 -m four very minor bugfixes (see diff)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-25T06:47:25-0800" git tag -a v1.303 -m Toast Version 1.303
+INFO: Completed version 1.303
+--------------------------------------------------------------------------
+INFO: Starting on version 1.304
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-26T02:02:18-0800" git commit -a -m Update to version 1.304 -m work around an apparent parse bug in perl 5.6.1
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-26T02:02:18-0800" git tag -a v1.304 -m Toast Version 1.304
+INFO: Completed version 1.304
+--------------------------------------------------------------------------
+INFO: Starting on version 1.305
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-27T00:15:37-0800" git commit -a -m Update to version 1.305 -m dispense with "returning failure (1)" message for each error; optionally fetch default Linux kernel configuration from /proc
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-27T00:15:37-0800" git tag -a v1.305 -m Toast Version 1.305
+INFO: Completed version 1.305
+--------------------------------------------------------------------------
+INFO: Starting on version 1.306
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-02-29T06:55:50-0800" git commit -a -m Update to version 1.306 -m group kernel headers with glibc rather than linux
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-02-29T06:55:50-0800" git tag -a v1.306 -m Toast Version 1.306
+INFO: Completed version 1.306
+--------------------------------------------------------------------------
+INFO: Starting on version 1.307
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-03-06T06:43:10-0800" git commit -a -m Update to version 1.307 -m fix for compiling glibc with headers from linux 2.6
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-03-06T06:43:10-0800" git tag -a v1.307 -m Toast Version 1.307
+INFO: Completed version 1.307
+--------------------------------------------------------------------------
+INFO: Starting on version 1.308
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-03-06T22:10:11-0800" git commit -a -m Update to version 1.308 -m fix assertion failure under linux 2.6.x by robustifying readdir code
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-03-06T22:10:11-0800" git tag -a v1.308 -m Toast Version 1.308
+INFO: Completed version 1.308
+--------------------------------------------------------------------------
+INFO: Starting on version 1.309
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-03-07T03:27:35-0800" git commit -a -m Update to version 1.309 -m fix glibc install
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-03-07T03:27:35-0800" git tag -a v1.309 -m Toast Version 1.309
+INFO: Completed version 1.309
+--------------------------------------------------------------------------
+INFO: Starting on version 1.310
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-03-08T06:42:27-0800" git commit -a -m Update to version 1.310 -m install libext2fs with e2fsprogs when reconfigure is enabled
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-03-08T06:42:27-0800" git tag -a v1.310 -m Toast Version 1.310
+INFO: Completed version 1.310
+--------------------------------------------------------------------------
+INFO: Starting on version 1.311
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-03-10T03:10:43-0800" git commit -a -m Update to version 1.311 -m improved handling of urls that end after the hostname (no trailing slash)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-03-10T03:10:43-0800" git tag -a v1.311 -m Toast Version 1.311
+INFO: Completed version 1.311
+--------------------------------------------------------------------------
+INFO: Starting on version 1.312
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-03-21T02:09:40-0800" git commit -a -m Update to version 1.312 -m toast's own Makefile now deals gracefully with missing pod2man utility
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-03-21T02:09:40-0800" git tag -a v1.312 -m Toast Version 1.312
+INFO: Completed version 1.312
+--------------------------------------------------------------------------
+INFO: Starting on version 1.313
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-03-25T00:26:43-0800" git commit -a -m Update to version 1.313 -m use gunzip/bunzip2 rather than gzip/bzip2 -cd to decompress; record new bug
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-03-25T00:26:43-0800" git tag -a v1.313 -m Toast Version 1.313
+INFO: Completed version 1.313
+--------------------------------------------------------------------------
+INFO: Starting on version 1.314
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-03-25T00:51:15-0800" git commit -a -m Update to version 1.314 -m added --nopreload
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-03-25T00:51:15-0800" git tag -a v1.314 -m Toast Version 1.314
+INFO: Completed version 1.314
+--------------------------------------------------------------------------
+INFO: Starting on version 1.315
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-03-31T00:40:43-0800" git commit -a -m Update to version 1.315 -m built-in FTP was spuriously rejecting hostnames with dashes in them; explicit "toast get" would re-get stored packages, then become confused
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-03-31T00:40:43-0800" git tag -a v1.315 -m Toast Version 1.315
+INFO: Completed version 1.315
+--------------------------------------------------------------------------
+INFO: Starting on version 1.316
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-04-02T22:10:13-0800" git commit -a -m Update to version 1.316 -m skip CVS subdir when finding build directory; build linux/autoconf.h with glibc
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-04-02T22:10:13-0800" git tag -a v1.316 -m Toast Version 1.316
+INFO: Completed version 1.316
+--------------------------------------------------------------------------
+INFO: Starting on version 1.317
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-04-05T06:27:45-0700" git commit -a -m Update to version 1.317 -m add chgrp to list of commands to be ignored during install phase
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-04-05T06:27:45-0700" git tag -a v1.317 -m Toast Version 1.317
+INFO: Completed version 1.317
+--------------------------------------------------------------------------
+INFO: Starting on version 1.318
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-04-08T20:57:16-0700" git commit -a -m Update to version 1.318 -m pretend to support pmk; add new bug reports to list
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-04-08T20:57:16-0700" git tag -a v1.318 -m Toast Version 1.318
+INFO: Completed version 1.318
+--------------------------------------------------------------------------
+INFO: Starting on version 1.319
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-04-09T21:25:40-0700" git commit -a -m Update to version 1.319 -m add rudimentary qmake support
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-04-09T21:25:40-0700" git tag -a v1.319 -m Toast Version 1.319
+INFO: Completed version 1.319
+--------------------------------------------------------------------------
+INFO: Starting on version 1.320
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-04-09T21:31:37-0700" git commit -a -m Update to version 1.320 -m fix DESTDIR issue building man 1.5m2
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-04-09T21:31:37-0700" git tag -a v1.320 -m Toast Version 1.320
+INFO: Completed version 1.320
+--------------------------------------------------------------------------
+INFO: Starting on version 1.321
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-04-09T23:28:59-0700" git commit -a -m Update to version 1.321 -m add dummy mknod helper for make install phase; parse HTTP and proxy URLs with dashes in hostname correctly
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-04-09T23:28:59-0700" git tag -a v1.321 -m Toast Version 1.321
+INFO: Completed version 1.321
+--------------------------------------------------------------------------
+INFO: Starting on version 1.322
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-04-24T22:04:04-0700" git commit -a -m Update to version 1.322 -m fixed openssl build problem
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-04-24T22:04:04-0700" git tag -a v1.322 -m Toast Version 1.322
+INFO: Completed version 1.322
+--------------------------------------------------------------------------
+INFO: Starting on version 1.323
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-04-24T22:16:57-0700" git commit -a -m Update to version 1.323 -m improved guessing of package names and versions from URLs
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-04-24T22:16:57-0700" git tag -a v1.323 -m Toast Version 1.323
+INFO: Completed version 1.323
+--------------------------------------------------------------------------
+INFO: Starting on version 1.324
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-04-24T22:37:06-0700" git commit -a -m Update to version 1.324 -m added autoenv option; update PWD variable when changing directories; run "env" to log environment if "printenv" fails
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-04-24T22:37:06-0700" git tag -a v1.324 -m Toast Version 1.324
+INFO: Completed version 1.324
+--------------------------------------------------------------------------
+INFO: Starting on version 1.325
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-04-25T00:50:13-0700" git commit -a -m Update to version 1.325 -m skip unneeded chmods to avoid spurious errors
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-04-25T00:50:13-0700" git tag -a v1.325 -m Toast Version 1.325
+INFO: Completed version 1.325
+--------------------------------------------------------------------------
+INFO: Starting on version 1.326
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-04-25T05:03:59-0700" git commit -a -m Update to version 1.326 -m don't run configure script if it's a directory (e.g. Opera 7.50); don't put DESTDIR on command line if it points to foo/bin (e.g. figlet)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-04-25T05:03:59-0700" git tag -a v1.326 -m Toast Version 1.326
+INFO: Completed version 1.326
+--------------------------------------------------------------------------
+INFO: Starting on version 1.327
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-05-04T20:03:03-0700" git commit -a -m Update to version 1.327 -m build shared OpenSSL libraries unless --noreconfigure is given
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-05-04T20:03:03-0700" git tag -a v1.327 -m Toast Version 1.327
+INFO: Completed version 1.327
+--------------------------------------------------------------------------
+INFO: Starting on version 1.328
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-05-04T21:40:10-0700" git commit -a -m Update to version 1.328 -m rewrite execve() during install (required by teTeX); update buglist
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-05-04T21:40:10-0700" git tag -a v1.328 -m Toast Version 1.328
+INFO: Completed version 1.328
+--------------------------------------------------------------------------
+INFO: Starting on version 1.329
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-05-06T21:16:32-0700" git commit -a -m Update to version 1.329 -m try /etc/toast.conf if $HOME/.toast/conf doesn't exist; update buglist
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-05-06T21:16:32-0700" git tag -a v1.329 -m Toast Version 1.329
+INFO: Completed version 1.329
+--------------------------------------------------------------------------
+INFO: Starting on version 1.330
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-05-24T00:04:39-0700" git commit -a -m Update to version 1.330 -m work around bug in sgml-common/0.6.3 (and perhaps others?)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-05-24T00:04:39-0700" git tag -a v1.330 -m Toast Version 1.330
+INFO: Completed version 1.330
+--------------------------------------------------------------------------
+INFO: Starting on version 1.331
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-06-01T01:01:08-0700" git commit -a -m Update to version 1.331 -m toast arm/disarm now keep rebuilding info index when install-info fails
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-06-01T01:01:08-0700" git tag -a v1.331 -m Toast Version 1.331
+INFO: Completed version 1.331
+--------------------------------------------------------------------------
+INFO: Starting on version 1.332
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-07-10T18:33:20-0700" git commit -a -m Update to version 1.332 -m default to configure --disable-multiplatform when building tetex
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-07-10T18:33:20-0700" git tag -a v1.332 -m Toast Version 1.332
+INFO: Completed version 1.332
+--------------------------------------------------------------------------
+INFO: Starting on version 1.333
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-07-10T21:08:02-0700" git commit -a -m Update to version 1.333 -m toast wasn't reading /etc/toast.conf as promised by setup instructions; updated code and docs to look for configuration file in various places; cleaned up code to get rid of a few unnecessary calls to setopt()
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-07-10T21:08:02-0700" git tag -a v1.333 -m Toast Version 1.333
+INFO: Completed version 1.333
+--------------------------------------------------------------------------
+INFO: Starting on version 1.334
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-07-12T04:07:33-0700" git commit -a -m Update to version 1.334 -m fixed "permission denied" bug when arming/disarming overlapping packages
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-07-12T04:07:33-0700" git tag -a v1.334 -m Toast Version 1.334
+INFO: Completed version 1.334
+--------------------------------------------------------------------------
+INFO: Starting on version 1.335
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-07-18T20:20:18-0700" git commit -a -m Update to version 1.335 -m --noprotect now prevents toast build from creating read-only directories; made --noprotect the new default
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-07-18T20:20:18-0700" git tag -a v1.335 -m Toast Version 1.335
+INFO: Completed version 1.335
+--------------------------------------------------------------------------
+INFO: Starting on version 1.336
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-07-18T22:56:16-0700" git commit -a -m Update to version 1.336 -m invoke install-info on the correct set of files when arming/disarming
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-07-18T22:56:16-0700" git tag -a v1.336 -m Toast Version 1.336
+INFO: Completed version 1.336
+--------------------------------------------------------------------------
+INFO: Starting on version 1.337
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-07-19T03:52:38-0700" git commit -a -m Update to version 1.337 -m added built-in gunzip
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-07-19T03:52:38-0700" git tag -a v1.337 -m Toast Version 1.337
+INFO: Completed version 1.337
+--------------------------------------------------------------------------
+INFO: Starting on version 1.338
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-07-25T23:53:17-0700" git commit -a -m Update to version 1.338 -m try to install VMware from tarball
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-07-25T23:53:17-0700" git tag -a v1.338 -m Toast Version 1.338
+INFO: Completed version 1.338
+--------------------------------------------------------------------------
+INFO: Starting on version 1.339
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-08-28T22:56:42-0700" git commit -a -m Update to version 1.339 -m relax path checking (fixes bug when $HOME is /)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-08-28T22:56:42-0700" git tag -a v1.339 -m Toast Version 1.339
+INFO: Completed version 1.339
+--------------------------------------------------------------------------
+INFO: Starting on version 1.340
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-08-29T21:33:52-0700" git commit -a -m Update to version 1.340 -m bug report
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-08-29T21:33:52-0700" git tag -a v1.340 -m Toast Version 1.340
+INFO: Completed version 1.340
+--------------------------------------------------------------------------
+INFO: Starting on version 1.341
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-09-05T01:03:40-0700" git commit -a -m Update to version 1.341 -m build Xaw3d
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-09-05T01:03:40-0700" git tag -a v1.341 -m Toast Version 1.341
+INFO: Completed version 1.341
+--------------------------------------------------------------------------
+INFO: Starting on version 1.342
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-09-05T01:54:59-0700" git commit -a -m Update to version 1.342 -m added --expand (on by default)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-09-05T01:54:59-0700" git tag -a v1.342 -m Toast Version 1.342
+INFO: Completed version 1.342
+--------------------------------------------------------------------------
+INFO: Starting on version 1.343
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-09-05T22:03:00-0700" git commit -a -m Update to version 1.343 -m added fallbackuid
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-09-05T22:03:00-0700" git tag -a v1.343 -m Toast Version 1.343
+INFO: Completed version 1.343
+--------------------------------------------------------------------------
+INFO: Starting on version 1.344
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-09-18T21:33:36-0700" git commit -a -m Update to version 1.344 -m reconfigure now enables shared libraries for ncurses
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-09-18T21:33:36-0700" git tag -a v1.344 -m Toast Version 1.344
+INFO: Completed version 1.344
+--------------------------------------------------------------------------
+INFO: Starting on version 1.345
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-09-19T01:29:00-0700" git commit -a -m Update to version 1.345 -m make --expand more selective
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-09-19T01:29:00-0700" git tag -a v1.345 -m Toast Version 1.345
+INFO: Completed version 1.345
+--------------------------------------------------------------------------
+INFO: Starting on version 1.346
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-09-22T04:27:51-0700" git commit -a -m Update to version 1.346 -m try to do something about docbook
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-09-22T04:27:51-0700" git tag -a v1.346 -m Toast Version 1.346
+INFO: Completed version 1.346
+--------------------------------------------------------------------------
+INFO: Starting on version 1.347
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-09-25T23:55:10-0700" git commit -a -m Update to version 1.347 -m munge modern docbook-xml catalog to placate GNOME
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-09-25T23:55:10-0700" git tag -a v1.347 -m Toast Version 1.347
+INFO: Completed version 1.347
+--------------------------------------------------------------------------
+INFO: Starting on version 1.348
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-09-26T05:40:25-0700" git commit -a -m Update to version 1.348 -m goad mozilla into building without gtk1
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-09-26T05:40:25-0700" git tag -a v1.348 -m Toast Version 1.348
+INFO: Completed version 1.348
+--------------------------------------------------------------------------
+INFO: Starting on version 1.349
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-09-26T22:09:23-0700" git commit -a -m Update to version 1.349 -m merge sbin into bin
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-09-26T22:09:23-0700" git tag -a v1.349 -m Toast Version 1.349
+INFO: Completed version 1.349
+--------------------------------------------------------------------------
+INFO: Starting on version 1.350
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-09-27T03:32:38-0700" git commit -a -m Update to version 1.350 -m try to accomodate packages that update /etc/xml/catalog, like libglade
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-09-27T03:32:38-0700" git tag -a v1.350 -m Toast Version 1.350
+INFO: Completed version 1.350
+--------------------------------------------------------------------------
+INFO: Starting on version 1.351
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-09-28T05:55:31-0700" git commit -a -m Update to version 1.351 -m force gtk+ to install more completely
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-09-28T05:55:31-0700" git tag -a v1.351 -m Toast Version 1.351
+INFO: Completed version 1.351
+--------------------------------------------------------------------------
+INFO: Starting on version 1.352
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-10-01T04:51:30-0700" git commit -a -m Update to version 1.352 -m account properly for case where etc/xml doesn't exist
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-10-01T04:51:30-0700" git tag -a v1.352 -m Toast Version 1.352
+INFO: Completed version 1.352
+--------------------------------------------------------------------------
+INFO: Starting on version 1.353
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-10-02T22:58:58-0700" git commit -a -m Update to version 1.353 -m improve --expand heuristics
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-10-02T22:58:58-0700" git tag -a v1.353 -m Toast Version 1.353
+INFO: Completed version 1.353
+--------------------------------------------------------------------------
+INFO: Starting on version 1.354
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-10-03T04:03:07-0700" git commit -a -m Update to version 1.354 -m some concessions to glibc 2.3.3
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-10-03T04:03:07-0700" git tag -a v1.354 -m Toast Version 1.354
+INFO: Completed version 1.354
+--------------------------------------------------------------------------
+INFO: Starting on version 1.355
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-10-04T05:16:04-0700" git commit -a -m Update to version 1.355 -m fixed a bug that prevented building version 0 of a package
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-10-04T05:16:04-0700" git tag -a v1.355 -m Toast Version 1.355
+INFO: Completed version 1.355
+--------------------------------------------------------------------------
+INFO: Starting on version 1.356
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-10-11T06:21:36-0700" git commit -a -m Update to version 1.356 -m fixed a bug that caused toast build to arm things for no apparent reason
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-10-11T06:21:36-0700" git tag -a v1.356 -m Toast Version 1.356
+INFO: Completed version 1.356
+--------------------------------------------------------------------------
+INFO: Starting on version 1.357
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-10-28T05:18:16-0700" git commit -a -m Update to version 1.357 -m added --confappend by popular demand; corrected bug list
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-10-28T05:18:16-0700" git tag -a v1.357 -m Toast Version 1.357
+INFO: Completed version 1.357
+--------------------------------------------------------------------------
+INFO: Starting on version 1.358
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-10-30T05:59:20-0700" git commit -a -m Update to version 1.358 -m fixed a couple of minor glitches in package URL location heuristics
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-10-30T05:59:20-0700" git tag -a v1.358 -m Toast Version 1.358
+INFO: Completed version 1.358
+--------------------------------------------------------------------------
+INFO: Starting on version 1.359
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-11-07T05:15:03-0800" git commit -a -m Update to version 1.359 -m fixed a bug in the way the toast distribution tarball was being generated
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-11-07T05:15:03-0800" git tag -a v1.359 -m Toast Version 1.359
+INFO: Completed version 1.359
+--------------------------------------------------------------------------
+INFO: Starting on version 1.360
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-11-07T05:38:21-0800" git commit -a -m Update to version 1.360 -m fixed a bug that prevented toast disarm from running postarmprog
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-11-07T05:38:21-0800" git tag -a v1.360 -m Toast Version 1.360
+INFO: Completed version 1.360
+--------------------------------------------------------------------------
+INFO: Starting on version 1.361
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-11-07T06:25:00-0800" git commit -a -m Update to version 1.361 -m fix bug tickled by e.g. openssl when last cp argument is a directory
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-11-07T06:25:00-0800" git tag -a v1.361 -m Toast Version 1.361
+INFO: Completed version 1.361
+--------------------------------------------------------------------------
+INFO: Starting on version 1.362
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-11-08T05:01:07-0800" git commit -a -m Update to version 1.362 -m tweak filtering heuristics; add bug report
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-11-08T05:01:07-0800" git tag -a v1.362 -m Toast Version 1.362
+INFO: Completed version 1.362
+--------------------------------------------------------------------------
+INFO: Starting on version 1.363
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-12-02T06:28:30-0800" git commit -a -m Update to version 1.363 -m try to fix obscure "can't find perl" error
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-12-02T06:28:30-0800" git tag -a v1.363 -m Toast Version 1.363
+INFO: Completed version 1.363
+--------------------------------------------------------------------------
+INFO: Starting on version 1.364
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-12-05T06:45:04-0800" git commit -a -m Update to version 1.364 -m install openssl even with --nopreload
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-12-05T06:45:04-0800" git tag -a v1.364 -m Toast Version 1.364
+INFO: Completed version 1.364
+--------------------------------------------------------------------------
+INFO: Starting on version 1.365
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-12-05T23:42:41-0800" git commit -a -m Update to version 1.365 -m added --nice
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-12-05T23:42:41-0800" git tag -a v1.365 -m Toast Version 1.365
+INFO: Completed version 1.365
+--------------------------------------------------------------------------
+INFO: Starting on version 1.366
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-12-06T00:34:43-0800" git commit -a -m Update to version 1.366 -m improved --expand heuristic
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-12-06T00:34:43-0800" git tag -a v1.366 -m Toast Version 1.366
+INFO: Completed version 1.366
+--------------------------------------------------------------------------
+INFO: Starting on version 1.367
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-12-06T04:34:01-0800" git commit -a -m Update to version 1.367 -m fix spurious trailing // in some autofind URLs; add bug report
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-12-06T04:34:01-0800" git tag -a v1.367 -m Toast Version 1.367
+INFO: Completed version 1.367
+--------------------------------------------------------------------------
+INFO: Starting on version 1.368
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-12-19T04:40:00-0800" git commit -a -m Update to version 1.368 -m improved the preceding bugfix
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-12-19T04:40:00-0800" git tag -a v1.368 -m Toast Version 1.368
+INFO: Completed version 1.368
+--------------------------------------------------------------------------
+INFO: Starting on version 1.369
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-12-19T04:49:55-0800" git commit -a -m Update to version 1.369 -m build libmng
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-12-19T04:49:55-0800" git tag -a v1.369 -m Toast Version 1.369
+INFO: Completed version 1.369
+--------------------------------------------------------------------------
+INFO: Starting on version 1.370
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-12-26T07:01:02-0800" git commit -a -m Update to version 1.370 -m fix for spurious autogen.sh error introduced in 1.369
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-12-26T07:01:02-0800" git tag -a v1.370 -m Toast Version 1.370
+INFO: Completed version 1.370
+--------------------------------------------------------------------------
+INFO: Starting on version 1.371
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-12-26T19:49:27-0800" git commit -a -m Update to version 1.371 -m fix bug introduced in 1.369 that prevented toast from building itself
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-12-26T19:49:27-0800" git tag -a v1.371 -m Toast Version 1.371
+INFO: Completed version 1.371
+--------------------------------------------------------------------------
+INFO: Starting on version 1.372
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2004-12-27T03:25:41-0800" git commit -a -m Update to version 1.372 -m wrappers in "helpers" directory were failing under obscure circumstances
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2004-12-27T03:25:41-0800" git tag -a v1.372 -m Toast Version 1.372
+INFO: Completed version 1.372
+--------------------------------------------------------------------------
+INFO: Starting on version 1.373
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-01-16T18:48:22-0800" git commit -a -m Update to version 1.373 -m prevent toast's behavior from depending on the ordering of directory entries
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-01-16T18:48:22-0800" git tag -a v1.373 -m Toast Version 1.373
+INFO: Completed version 1.373
+--------------------------------------------------------------------------
+INFO: Starting on version 1.374
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-01-17T04:46:17-0800" git commit -a -m Update to version 1.374 -m do a better job of building modern linux kernels
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-01-17T04:46:17-0800" git tag -a v1.374 -m Toast Version 1.374
+INFO: Completed version 1.374
+--------------------------------------------------------------------------
+INFO: Starting on version 1.375
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-03-07T00:32:13-0800" git commit -a -m Update to version 1.375 -m fix spurious assertion failure when disarming packages by URL; add rule to build from setup.py (e.g. BitTorrent)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-03-07T00:32:13-0800" git tag -a v1.375 -m Toast Version 1.375
+INFO: Completed version 1.375
+--------------------------------------------------------------------------
+INFO: Starting on version 1.376
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-03-17T03:31:38-0800" git commit -a -m Update to version 1.376 -m replace assertion with error message
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-03-17T03:31:38-0800" git tag -a v1.376 -m Toast Version 1.376
+INFO: Completed version 1.376
+--------------------------------------------------------------------------
+INFO: Starting on version 1.377
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-04-10T17:50:03-0700" git commit -a -m Update to version 1.377 -m workaround for ISC DHCP; build non-module-capable Linux kernels; try to resolve a glibc upgrade issue
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-04-10T17:50:03-0700" git tag -a v1.377 -m Toast Version 1.377
+INFO: Completed version 1.377
+--------------------------------------------------------------------------
+INFO: Starting on version 1.378
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-05-04T04:30:03-0700" git commit -a -m Update to version 1.378 -m htmltidy
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-05-04T04:30:03-0700" git tag -a v1.378 -m Toast Version 1.378
+INFO: Completed version 1.378
+--------------------------------------------------------------------------
+INFO: Starting on version 1.379
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-05-10T23:50:50-0700" git commit -a -m Update to version 1.379 -m Haskell Cabal
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-05-10T23:50:50-0700" git tag -a v1.379 -m Toast Version 1.379
+INFO: Completed version 1.379
+--------------------------------------------------------------------------
+INFO: Starting on version 1.380
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-05-12T06:05:10-0700" git commit -a -m Update to version 1.380 -m Setup.hs and Setup.lhs are equivalent
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-05-12T06:05:10-0700" git tag -a v1.380 -m Toast Version 1.380
+INFO: Completed version 1.380
+--------------------------------------------------------------------------
+INFO: Starting on version 1.381
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-05-17T05:04:31-0700" git commit -a -m Update to version 1.381 -m identify shar archives without shebang lines (e.g. ISC (Vixie) cron); new feature request
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-05-17T05:04:31-0700" git tag -a v1.381 -m Toast Version 1.381
+INFO: Completed version 1.381
+--------------------------------------------------------------------------
+INFO: Starting on version 1.382
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-06-10T23:01:35-0700" git commit -a -m Update to version 1.382 -m allow options later in command line; log command line during build
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-06-10T23:01:35-0700" git tag -a v1.382 -m Toast Version 1.382
+INFO: Completed version 1.382
+--------------------------------------------------------------------------
+INFO: Starting on version 1.383
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-06-24T03:48:28-0700" git commit -a -m Update to version 1.383 -m don't try to run any directories called "perl" appearing in PATH
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-06-24T03:48:28-0700" git tag -a v1.383 -m Toast Version 1.383
+INFO: Completed version 1.383
+--------------------------------------------------------------------------
+INFO: Starting on version 1.384
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-07-04T18:46:27-0700" git commit -a -m Update to version 1.384 -m suppress meaningless "yes count exceeded" message
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-07-04T18:46:27-0700" git tag -a v1.384 -m Toast Version 1.384
+INFO: Completed version 1.384
+--------------------------------------------------------------------------
+INFO: Starting on version 1.385
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-07-04T19:05:50-0700" git commit -a -m Update to version 1.385 -m try to suppress harmless head -1 warning for some versionless packages
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-07-04T19:05:50-0700" git tag -a v1.385 -m Toast Version 1.385
+INFO: Completed version 1.385
+--------------------------------------------------------------------------
+INFO: Starting on version 1.386
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-07-04T22:35:35-0700" git commit -a -m Update to version 1.386 -m try to fix x86-64
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-07-04T22:35:35-0700" git tag -a v1.386 -m Toast Version 1.386
+INFO: Completed version 1.386
+--------------------------------------------------------------------------
+INFO: Starting on version 1.387
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-07-06T06:15:57-0700" git commit -a -m Update to version 1.387 -m try to suppress yet another harmless warning for versionless packages
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-07-06T06:15:57-0700" git tag -a v1.387 -m Toast Version 1.387
+INFO: Completed version 1.387
+--------------------------------------------------------------------------
+INFO: Starting on version 1.388
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-07-18T03:00:47-0700" git commit -a -m Update to version 1.388 -m cover up an obscure command line parsing quirk
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-07-18T03:00:47-0700" git tag -a v1.388 -m Toast Version 1.388
+INFO: Completed version 1.388
+--------------------------------------------------------------------------
+INFO: Starting on version 1.389
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-07-24T18:37:09-0700" git commit -a -m Update to version 1.389 -m trivial doc fixes
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-07-24T18:37:09-0700" git tag -a v1.389 -m Toast Version 1.389
+INFO: Completed version 1.389
+--------------------------------------------------------------------------
+INFO: Starting on version 1.390
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-08-26T05:17:36-0700" git commit -a -m Update to version 1.390 -m check for Setup.hs before configure
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-08-26T05:17:36-0700" git tag -a v1.390 -m Toast Version 1.390
+INFO: Completed version 1.390
+--------------------------------------------------------------------------
+INFO: Starting on version 1.391
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-08-26T05:25:13-0700" git commit -a -m Update to version 1.391 -m install instructions: replace broken telnet command with pure-Perl command
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-08-26T05:25:13-0700" git tag -a v1.391 -m Toast Version 1.391
+INFO: Completed version 1.391
+--------------------------------------------------------------------------
+INFO: Starting on version 1.392
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-08-27T22:34:13-0700" git commit -a -m Update to version 1.392 -m default to --nostrictpreload under non-Linux; claim support for OS X
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-08-27T22:34:13-0700" git tag -a v1.392 -m Toast Version 1.392
+INFO: Completed version 1.392
+--------------------------------------------------------------------------
+INFO: Starting on version 1.393
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-08-27T23:19:24-0700" git commit -a -m Update to version 1.393 -m ask Config.pm how to compile rewrite.so
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-08-27T23:19:24-0700" git tag -a v1.393 -m Toast Version 1.393
+INFO: Completed version 1.393
+--------------------------------------------------------------------------
+INFO: Starting on version 1.394
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-08-29T04:50:38-0700" git commit -a -m Update to version 1.394 -m first attempt at supporting Haskell libraries under ghc
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-08-29T04:50:38-0700" git tag -a v1.394 -m Toast Version 1.394
+INFO: Completed version 1.394
+--------------------------------------------------------------------------
+INFO: Starting on version 1.395
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-09-04T20:20:54-0700" git commit -a -m Update to version 1.395 -m register Haskell libraries that use Setup.hs
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-09-04T20:20:54-0700" git tag -a v1.395 -m Toast Version 1.395
+INFO: Completed version 1.395
+--------------------------------------------------------------------------
+INFO: Starting on version 1.396
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-09-05T00:36:12-0700" git commit -a -m Update to version 1.396 -m try to fix some serious flaws in the Haskell wrapper stuff
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-09-05T00:36:12-0700" git tag -a v1.396 -m Toast Version 1.396
+INFO: Completed version 1.396
+--------------------------------------------------------------------------
+INFO: Starting on version 1.397
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-09-05T22:29:42-0700" git commit -a -m Update to version 1.397 -m further Haskell wrapper changes
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-09-05T22:29:42-0700" git tag -a v1.397 -m Toast Version 1.397
+INFO: Completed version 1.397
+--------------------------------------------------------------------------
+INFO: Starting on version 1.398
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-09-06T00:10:01-0700" git commit -a -m Update to version 1.398 -m more of the same
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-09-06T00:10:01-0700" git tag -a v1.398 -m Toast Version 1.398
+INFO: Completed version 1.398
+--------------------------------------------------------------------------
+INFO: Starting on version 1.399
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-09-06T03:40:29-0700" git commit -a -m Update to version 1.399 -m once more with feeling
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-09-06T03:40:29-0700" git tag -a v1.399 -m Toast Version 1.399
+INFO: Completed version 1.399
+--------------------------------------------------------------------------
+INFO: Starting on version 1.400
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-09-06T06:42:44-0700" git commit -a -m Update to version 1.400 -m fix proxy URL parsing bug; restore perl 5.005_03 compatibility
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-09-06T06:42:44-0700" git tag -a v1.400 -m Toast Version 1.400
+INFO: Completed version 1.400
+--------------------------------------------------------------------------
+INFO: Starting on version 1.401
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-09-07T05:47:57-0700" git commit -a -m Update to version 1.401 -m reorder Haskell wrapper arguments; update copyright notices
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-09-07T05:47:57-0700" git tag -a v1.401 -m Toast Version 1.401
+INFO: Completed version 1.401
+--------------------------------------------------------------------------
+INFO: Starting on version 1.402
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-09-08T04:39:31-0700" git commit -a -m Update to version 1.402 -m add --makeappend as requested
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-09-08T04:39:31-0700" git tag -a v1.402 -m Toast Version 1.402
+INFO: Completed version 1.402
+--------------------------------------------------------------------------
+INFO: Starting on version 1.403
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-09-08T05:22:05-0700" git commit -a -m Update to version 1.403 -m build GHCi libraries; make --nohspkg the default; record various issues
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-09-08T05:22:05-0700" git tag -a v1.403 -m Toast Version 1.403
+INFO: Completed version 1.403
+--------------------------------------------------------------------------
+INFO: Starting on version 1.404
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-09-09T20:37:45-0700" git commit -a -m Update to version 1.404 -m preliminary work on toast find; fixed doc glitch; noted some more feature requests
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-09-09T20:37:45-0700" git tag -a v1.404 -m Toast Version 1.404
+INFO: Completed version 1.404
+--------------------------------------------------------------------------
+INFO: Starting on version 1.405
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-09-12T04:08:07-0700" git commit -a -m Update to version 1.405 -m add --ccache
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-09-12T04:08:07-0700" git tag -a v1.405 -m Toast Version 1.405
+INFO: Completed version 1.405
+--------------------------------------------------------------------------
+INFO: Starting on version 1.406
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-09-13T06:21:19-0700" git commit -a -m Update to version 1.406 -m fix --ccache problem when running as root
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-09-13T06:21:19-0700" git tag -a v1.406 -m Toast Version 1.406
+INFO: Completed version 1.406
+--------------------------------------------------------------------------
+INFO: Starting on version 1.407
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-09-13T06:34:41-0700" git commit -a -m Update to version 1.407 -m fix terrible autofind "strict refs" bug introduced in 1.404; apply --ccache to g++ and remove from wishlist
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-09-13T06:34:41-0700" git tag -a v1.407 -m Toast Version 1.407
+INFO: Completed version 1.407
+--------------------------------------------------------------------------
+INFO: Starting on version 1.408
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-09-15T01:50:14-0700" git commit -a -m Update to version 1.408 -m fix "gcc.helper" bug for packages that invoke gcc during "make install"; improve version-number-guessing heuristic for shar archives
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-09-15T01:50:14-0700" git tag -a v1.408 -m Toast Version 1.408
+INFO: Completed version 1.408
+--------------------------------------------------------------------------
+INFO: Starting on version 1.409
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-09-17T06:28:18-0700" git commit -a -m Update to version 1.409 -m improved and documented toast find
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-09-17T06:28:18-0700" git tag -a v1.409 -m Toast Version 1.409
+INFO: Completed version 1.409
+--------------------------------------------------------------------------
+INFO: Starting on version 1.410
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-09-19T04:47:38-0700" git commit -a -m Update to version 1.410 -m cover up some toast find glitches
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-09-19T04:47:38-0700" git tag -a v1.410 -m Toast Version 1.410
+INFO: Completed version 1.410
+--------------------------------------------------------------------------
+INFO: Starting on version 1.411
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-09-20T00:25:13-0700" git commit -a -m Update to version 1.411 -m build gcc 4.x
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-09-20T00:25:13-0700" git tag -a v1.411 -m Toast Version 1.411
+INFO: Completed version 1.411
+--------------------------------------------------------------------------
+INFO: Starting on version 1.412
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-09-23T05:22:07-0700" git commit -a -m Update to version 1.412 -m added --interactive (disabled by default)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-09-23T05:22:07-0700" git tag -a v1.412 -m Toast Version 1.412
+INFO: Completed version 1.412
+--------------------------------------------------------------------------
+INFO: Starting on version 1.413
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-09-30T06:10:35-0700" git commit -a -m Update to version 1.413 -m fix --interactive glitch; remove stale bug reports
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-09-30T06:10:35-0700" git tag -a v1.413 -m Toast Version 1.413
+INFO: Completed version 1.413
+--------------------------------------------------------------------------
+INFO: Starting on version 1.414
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-10-01T23:38:57-0700" git commit -a -m Update to version 1.414 -m work around psutils problem
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-10-01T23:38:57-0700" git tag -a v1.414 -m Toast Version 1.414
+INFO: Completed version 1.414
+--------------------------------------------------------------------------
+INFO: Starting on version 1.415
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-10-02T22:20:31-0700" git commit -a -m Update to version 1.415 -m make toast upgrade work on file:// URLs
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-10-02T22:20:31-0700" git tag -a v1.415 -m Toast Version 1.415
+INFO: Completed version 1.415
+--------------------------------------------------------------------------
+INFO: Starting on version 1.416
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-10-02T22:46:37-0700" git commit -a -m Update to version 1.416 -m improve toast find behavior when given a version number
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-10-02T22:46:37-0700" git tag -a v1.416 -m Toast Version 1.416
+INFO: Completed version 1.416
+--------------------------------------------------------------------------
+INFO: Starting on version 1.417
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-10-03T03:43:54-0700" git commit -a -m Update to version 1.417 -m toast find now searches freshmeat, sourceforge, ftp.gnu.org and CPAN; added --findsites option to customize this behavior
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-10-03T03:43:54-0700" git tag -a v1.417 -m Toast Version 1.417
+INFO: Completed version 1.417
+--------------------------------------------------------------------------
+INFO: Starting on version 1.418
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-10-03T05:48:05-0700" git commit -a -m Update to version 1.418 -m fix sourceforge upgrade trouble by making --noautochange the default
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-10-03T05:48:05-0700" git tag -a v1.418 -m Toast Version 1.418
+INFO: Completed version 1.418
+--------------------------------------------------------------------------
+INFO: Starting on version 1.419
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-10-04T05:27:12-0700" git commit -a -m Update to version 1.419 -m fix --interactive to allow downgrade and mark current version w/ *
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-10-04T05:27:12-0700" git tag -a v1.419 -m Toast Version 1.419
+INFO: Completed version 1.419
+--------------------------------------------------------------------------
+INFO: Starting on version 1.420
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-10-04T06:38:31-0700" git commit -a -m Update to version 1.420 -m improve --interactive
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-10-04T06:38:31-0700" git tag -a v1.420 -m Toast Version 1.420
+INFO: Completed version 1.420
+--------------------------------------------------------------------------
+INFO: Starting on version 1.421
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-10-05T01:57:13-0700" git commit -a -m Update to version 1.421 -m fix man page typo; make toast upgrade work after toast edit
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-10-05T01:57:13-0700" git tag -a v1.421 -m Toast Version 1.421
+INFO: Completed version 1.421
+--------------------------------------------------------------------------
+INFO: Starting on version 1.422
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-10-13T04:43:43-0700" git commit -a -m Update to version 1.422 -m add per-package configuration files, --stickyopts, and --showopts
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-10-13T04:43:43-0700" git tag -a v1.422 -m Toast Version 1.422
+INFO: Completed version 1.422
+--------------------------------------------------------------------------
+INFO: Starting on version 1.423
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-10-22T06:46:29-0700" git commit -a -m Update to version 1.423 -m attempt to fix problems that could occur whenever storedir or armdir contained dev, proc, or tmp as a path component
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-10-22T06:46:29-0700" git tag -a v1.423 -m Toast Version 1.423
+INFO: Completed version 1.423
+--------------------------------------------------------------------------
+INFO: Starting on version 1.424
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-10-23T00:16:02-0700" git commit -a -m Update to version 1.424 -m fix find-related assertion failure and fatal "ARRAY ref" error
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-10-23T00:16:02-0700" git tag -a v1.424 -m Toast Version 1.424
+INFO: Completed version 1.424
+--------------------------------------------------------------------------
+INFO: Starting on version 1.425
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-10-23T03:42:07-0700" git commit -a -m Update to version 1.425 -m fix "double slash in path ccache" bug; update buglist/wishlist
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-10-23T03:42:07-0700" git tag -a v1.425 -m Toast Version 1.425
+INFO: Completed version 1.425
+--------------------------------------------------------------------------
+INFO: Starting on version 1.426
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-11-11T05:37:16-0800" git commit -a -m Update to version 1.426 -m fix glitches in toast find
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-11-11T05:37:16-0800" git tag -a v1.426 -m Toast Version 1.426
+INFO: Completed version 1.426
+--------------------------------------------------------------------------
+INFO: Starting on version 1.427
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-11-11T05:56:39-0800" git commit -a -m Update to version 1.427 -m fix command-line parsing bug introduced in 1.422; correct buglist
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-11-11T05:56:39-0800" git tag -a v1.427 -m Toast Version 1.427
+INFO: Completed version 1.427
+--------------------------------------------------------------------------
+INFO: Starting on version 1.428
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-11-13T02:06:37-0800" git commit -a -m Update to version 1.428 -m experimental cvs support
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-11-13T02:06:37-0800" git tag -a v1.428 -m Toast Version 1.428
+INFO: Completed version 1.428
+--------------------------------------------------------------------------
+INFO: Starting on version 1.429
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-11-16T05:54:00-0800" git commit -a -m Update to version 1.429 -m fix error when explicitly invoking "toast add" with sticky options
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-11-16T05:54:00-0800" git tag -a v1.429 -m Toast Version 1.429
+INFO: Completed version 1.429
+--------------------------------------------------------------------------
+INFO: Starting on version 1.430
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-11-16T05:59:52-0800" git commit -a -m Update to version 1.430 -m use built-in HTTP instead of wget so as to be able to follow relative links after a redirect
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-11-16T05:59:52-0800" git tag -a v1.430 -m Toast Version 1.430
+INFO: Completed version 1.430
+--------------------------------------------------------------------------
+INFO: Starting on version 1.431
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-11-25T00:08:46-0800" git commit -a -m Update to version 1.431 -m improve name/version guessing; update buglist
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-11-25T00:08:46-0800" git tag -a v1.431 -m Toast Version 1.431
+INFO: Completed version 1.431
+--------------------------------------------------------------------------
+INFO: Starting on version 1.432
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-11-27T05:47:57-0800" git commit -a -m Update to version 1.432 -m call LWP directly from toast get; reformat certain error messages
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-11-27T05:47:57-0800" git tag -a v1.432 -m Toast Version 1.432
+INFO: Completed version 1.432
+--------------------------------------------------------------------------
+INFO: Starting on version 1.433
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-11-27T07:01:15-0800" git commit -a -m Update to version 1.433 -m try to improve toast's treatment of multiple armdirs; adjust description of toast find
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-11-27T07:01:15-0800" git tag -a v1.433 -m Toast Version 1.433
+INFO: Completed version 1.433
+--------------------------------------------------------------------------
+INFO: Starting on version 1.434
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2005-12-11T23:38:18-0800" git commit -a -m Update to version 1.434 -m force directories to be readable; document more bugs; misc fixes for xcircuit, tcl/tk, flash, firefox
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2005-12-11T23:38:18-0800" git tag -a v1.434 -m Toast Version 1.434
+INFO: Completed version 1.434
+--------------------------------------------------------------------------
+INFO: Starting on version 1.435
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2006-12-12T00:48:19-0800" git commit -a -m Update to version 1.435 -m add --infodiropt; update copyright year
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2006-12-12T00:48:19-0800" git tag -a v1.435 -m Toast Version 1.435
+INFO: Completed version 1.435
+--------------------------------------------------------------------------
+INFO: Starting on version 1.436
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2006-12-12T02:31:42-0800" git commit -a -m Update to version 1.436 -m fix --infodiropt behavior to placate dpkg's fake install-info command
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2006-12-12T02:31:42-0800" git tag -a v1.436 -m Toast Version 1.436
+INFO: Completed version 1.436
+--------------------------------------------------------------------------
+INFO: Starting on version 1.437
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2006-12-13T23:52:54-0800" git commit -a -m Update to version 1.437 -m remove --infodiropt; use a temporary directory for install-info
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2006-12-13T23:52:54-0800" git tag -a v1.437 -m Toast Version 1.437
+INFO: Completed version 1.437
+--------------------------------------------------------------------------
+INFO: Starting on version 1.438
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2006-12-14T00:28:02-0800" git commit -a -m Update to version 1.438 -m force --noinfodir if install-info is missing or broken
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2006-12-14T00:28:02-0800" git tag -a v1.438 -m Toast Version 1.438
+INFO: Completed version 1.438
+--------------------------------------------------------------------------
+INFO: Starting on version 1.439
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2006-12-14T02:02:42-0800" git commit -a -m Update to version 1.439 -m fix and document detector for dpkg's broken install-info
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2006-12-14T02:02:42-0800" git tag -a v1.439 -m Toast Version 1.439
+INFO: Completed version 1.439
+--------------------------------------------------------------------------
+INFO: Starting on version 1.440
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2006-12-14T04:25:03-0800" git commit -a -m Update to version 1.440 -m change --hspkg behavior (untested, still disabled by default)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2006-12-14T04:25:03-0800" git tag -a v1.440 -m Toast Version 1.440
+INFO: Completed version 1.440
+--------------------------------------------------------------------------
+INFO: Starting on version 1.441
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2006-12-29T22:47:10-0800" git commit -a -m Update to version 1.441 -m fix conf write bug with sticky options on newly added packages; add wish list item
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2006-12-29T22:47:10-0800" git tag -a v1.441 -m Toast Version 1.441
+INFO: Completed version 1.441
+--------------------------------------------------------------------------
+INFO: Starting on version 1.442
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2007-06-04T23:32:59-0700" git commit -a -m Update to version 1.442 -m upgrade to GPL version 3
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2007-06-04T23:32:59-0700" git tag -a v1.442 -m Toast Version 1.442
+INFO: Completed version 1.442
+--------------------------------------------------------------------------
+INFO: Starting on version 1.443
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2007-07-01T20:50:29-0700" git commit -a -m Update to version 1.443 -m build Haskell Cabal packages that don't contain libraries
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2007-07-01T20:50:29-0700" git tag -a v1.443 -m Toast Version 1.443
+INFO: Completed version 1.443
+--------------------------------------------------------------------------
+INFO: Starting on version 1.444
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2007-07-08T21:53:25-0700" git commit -a -m Update to version 1.444 -m be less eager to grab random Makefiles
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2007-07-08T21:53:25-0700" git tag -a v1.444 -m Toast Version 1.444
+INFO: Completed version 1.444
+--------------------------------------------------------------------------
+INFO: Starting on version 1.445
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2007-08-21T21:18:45-0700" git commit -a -m Update to version 1.445 -m fixed --fallbackuid search bug
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2007-08-21T21:18:45-0700" git tag -a v1.445 -m Toast Version 1.445
+INFO: Completed version 1.445
+--------------------------------------------------------------------------
+INFO: Starting on version 1.446
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2007-09-11T23:06:00-0700" git commit -a -m Update to version 1.446 -m make --preload more thread-safe
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2007-09-11T23:06:00-0700" git tag -a v1.446 -m Toast Version 1.446
+INFO: Completed version 1.446
+--------------------------------------------------------------------------
+INFO: Starting on version 1.447
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2008-03-10T22:16:03-0700" git commit -a -m Update to version 1.447 -m add pid to --debugrewrite output
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2008-03-10T22:16:03-0700" git tag -a v1.447 -m Toast Version 1.447
+INFO: Completed version 1.447
+--------------------------------------------------------------------------
+INFO: Starting on version 1.448
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2008-03-13T22:04:18-0700" git commit -a -m Update to version 1.448 -m rename make.install.[sk]trace to make.install.trace; include in broken.log
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2008-03-13T22:04:18-0700" git tag -a v1.448 -m Toast Version 1.448
+INFO: Completed version 1.448
+--------------------------------------------------------------------------
+INFO: Starting on version 1.449
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2008-03-13T22:20:25-0700" git commit -a -m Update to version 1.449 -m yet more --debugrewrite verbosity and purported --preload thread-safety
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2008-03-13T22:20:25-0700" git tag -a v1.449 -m Toast Version 1.449
+INFO: Completed version 1.449
+--------------------------------------------------------------------------
+INFO: Starting on version 1.450
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2008-03-13T23:58:52-0700" git commit -a -m Update to version 1.450 -m include lsb_release -a output in broken.log
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2008-03-13T23:58:52-0700" git tag -a v1.450 -m Toast Version 1.450
+INFO: Completed version 1.450
+--------------------------------------------------------------------------
+INFO: Starting on version 1.451
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2008-03-14T00:18:26-0700" git commit -a -m Update to version 1.451 -m remove sticky boolean options correctly
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2008-03-14T00:18:26-0700" git tag -a v1.451 -m Toast Version 1.451
+INFO: Completed version 1.451
+--------------------------------------------------------------------------
+INFO: Starting on version 1.452
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2008-03-16T05:23:06-0700" git commit -a -m Update to version 1.452 -m fix --preload segfault with glibc 2.3.4 and/or gcc 3.4.6 on x86_64
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2008-03-16T05:23:06-0700" git tag -a v1.452 -m Toast Version 1.452
+INFO: Completed version 1.452
+--------------------------------------------------------------------------
+INFO: Starting on version 1.453
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2008-03-20T01:29:53-0700" git commit -a -m Update to version 1.453 -m allow toast to install itself even if /home is unreadable
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2008-03-20T01:29:53-0700" git tag -a v1.453 -m Toast Version 1.453
+INFO: Completed version 1.453
+--------------------------------------------------------------------------
+INFO: Starting on version 1.454
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2008-03-31T19:14:18-0700" git commit -a -m Update to version 1.454 -m add --compilecmd and --installcmd options
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2008-03-31T19:14:18-0700" git tag -a v1.454 -m Toast Version 1.454
+INFO: Completed version 1.454
+--------------------------------------------------------------------------
+INFO: Starting on version 1.455
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2008-04-07T00:24:26-0700" git commit -a -m Update to version 1.455 -m install bitlbee headers
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2008-04-07T00:24:26-0700" git tag -a v1.455 -m Toast Version 1.455
+INFO: Completed version 1.455
+--------------------------------------------------------------------------
+INFO: Starting on version 1.456
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2008-04-09T21:14:06-0700" git commit -a -m Update to version 1.456 -m add rudimentary SCons support; fix PDFlib-Lite; remove dead code
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2008-04-09T21:14:06-0700" git tag -a v1.456 -m Toast Version 1.456
+INFO: Completed version 1.456
+--------------------------------------------------------------------------
+INFO: Starting on version 1.457
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2008-05-02T02:24:10-0700" git commit -a -m Update to version 1.457 -m fix mkdir bug introduced in 1.456
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2008-05-02T02:24:10-0700" git tag -a v1.457 -m Toast Version 1.457
+INFO: Completed version 1.457
+--------------------------------------------------------------------------
+INFO: Starting on version 1.458
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2008-05-07T05:21:00-0700" git commit -a -m Update to version 1.458 -m prefer setup.py to a bare Makefile (e.g. Cython)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2008-05-07T05:21:00-0700" git tag -a v1.458 -m Toast Version 1.458
+INFO: Completed version 1.458
+--------------------------------------------------------------------------
+INFO: Starting on version 1.459
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2008-05-08T23:20:31-0700" git commit -a -m Update to version 1.459 -m experimental git support
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2008-05-08T23:20:31-0700" git tag -a v1.459 -m Toast Version 1.459
+INFO: Completed version 1.459
+--------------------------------------------------------------------------
+INFO: Starting on version 1.460
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2008-05-28T22:31:51-0700" git commit -a -m Update to version 1.460 -m try to help gcc work correctly when invoked during "make install"
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2008-05-28T22:31:51-0700" git tag -a v1.460 -m Toast Version 1.460
+INFO: Completed version 1.460
+--------------------------------------------------------------------------
+INFO: Starting on version 1.461
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2008-08-22T18:38:56-0700" git commit -a -m Update to version 1.461 -m fix first-time setup instructions
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2008-08-22T18:38:56-0700" git tag -a v1.461 -m Toast Version 1.461
+INFO: Completed version 1.461
+--------------------------------------------------------------------------
+INFO: Starting on version 1.462
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2009-03-20T01:18:10-0700" git commit -a -m Update to version 1.462 -m fix bug with --findsites and non-alphanumeric package names
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2009-03-20T01:18:10-0700" git tag -a v1.462 -m Toast Version 1.462
+INFO: Completed version 1.462
+--------------------------------------------------------------------------
+INFO: Starting on version 1.463
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2009-03-20T01:21:35-0700" git commit -a -m Update to version 1.463 -m search projects hosted by Google Code
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2009-03-20T01:21:35-0700" git tag -a v1.463 -m Toast Version 1.463
+INFO: Completed version 1.463
+--------------------------------------------------------------------------
+INFO: Starting on version 1.464
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2009-03-20T04:54:13-0700" git commit -a -m Update to version 1.464 -m use a well-behaved sourceforge mirror
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2009-03-20T04:54:13-0700" git tag -a v1.464 -m Toast Version 1.464
+INFO: Completed version 1.464
+--------------------------------------------------------------------------
+INFO: Starting on version 1.465
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2009-03-20T06:05:00-0700" git commit -a -m Update to version 1.465 -m install bare uncompressed scripts
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2009-03-20T06:05:00-0700" git tag -a v1.465 -m Toast Version 1.465
+INFO: Completed version 1.465
+--------------------------------------------------------------------------
+INFO: Starting on version 1.466
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2009-03-29T22:48:35-0700" git commit -a -m Update to version 1.466 -m fix freshmeat.net lookup
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2009-03-29T22:48:35-0700" git tag -a v1.466 -m Toast Version 1.466
+INFO: Completed version 1.466
+--------------------------------------------------------------------------
+INFO: Starting on version 1.467
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2009-05-08T22:29:30-0700" git commit -a -m Update to version 1.467 -m update description and fix whitespace (code is unchanged)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2009-05-08T22:29:30-0700" git tag -a v1.467 -m Toast Version 1.467
+INFO: Completed version 1.467
+--------------------------------------------------------------------------
+INFO: Starting on version 1.468
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2009-10-07T00:15:32-0700" git commit -a -m Update to version 1.468 -m fix "insecure dependency" as root in karmic (perl 5.10.0?)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2009-10-07T00:15:32-0700" git tag -a v1.468 -m Toast Version 1.468
+INFO: Completed version 1.468
+--------------------------------------------------------------------------
+INFO: Starting on version 1.469
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2009-11-21T22:18:42-0800" git commit -a -m Update to version 1.469 -m update copyright year
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2009-11-21T22:18:42-0800" git tag -a v1.469 -m Toast Version 1.469
+INFO: Completed version 1.469
+--------------------------------------------------------------------------
+INFO: Starting on version 1.470
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2009-11-21T22:19:58-0800" git commit -a -m Update to version 1.470 -m fix cygwin "too many levels of symbolic links" issue
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2009-11-21T22:19:58-0800" git tag -a v1.470 -m Toast Version 1.470
+INFO: Completed version 1.470
+--------------------------------------------------------------------------
+INFO: Starting on version 1.471
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2010-01-08T04:34:47-0800" git commit -a -m Update to version 1.471 -m remove debug warnings added in 1.470
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2010-01-08T04:34:47-0800" git tag -a v1.471 -m Toast Version 1.471
+INFO: Completed version 1.471
+--------------------------------------------------------------------------
+INFO: Starting on version 1.472
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2010-01-08T04:37:48-0800" git commit -a -m Update to version 1.472 -m correct line nos for perl built-in warnings
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2010-01-08T04:37:48-0800" git tag -a v1.472 -m Toast Version 1.472
+INFO: Completed version 1.472
+--------------------------------------------------------------------------
+INFO: Starting on version 1.473
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2010-01-10T02:14:39-0800" git commit -a -m Update to version 1.473 -m increment copyright year
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2010-01-10T02:14:39-0800" git tag -a v1.473 -m Toast Version 1.473
+INFO: Completed version 1.473
+--------------------------------------------------------------------------
+INFO: Starting on version 1.474
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2010-01-10T02:43:08-0800" git commit -a -m Update to version 1.474 -m add toast bug command
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2010-01-10T02:43:08-0800" git tag -a v1.474 -m Toast Version 1.474
+INFO: Completed version 1.474
+--------------------------------------------------------------------------
+INFO: Starting on version 1.475
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2010-01-10T22:05:51-0800" git commit -a -m Update to version 1.475 -m better diagnostic for empty HTTP response
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2010-01-10T22:05:51-0800" git tag -a v1.475 -m Toast Version 1.475
+INFO: Completed version 1.475
+--------------------------------------------------------------------------
+INFO: Starting on version 1.476
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2010-01-11T03:29:06-0800" git commit -a -m Update to version 1.476 -m even more diagnostics
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2010-01-11T03:29:06-0800" git tag -a v1.476 -m Toast Version 1.476
+INFO: Completed version 1.476
+--------------------------------------------------------------------------
+INFO: Starting on version 1.477
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2010-01-11T03:41:49-0800" git commit -a -m Update to version 1.477 -m shutdown causing EBADF?
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2010-01-11T03:41:49-0800" git tag -a v1.477 -m Toast Version 1.477
+INFO: Completed version 1.477
+--------------------------------------------------------------------------
+INFO: Starting on version 1.478
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2010-01-13T04:24:48-0800" git commit -a -m Update to version 1.478 -m fix "bad file descriptor" in GET
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2010-01-13T04:24:48-0800" git tag -a v1.478 -m Toast Version 1.478
+INFO: Completed version 1.478
+--------------------------------------------------------------------------
+INFO: Starting on version 1.479
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2010-01-14T04:31:03-0800" git commit -a -m Update to version 1.479 -m workaround for autotools bug (?)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2010-01-14T04:31:03-0800" git tag -a v1.479 -m Toast Version 1.479
+INFO: Completed version 1.479
+--------------------------------------------------------------------------
+INFO: Starting on version 1.480
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2010-03-02T05:27:56-0800" git commit -a -m Update to version 1.480 -m fix OpenSolaris "Connection refused"?
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2010-03-02T05:27:56-0800" git tag -a v1.480 -m Toast Version 1.480
+INFO: Completed version 1.480
+--------------------------------------------------------------------------
+INFO: Starting on version 1.481
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2010-04-04T18:22:09-0700" git commit -a -m Update to version 1.481 -m fix ccache wrapper path quoting issue?
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2010-04-04T18:22:09-0700" git tag -a v1.481 -m Toast Version 1.481
+INFO: Completed version 1.481
+--------------------------------------------------------------------------
+INFO: Starting on version 1.482
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2011-09-02T00:55:44-0700" git commit -a -m Update to version 1.482 -m fix "empty path component in ccache"?
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2011-09-02T00:55:44-0700" git tag -a v1.482 -m Toast Version 1.482
+INFO: Completed version 1.482
+--------------------------------------------------------------------------
+INFO: Starting on version 1.483
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2011-09-14T00:31:57-0700" git commit -a -m Update to version 1.483 -m lie to make install about UID (e.g. goldenpod)
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2011-09-14T00:31:57-0700" git tag -a v1.483 -m Toast Version 1.483
+INFO: Completed version 1.483
+--------------------------------------------------------------------------
+INFO: Starting on version 1.484
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2011-09-21T02:58:56-0700" git commit -a -m Update to version 1.484 -m backticks are *so* 2004
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2011-09-21T02:58:56-0700" git tag -a v1.484 -m Toast Version 1.484
+INFO: Completed version 1.484
+--------------------------------------------------------------------------
+INFO: Starting on version 1.485
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2011-09-21T03:09:40-0700" git commit -a -m Update to version 1.485 -m add --libvar, which now defaults to LD_LIBRARY_PATH
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2011-09-21T03:09:40-0700" git tag -a v1.485 -m Toast Version 1.485
+INFO: Completed version 1.485
+--------------------------------------------------------------------------
+INFO: Starting on version 1.486
+DEBUG: echo $diff_raw | patch -p0
+patching file toast
+DEBUG: git add --all .
+DEBUG: env GIT_AUTHOR_DATE="2012-07-13T06:19:37-0700" git commit -a -m Update to version 1.486 -m toast env now sets PKG_CONFIG_PATH
+DEBUG: env GIT_COMMITTER_NAME="Jacques Frechet" GIT_COMMITTER_EMAIL="UNKNOWN" GIT_COMMITTER_DATE="2012-07-13T06:19:37-0700" git tag -a v1.486 -m Toast Version 1.486
+INFO: Completed version 1.486
+--------------------------------------------------------------------------
