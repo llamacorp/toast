@@ -1,4 +1,19 @@
 #! /usr/bin/env perl
+
+##############################################################################
+#                                                                            #
+# This entire file is toast, a program for installing and managing software. #
+# Copyright (C)      2014 Ram Raghunathan.
+# Copyright (C) 2003-2012 Jacques Frechet.                                   #
+# This file should also contain version 3 of the GNU General Public License, #
+# which includes its own copyright notice.                                   #
+#                                                                            #
+# For more information on toast, including purpose, usage, licensing, and    #
+# LACK OF ANY WARRANTY, visit http://www.toastball.net/toast/, run "toast"   #
+# without arguments, or refer to the documentation at the end of this file.  #
+#                                                                            #
+##############################################################################
+
 use 5.006_000; # Need 5.6 for use warnings below
 use warnings;
 use strict;
