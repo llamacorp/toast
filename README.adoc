@@ -104,3 +104,8 @@ Just a note: while toast is remarkable in its adaptability, it is
 quite the magician. After all, the program is over 8000 lines of code,
 written over more than a decade. Be careful where you tread, for here
 be dragons.
+
+== What is toast licensed under?
+Toast is under the GNU General Public Licence version 3, as can be
+seen from running `toast licence` or the COPYING file in the
+repository.
