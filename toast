@@ -2380,16 +2380,29 @@ sub isbuiltmatch(@)
 sub lookslikepkgurl($;$;$)
 {
   my($url, $name, $version) = @_;
-  return false unless $url =~ m!^(http|ftp)://.*/[^/]+\.[a-z][^/]+$!i;
+  return false unless $url =~ m!^(https?|ftp)://.*/[^/]+\.[a-z][^/]+$!i;
   return false if $url =~ m/\#/;
   my($noquery) = stripquery($url);
   return false unless $noquery =~ m!\.\w+$!;
   return false if $noquery =~ m!\.(html?|php|txt|diff|gif|jpg|png|css|asc|sum|sig|sign|lsm|md5)(\.\w\w)?$!i;
   return true unless defined($name);
+
   my($basename) = basename($noquery);
-  return false unless $basename =~ /\Q$name\E/i;
+  if ($noquery =~ m!https?://(www\.)?github.com!) {
+    # github releases (usually) encode package name in path and version in basename
+    return false unless $noquery =~ /\Q$name\E/i;
+  } else {
+    return false unless $basename =~ /\Q$name\E/i;
+  }
+
   return true unless defined($version);
-  return false unless $basename =~ /\Q$version\E/i;
+
+  if ($noquery =~ m!https?://(www\.)?github.com!) {
+    return false unless $basename =~ /\Q$version\E/i
+  } else {
+    return false unless $basename =~ /\Q$version\E/i;
+  }
+
   return true;
 }
 
@@ -2421,7 +2434,7 @@ sub findnewpkg($$)
   @findsites = map { ($_ eq "all") ? @all : $_ } @findsites;
   @findsites = map { exists($sites{$_}) ? $sites{$_} : $_ } @findsites;
   s/\*/$name/g for @findsites;
-  @findsites = $toast_webpage_url if $lcname eq $toast_name;
+  @findsites = $toast_webpage_url . "/releases" if $lcname eq $toast_name;
   @findsites = uniq(@findsites);
 
   my($url);
