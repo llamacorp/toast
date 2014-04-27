@@ -109,7 +109,7 @@ the token used in automatically reporting toast bugs upon running
 Sadly, I don't know of an effective monkey repellent. That being said,
 if you have a question or issue with toast,
 https://github.com/llamacorp/toast/issues[open an issue] here on
-github! Alternatively, email me at ram@llama.is with the subject
+github! Alternatively, email me at toastbug@llama.is with the subject
 prefix `[toast]` so that I know to see your message.
 
 == Toast has made life beautiful again, and I want to give back
