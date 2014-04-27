@@ -87,6 +87,13 @@ changing the name, but honestly, toast is a short, sweet name that is
 unique enough to remember, and this is largely Mr. Frechet's work
 after all!
 
+== Oh, and who is LlamaCorp?
+LlamaCorp is a fictitious corporation solely owned and managed by
+https://github.com/ramLlama[Ram Raghunathan]. I created this github
+organization to have better control over access rights, such as for
+the token used in automatically reporting toast bugs upon running
+`toast bug`.
+
 == Help! Monkeys are attacking my face and I don't know what to do!
 Sadly, I don't know of an effective monkey repellent. That being said,
 if you have a question or issue with toast,

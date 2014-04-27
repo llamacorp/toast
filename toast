@@ -9,16 +9,19 @@
 # which includes its own copyright notice.                                   #
 #                                                                            #
 # For more information on toast, including purpose, usage, licensing, and    #
-# LACK OF ANY WARRANTY, visit https://github.com/ramLlama/toast, run "toast" #
-# without arguments, or refer to the documentation at the end of this file.  #
+# LACK OF ANY WARRANTY, visit https://github.com/llamacrop/toast, run        #
+# toast without arguments, or refer to the documentation at the end of this  #
+# file.                                                                      #
 #                                                                            #
 ##############################################################################
 
-use 5.006_000; # Need 5.6 for use warnings below
+use 5.010_000; # Asking for 5.10 to use modern Perl features.
 use warnings;
 use strict;
 
 use File::Basename;
+use HTTP::Tiny;
+use JSON::Tiny qw(decode_json encode_json);
 
 ##############################################################################
 
@@ -27,8 +30,8 @@ my $toast_version = '$VERSION$';
 my $toast_build_time = '$BUILD_DATE$';
 my $toast_builder = '$BUILDER';
 
-my $toast_webpage_url = "https://github.com/ramLlama/toast";
-my $toast_issues_url = "https://github.com/ramLlama/toast/issues";
+my $toast_webpage_url = "https://github.com/llamacorp/toast";
+my $toast_issues_url = 'https://api.github.com/repos/llamacorp/toast/issues';
 my $toast_copyright = <<'EOF';
 Copyright (C)      2014 Ram Raghunathan
 Copyright (C) 2003-2010 Jacques Frechet
@@ -5254,10 +5257,27 @@ sub bug(@)
   my(@logs) = sort { $logs{$b} <=> $logs{$a} } keys(%logs);
   my($path) = $logs[0];
 
-  explain("sending $path");
-  my($result) = httppost($toast_issues_url, join('', readfile($path)));
-  $result =~ s/\s*$//;
-  error("server error: $result") unless $result eq "ok";
+  my $issue_json = encode_json({title => "Generated Issue",
+				body => join('', readfile($path))});
+
+  my $http_client = HTTP::Tiny->new(
+				    agent => "$toast_name/$toast_version ($^O; $toast_webpage_url) ",
+				    default_headers =>
+				    {
+				     "Accept" => "application/vnd.github.v3+json",
+				     "Content-Type" => "application/x-www-form-urlencoded",
+				     "Authorization" => "token 24d16012405c5b69024efdd42430f0cf14397caf"
+				    }
+				   );
+
+
+  explain("sending $path to $toast_issues");
+  my $response = $http_client->post($toast_issues, {content => $issue_json});
+  if (!$response->{success}) {
+    my $errmsg = "server error: $response->{status} ($response->{reason})";
+    $errmsg = $errmsg . "\n$response->{content}" unless $response->{content} eq "";
+    error($errmsg)
+  }
   return true;
 }
 
@@ -6977,11 +6997,11 @@ with the LWP Perl module.  The third command is broken over three lines,
 though your shell should let you paste it exactly as written; it relies
 only on Perl with no modules at all.
 
-  curl -L https://github.com/ramLlama/toast/raw/master/toast | perl - arm toast
+  curl -L https://github.com/llamacorp/toast/raw/master/toast | perl - arm toast
 
-  wget -O - https://github.com/ramLlama/toast/raw/master/toast | perl - arm toast
+  wget -O - https://github.com/llamacorp/toast/raw/master/toast | perl - arm toast
 
-  GET https://github.com/ramLlama/toast/raw/master/toast | perl - arm toast
+  GET https://github.com/llamacorp/toast/raw/master/toast | perl - arm toast
 
 Of course, if you already have a previous version of B<toast> up and
 running, just type C<toast upgrade toast>.  If B<toast> is installed
@@ -7030,11 +7050,11 @@ above in C</etc/profile> or something.
 The above procedure is by no means required in order to install or use
 B<toast>.  An official compressed tarball distribution containing
 B<toast> are available for download at
-C<https://github.com/ramLlama/toast/releases>.  An uncompressed
+C<https://github.com/llamacorp/toast/releases>.  An uncompressed
 version can be found at
-C<https://github.com/ramLlama/toast/raw/$VERSION/toast> where $VERSION
+C<https://github.com/llamacorp/toast/raw/$VERSION/toast> where $VERSION
 is tag/name of the release, as seen on
-C<https://github.com/ramLlama/toast/releases>.  The unmodified B<toast>
+C<https://github.com/llamacorp/toast/releases>.  The unmodified B<toast>
 script can be copied to and run from any location, and you can use
 B<toast man> to view the man page without having to install it first.
 The default option settings should be sensible, and any necessary
