@@ -54,7 +54,18 @@ imported Mr. Frechet's work as faithfully as I could into this
 gitrepo.
 
 == I am sold. How do I use toast?
-To install toast you can do one of three things:
+First, make sure you have these dependencies installed:
+
+* Perl 5.10 or newer
+* http://search.cpan.org/~dagolden/HTTP-Tiny-0.043/[HTTP::Tiny]
+* http://search.cpan.org/~davido/JSON-Tiny-0.45/[JSON::Tiny]
+
+I realize the irony of having dependencies for a package manager, but
+you will need to install these on your own for now, however you
+wish. A bootstrapper will be included in a future version.
+
+Once these dependencies have been satisfied, install toast by
+performing one of the three actions below:
 
 * Clone this repository and run `toast/toast arm toast`.
 * Clone this repository and run `./configure
