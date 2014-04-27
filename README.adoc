@@ -71,7 +71,7 @@ performing one of the three actions below:
 * Clone this repository and run `./configure
   --prefix=${HOME}/.toast/armed && make install` like you
   would most other programs you install from source.
-* Run `curl 'https://github.com/ramLlama/toast/raw/master/toast' |
+* Run `curl 'https://github.com/llamacorp/toast/raw/master/toast' |
   perl - arm toast`. You can replace `curl' with the equivalent `wget'
   or `GET' command to output the page to STDOUT.
 
@@ -108,7 +108,7 @@ the token used in automatically reporting toast bugs upon running
 == Help! Monkeys are attacking my face and I don't know what to do!
 Sadly, I don't know of an effective monkey repellent. That being said,
 if you have a question or issue with toast,
-https://github.com/ramLlama/toast/issues[open an issue] here on
+https://github.com/llamacorp/toast/issues[open an issue] here on
 github! Alternatively, email me at ram@llama.is with the subject
 prefix `[toast]` so that I know to see your message.
 
