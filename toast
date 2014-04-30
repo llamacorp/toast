@@ -9,7 +9,7 @@
 # which includes its own copyright notice.                                   #
 #                                                                            #
 # For more information on toast, including purpose, usage, licensing, and    #
-# LACK OF ANY WARRANTY, visit https://github.com/llamacrop/toast, run        #
+# LACK OF ANY WARRANTY, visit https://github.com/llamacorp/toast, run        #
 # toast without arguments, or refer to the documentation at the end of this  #
 # file.                                                                      #
 #                                                                            #
@@ -5271,8 +5271,8 @@ sub bug(@)
 				   );
 
 
-  explain("sending $path to $toast_issues");
-  my $response = $http_client->post($toast_issues, {content => $issue_json});
+  explain("sending $path to $toast_issues_url");
+  my $response = $http_client->post($toast_issues_url, {content => $issue_json});
   if (!$response->{success}) {
     my $errmsg = "server error: $response->{status} ($response->{reason})";
     $errmsg = $errmsg . "\n$response->{content}" unless $response->{content} eq "";
@@ -6992,16 +6992,14 @@ to the package being built.
 To have the latest version of B<toast> download and install itself in your
 home directory, run one of the following commands as a non-root user.
 (See below for instructions to install as root.)  The first command
-requires GNU wget.  The second relies on the GET utility that comes
-with the LWP Perl module.  The third command is broken over three lines,
-though your shell should let you paste it exactly as written; it relies
-only on Perl with no modules at all.
+requires curl.  The second relies on the GET utility that comes
+with the LWP Perl module.  The third command relies on GNU wget.
 
   curl -L https://github.com/llamacorp/toast/raw/master/toast | perl - arm toast
 
-  wget -O - https://github.com/llamacorp/toast/raw/master/toast | perl - arm toast
-
   GET https://github.com/llamacorp/toast/raw/master/toast | perl - arm toast
+
+  wget -O - https://github.com/llamacorp/toast/raw/master/toast | perl - arm toast
 
 Of course, if you already have a previous version of B<toast> up and
 running, just type C<toast upgrade toast>.  If B<toast> is installed
@@ -7286,7 +7284,7 @@ Sends a bug report about a broken build.  Use this command to let me
 know when you think B<toast> ought to be able to build a package, but
 it isn't working.  If you would like to hear back from me about your
 bug report, or if there's anything else you think I should know, email
-me at C<toast-bugs@llama.is>.  If invoked without arguments, sends build
+me at C<toastbug@llama.is>.  If invoked without arguments, sends build
 output from the most recent broken build; otherwise, sends build
 output from the most recent broken build for each argument.  Build
 output for each broken build is stored in a file called B<broken.log>
