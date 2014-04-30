@@ -26,9 +26,9 @@ use JSON::Tiny qw(decode_json encode_json);
 ##############################################################################
 
 my $toast_name = "toast";
-my $toast_version = '$VERSION$';
-my $toast_build_time = '$BUILD_DATE$';
-my $toast_builder = '$BUILDER';
+my $toast_version = '2.0.0-alpha';
+my $toast_build_time = '2014-04-29';
+my $toast_builder = 'ram';
 
 my $toast_webpage_url = "https://github.com/llamacorp/toast";
 my $toast_issues_url = 'https://api.github.com/repos/llamacorp/toast/issues';
