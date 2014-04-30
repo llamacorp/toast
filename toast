@@ -515,11 +515,11 @@ BEGIN
 {
   my($verbosified) = false;
   sub verbosify() { $verbosified = true }
-  sub say(@) { print(@_) if $verbosified || !quiet }
+  sub verbosesay(@) { print(@_) if $verbosified || !quiet }
 }
 
-sub explain(@) { say("# @_\n"); }
-sub announce(@) { say("@_\n"); }
+sub explain(@) { verbosesay("# @_\n"); }
+sub announce(@) { verbosesay("@_\n"); }
 
 ##############################################################################
 
@@ -4367,7 +4367,7 @@ sub rebuild(@)
   {
     print LOG $_;
     chomp;
-    say("  $_\n");
+    verbosesay("  $_\n");
   }
 
   my($success) = close(CHILD);
@@ -4905,7 +4905,7 @@ sub find(@)
   $name = ${$pkgs[0]}[0];
   $name eq ${$pkgs[$_]}[0] or error for 0..$#pkgs;
 
-  say("\n");
+  verbosesay("\n");
 
   print("$name\n");
   for(@pkgs)
