@@ -1648,9 +1648,20 @@ sub stringifyenvvar_fish($$$)
   return 'set ' . ($export ? '-x ' : '') . "$key " . ($value =~ s/:/ /gr) . ';';
 }
 
+sub stringifyenvvar_csh($$$)
+{
+  my($key, $value, $export) = @_;
+
+  # csh uses standard colon-delimited arrays, but uses 'set $key=$value' for
+  # unexported variables and 'setenv $key $value' for exported variables. Since
+  # all our variables need to be exported, just use 'setenv'
+  return "setenv $key $value;";
+}
+
 my %stringifyenvvar =
 (
  "bash" => \&stringifyenvvar_posix,
+ "csh"  => \&stringifyenvvar_csh,
  "dash" => \&stringifyenvvar_posix,
  "fish" => \&stringifyenvvar_fish,
  "ksh"  => \&stringifyenvvar_posix,
